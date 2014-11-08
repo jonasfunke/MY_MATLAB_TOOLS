@@ -35,5 +35,6 @@ for i=1:length(dirs_to_add)
     disp(['Added: ' dirs_to_add{i}])
 end
 
-
+%% clear all variable for a clean startup
+clear
 
