@@ -35,6 +35,9 @@ for i=1:length(dirs_to_add)
     disp(['Added: ' dirs_to_add{i}])
 end
 
+%% change to matlab directory
+cd(matlab_dir)
+
 %% clear all variable for a clean startup
 clear
 
