@@ -27,12 +27,16 @@ dirs_to_add = {...
     };
 
 for i=1:length(subdirs_to_add)
-    add_subdirectories(subdirs_to_add{i})
+    if exist(subdirs_to_add{i}) == 7 %is a folder 
+        add_subdirectories(subdirs_to_add{i})
+    end
 end
 
 for i=1:length(dirs_to_add)
-    addpath(dirs_to_add{i})
-    disp(['Added: ' dirs_to_add{i}])
+    if exist(subdirs_to_add{i}) == 7 %is a folder 
+        addpath(dirs_to_add{i})
+        disp(['Added: ' dirs_to_add{i}])
+    end
 end
 
 %% change to matlab directory
