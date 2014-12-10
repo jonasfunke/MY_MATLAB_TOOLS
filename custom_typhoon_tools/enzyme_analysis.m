@@ -40,5 +40,16 @@ set(gca, 'YLim', [0 0.5])
 
 
 %%
-close all
-plot(1:12, mono1+dimer1, 1:12, mono2+dimer2)
+%close all
+%plot(1:15, mono1+dimer1, 1:15, mono2+dimer2)
+
+%%
+
+subplot(1,2,1)
+plot(mono1+dimer1, yield(:,1), 'g.')
+
+subplot(1,2,2)
+plot(mono2+dimer2, yield(:,2), 'r.')
+
+%%
+disp('Finished')
