@@ -24,11 +24,11 @@ mkdir(path_out);
 save([path_out prefix_out '_data.mat'])
 
 %% compute yield
-mono1 = bands.band_intensities(2:3:end,1);
-dimer1 = bands.band_intensities(1:3:end,1);
+mono1 = bands.intensities(2:3:end,1);
+dimer1 = bands.intensities(1:3:end,1);
 
-mono2 = bands.band_intensities(3:3:end,2);
-dimer2 = bands.band_intensities(1:3:end,2);
+mono2 = bands.intensities(3:3:end,2);
+dimer2 = bands.intensities(1:3:end,2);
 yield = [ [dimer1 ./ (dimer1 + mono1)],  [dimer2 ./ (dimer2 + mono2)]];
 
 close all
