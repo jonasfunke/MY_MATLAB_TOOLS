@@ -34,14 +34,32 @@ yield = [ [dimer1 ./ (dimer1 + mono1)],  [dimer2 ./ (dimer2 + mono2)]];
 save([path_out prefix_out '_data.mat'], 'yield' ,'-append')
 
 %%
+n_bands = size(bands.intensities,1);
+n_samples = n_bands / 3;
+
+
+%% plot total intensity
 close all
-plot(yield)
+cur_fig = figure()
+plot(1:n_samples, mono1+dimer1, 'g.-', 1:n_samples, mono2+dimer2, 'r.-')
+xlabel('Lane')
+ylabel('Total Intensity')
+legend({'cy3-channel', 'cy5-channel'}, 'Location', 'best')
+set(gca, 'XLim', [1 n_samples])
+print(cur_fig, '-dtiff', '-r 500' , [path_out filesep prefix_out '_total-intensity.tif']); %save figure
+
+%% plot yield
+close all
+cur_fig = figure();
+plot(1:n_samples, yield(:,1), 'g.-', 1:n_samples, yield(:,2), 'r.-')
 set(gca, 'YLim', [0 0.5])
+xlabel('Lane')
+ylabel('Yield')
+legend({'cy3-channel', 'cy5-channel'}, 'Location', 'best')
+set(gca, 'XLim', [1 n_samples])
 
+print(cur_fig, '-dtiff', '-r 500' , [path_out filesep prefix_out '_yield.tif']); %save figure
 
-%%
-%close all
-%plot(1:15, mono1+dimer1, 1:15, mono2+dimer2)
 
 %%
 
