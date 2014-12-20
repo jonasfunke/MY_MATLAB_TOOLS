@@ -4,6 +4,9 @@ close all, clear all, clc
 %% load gel data
 gelData_raw = load_gel_image('data_dir', data_directory);
 
+%%
+[gelData_raw, cf] = check_gel_saturation(gelData_raw);
+
 %% background correct data
 gelData = background_correct_gel_image(gelData_raw, 'numberOfAreas', 4);
 
