@@ -1,6 +1,8 @@
 function [ d_out ] = dsDNA_distances( n )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
+
+    
     d = [1	16.867
 2	18.434
 3	19.09
@@ -52,7 +54,16 @@ function [ d_out ] = dsDNA_distances( n )
 49	166.64
 50	170.27];
 
-d_out = d(n,2);
+if max(n)>50
+    p = polyfit(d(40:50,1), d(40:50,2), 1); %fit last 10 residuals
+    n_add = 51:ceil(max(n));
+    d = [d ; n_add' p(1).*n_add'+p(2)];
+end
+
+d_out = spline(d(:,1), d(:,2), n);
+
+
+    %plot(1:50, dsDNA_distances(1:50), '+', 0:100,dsDNA_distances(0:100), '.' )
 
 end
 
