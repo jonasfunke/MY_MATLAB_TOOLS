@@ -48,7 +48,7 @@ xlabel('Length of spacer [bp]')
 ylabel('Yield of reaction')
 legend({'cy3-channel', 'cy5-channel'})
 
-print(cur_fig, '-dtiff','-r500' , [path_out filesep 'Yield_combined.tif']); %save figure
+print(cur_fig, '-dtiff','-r500' , [path_out filesep 'Yield_combined_normalized.tif']); %save figure
 
 
 %%

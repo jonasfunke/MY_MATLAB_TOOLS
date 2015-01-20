@@ -22,15 +22,13 @@ mkdir(path_out);
 
 %%
 n_bands = size(bands.intensities,1);
-n_samples = n_bands / 3;
+n_samples = n_bands / 2;
 
 %% compute yield
-mono1 = bands.intensities(2:3:end,1);
-dimer1 = bands.intensities(1:3:end,1);
+mono = bands.intensities(2:2:end,1);
+dimer = bands.intensities(1:2:end,1);
 
-mono2 = bands.intensities(3:3:end,2);
-dimer2 = bands.intensities(1:3:end,2);
-yield = [ [dimer1 ./ (dimer1 + mono1)],  [dimer2 ./ (dimer2 + mono2)]];
+yield =  [dimer ./ (dimer + mono)];
 
 %% save data
 save([path_out prefix_out '_data.mat'])
@@ -40,17 +38,16 @@ save([path_out prefix_out '_data.mat'])
 %% plot total intensity
 close all
 cur_fig = figure()
-plot(1:n_samples, mono1+dimer1, 'g.-', 1:n_samples, mono2+dimer2, 'r.-')
+plot( 1:n_samples, mono+dimer, 'r.-')
 xlabel('Lane')
 ylabel('Total Intensity')
-legend({'cy3-channel', 'cy5-channel'}, 'Location', 'best')
-set(gca, 'XLim', [1 n_samples])
+legend({'cy5-channel'}, 'Location', 'best')
+set(gca, 'XLim', [1 n_samples], 'YLim', [0 1.2*max(mono+dimer)])
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep prefix_out '_total-intensity.tif']); %save figure
 
 %% plot yield
-close all
 cur_fig = figure();
-plot(1:n_samples, yield(:,1), 'g.-', 1:n_samples, yield(:,2), 'r.-')
+plot(1:n_samples, yield, 'r.-')
 set(gca, 'YLim', [0 0.5])
 xlabel('Lane')
 ylabel('Yield')
@@ -61,31 +58,27 @@ print(cur_fig, '-dtiff', '-r 500' , [path_out filesep prefix_out '_yield.tif']);
 
 
 %%
+cur_fig = figure();
+
 cur_fig = figure()
 subplot(2,1,1)
-plot(1:n_samples, mono1+dimer1, 'g.-', 1:n_samples, mono2+dimer2, 'r.-')
+plot( 1:n_samples, mono+dimer, 'r.-')
 xlabel('Lane')
 ylabel('Total Intensity')
-legend({'cy3-channel', 'cy5-channel'}, 'Location', 'best')
-set(gca, 'XLim', [1 n_samples])
+legend({'cy5-channel'}, 'Location', 'best')
+set(gca, 'XLim', [1 n_samples], 'YLim', [0 1.2*max(mono+dimer)])
 
 subplot(2,1,2)
-plot(1:n_samples, yield(:,1), 'g.-', 1:n_samples, yield(:,2), 'r.-')
-%set(gca, 'YLim', [0 0.5])
+plot(1:n_samples, yield, 'r.-')
+set(gca, 'YLim', [0 0.5])
 xlabel('Lane')
 ylabel('Yield')
 legend({'cy3-channel', 'cy5-channel'}, 'Location', 'best')
 set(gca, 'XLim', [1 n_samples])
 
-
-
 %%
-
-subplot(1,2,1)
-plot(mono1+dimer1, yield(:,1), 'g.')
-
-subplot(1,2,2)
-plot(mono2+dimer2, yield(:,2), 'r.')
-
+%close all
+%plot(mono+dimer, yield, 'r.')
+%R = corrcoef(mono+dimer, yield)
 %%
 disp('Finished')
