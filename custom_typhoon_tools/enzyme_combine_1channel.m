@@ -29,6 +29,10 @@ yield_10uM = [yield_10uM; [25, 30, 35, 40, 45, 50, 100]' data2.yield(1:7)];
 
 yield_2mM = [[0:5]' data2.yield(8:13)];
 yield_2mM = [yield_2mM; [6:10, 15, 20, 25, 30, 35, 40, 45, 50, 100]' data3.yield];
+
+%%
+save([path_out filesep 'data.mat'])
+
 %%
 i1 = 1;
 i2 = 19;

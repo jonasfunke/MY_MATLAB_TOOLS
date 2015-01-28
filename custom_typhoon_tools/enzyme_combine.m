@@ -26,6 +26,10 @@ mkdir(path_out)
 yield = [[10:24]' data1.yield];
 yield = [yield; [25:39]' data2.yield];
 yield = [yield; [40:51]' data3.yield];
+
+%% save data
+save([path_out filesep 'data.mat'])
+
 %%
 cur_fig = figure();
 plot(yield(:,1), yield(:,2), 'g.-', yield(:,1), yield(:,3), 'r.-')
