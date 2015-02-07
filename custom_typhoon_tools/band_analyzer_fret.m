@@ -2,7 +2,7 @@
 close all, clear all, clc
 
 %% load gel data
-gelData_raw = load_gel_image('data_dir', data_directory);
+gelData_raw = load_gel_image('data_dir', data_directory, 'n_images', 3);
 
 %% check for saturation
 gelData_raw = check_gel_saturation(gelData_raw);
