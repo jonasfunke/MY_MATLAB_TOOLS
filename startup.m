@@ -42,6 +42,10 @@ end
 %% change to matlab directory
 cd(matlab_dir)
 
+%% set default figureposition to left screen
+p = [1920+1280-560/2, 420/2,  560, 420];
+set(0, 'DefaultFigurePosition', p)
+
 %% clear all variable for a clean startup
 clear
 
