@@ -10,6 +10,13 @@ gelData_raw = check_gel_saturation(gelData_raw);
 %% background correct data
 gelData = background_correct_gel_image(gelData_raw, 'numberOfAreas', 4);
 
+%% overlay images 
+[dd_shift, dd_dx, dd_dy] = overlay_image(gelData.images{2}, gelData.images{1}, 'display', 'off');
+[da_shift, da_dx, da_dy] = overlay_image(gelData.images{2}, gelData.images{3}, 'display', 'off');
+
+gelData.images_raw = gelData.images;
+gelData.images = {dd_shift, gelData.images{2}, da_shift };
+
 %% create output dir
 prefix_out = [gelData.filenames{1}(1:end-4) '_analysis_' datestr(now, 'yyyy-mm-dd_HH-MM')];
 tmp = inputdlg({'Name of analysis (prefix):'}, 'Name of analysis (prefix):' , 1, {prefix_out} );
