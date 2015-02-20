@@ -40,7 +40,8 @@ gelData.images{4} = da_cor; % append to images
 
 %% integrate bands
 bandData = get_band_intensities(gelData);
-
+pause(0.1)
+close all
 %% calculate intensities based on ratio
 %{
 I = zeros(18,3);
@@ -118,8 +119,7 @@ t.setTag('SamplesPerPixel',1);
 t.setTag('PlanarConfiguration',Tiff.PlanarConfiguration.Chunky);
 t.write( uint16(da_cor+gelData.background{3}.p00)  );
 t.close();
-
-%% 
+ 
 disp('Done.')
 
 %% Plot 
