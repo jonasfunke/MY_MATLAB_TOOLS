@@ -2,7 +2,7 @@
 close all, clear all, clc
 
 %% load gel data
-gelData_raw = load_gel_image('data_dir', data_directory, 'n_images', 3);
+gelData_raw = load_gel_image('data_dir', data_directory, 'n_images', 2);
 
 %% check for saturation
 gelData_raw = check_gel_saturation(gelData_raw);
@@ -11,11 +11,10 @@ gelData_raw = check_gel_saturation(gelData_raw);
 gelData = background_correct_gel_image(gelData_raw, 'numberOfAreas', 4);
 
 %% overlay images 
-[dd_shift, dd_dx, dd_dy] = overlay_image(gelData.images{2}, gelData.images{1}, 'display', 'off');
-[da_shift, da_dx, da_dy] = overlay_image(gelData.images{2}, gelData.images{3}, 'display', 'off');
+[ch2_shift, ch2_dx, ch2_dy] = overlay_image(gelData.images{1}, gelData.images{2}, 'display', 'off');
 
 gelData.images_raw = gelData.images;
-gelData.images = {dd_shift, gelData.images{2}, da_shift };
+gelData.images = {gelData.images{1}, ch2_shift, gelData.images{2}};
 
 %% create output dir
 prefix_out = [gelData.filenames{1}(1:end-4) '_analysis_' datestr(now, 'yyyy-mm-dd_HH-MM')];
@@ -28,20 +27,15 @@ mkdir(path_out);
 %[dd_bg, da_x_min, da_y_min] = overlay_image(da_bg, dd_bg, 10);
 %[aa_bg, aa_x_min, aa_y_min]= overlay_image(da_bg, aa_bg, 10);
 
-%% leakage and direct-excitation correction factors
-[leak_dir, leakdir_fig]  = calculate_leakage_directexcitation(gelData.images{1}, gelData.images{3}, gelData.images{2}, 'display', 'on');
-print(leakdir_fig, '-dtiff', '-r 500' , [path_out filesep 'Leakage_DirEx_correction.tif']); %save figure
+%% find profiles
+profileData = get_gel_lanes(gelData);
 
-% write leakdir
-save([path_out filesep 'Leakage_DirEx_data.txt'], 'leak_dir' ,'-ascii')
+%% Calculate ratio based on scatterplot 
+w = 10;
 
-da_cor = gelData.images{3} - leak_dir(1,1).*gelData.images{1} - leak_dir(2,1).*gelData.images{2};%-leak_dir(1,2)-leak_dir(2,2); %correct image
-gelData.images{4} = da_cor; % append to images
+plot_image_ui(gelData.images{2})
+N_lanes = 
 
-%% integrate bands
-bandData = get_band_intensities(gelData);
-pause(0.1)
-close all
 %% calculate intensities based on ratio
 %{
 I = zeros(18,3);
@@ -85,34 +79,9 @@ end
 
 %}
 
-
 %%
-DD_div_DA = zeros(size(bandData.intensities,1), 2);
-DD_div_AA = zeros(size(bandData.intensities,1), 2);
-DA_div_AA = zeros(size(bandData.intensities,1), 2);
-
-for i=1:size(bandData.intensities,1)
-    pos = bandData.positions(i,:);
-    subDD = gelData.images{1}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
-    subAA = gelData.images{2}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
-    subDA = gelData.images{4}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
-    DD_div_DA(i,:) = calculate_ration_of_areas(subDD, subDA, 'display', 'off');
-    DD_div_AA(i,:) = calculate_ration_of_areas(subDD, subAA, 'display', 'off');
-    DA_div_AA(i,:) = calculate_ration_of_areas(subDA, subAA, 'display', 'off');
-end
-
-%%
-
-i_gamma = 17;
-E_soll = 0.5;
-%gamma_calc =  bandData.intensities(i_gamma,4).*(1./0.5 - 1) ./  bandData.intensities(i_gamma,1) 
-    
-E_raw = 1./(1+DD_div_DA(:,1));
-gamma_calc = (1-E_soll)./E_soll./DD_div_DA(i_gamma,1)
-E = 1./(1+gamma_calc.*DD_div_DA(:,1));
-
-gamma_calc_integrate =  bandData.intensities(i_gamma,4).*(1./E_soll - 1) ./  bandData.intensities(i_gamma,1) 
-E_integrate = bandData.intensities(:,4) ./ (gamma_calc.*bandData.intensities(:,1) + bandData.intensities(:,4));
+gamma_calc =  bandData.intensities(end,4).*(1./0.5 - 1) ./  bandData.intensities(end,1) 
+E = bandData.intensities(:,4) ./ (gamma_calc.*bandData.intensities(:,1) + bandData.intensities(:,4));
 
 
 %% save data
@@ -148,22 +117,19 @@ t.close();
 disp('Done.')
 
 %% Plot 
+
 n_bands = size(bandData.intensities,1);
 cur_fig = figure;
 subplot(3, 1, 1)
 %plot(1:n_bands, bandData.intensities(:,2), 'r.-', 1:n_bands, bandData.intensities(:,1), 'g.-', 1:n_bands, bandData.intensities(:,4), 'b.-')
-plot( 1:n_bands, gamma_calc.*bandData.intensities(:,1)./bandData.intensities(:,2), 'g.--', 1:n_bands, bandData.intensities(:,4)./bandData.intensities(:,2), 'b.--', ...
-     1:n_bands, gamma_calc.*DD_div_AA(:,1), 'g.-', 1:n_bands, DA_div_AA(:,1), 'b.-')
+plot( 1:n_bands, gamma_calc.*bandData.intensities(:,1)./bandData.intensities(:,2), 'g.-', 1:n_bands, bandData.intensities(:,4)./bandData.intensities(:,2), 'b.-')
 xlabel('Lane'), ylabel('Normalized bandintensity')
 legend({'gamma * D->D / A->A', 'D->A / A->A'}, 'location', 'best')
-set(gca, 'XLim', [1 n_bands]);
 
 subplot(3, 1, 2:3)
-plot( 1:n_bands, E_integrate, 'k.--', 1:n_bands, E, 'k.-')
+plot(1:n_bands, E, 'k.-')
 xlabel('Lane'), ylabel('FRET efficiency')
 
-title({['gamma=' num2str(gamma_calc) ]})
-legend({ 'FRET from intgration', 'FRET from scatterplot'})
-set(gca, 'XLim', [1 n_bands]);
+legend({['gamma=' num2str(gamma_calc) ]})
 
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized.tif']); %save figure
