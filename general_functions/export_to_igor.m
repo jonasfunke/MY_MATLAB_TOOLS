@@ -1,6 +1,5 @@
 function [  ] = export_to_igor( data, wave_names, file_location )
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+% Writes an txt file that can be imported to igor pro
 
     if size(data,2)== length(wave_names)
         % write header/wave names
