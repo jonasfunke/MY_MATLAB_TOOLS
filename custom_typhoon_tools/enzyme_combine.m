@@ -20,7 +20,7 @@ cd(path_out);
 data3 = load([pname fname]);
 cd(path0)
 %%
-path_out = [path_out 'combined'];
+path_out = [path_out 'combined_' datestr(now, 'yyyy-mm-dd_HH-MM')];
 mkdir(path_out)
 %% combine to data struct
 yield = [[10:24]' data1.yield];
@@ -54,5 +54,5 @@ legend({'cy3-channel', 'cy5-channel'})
 
 print(cur_fig, '-dtiff','-r500' , [path_out filesep 'Yield_combined_normalized.tif']); %save figure
 
-
 %%
+disp('Finished')
