@@ -96,14 +96,16 @@ for i=1:size(bandData.intensities,1)
     subDD = gelData.images{1}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
     subAA = gelData.images{2}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
     subDA = gelData.images{4}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
-    DD_div_DA(i,:) = calculate_ration_of_areas(subDD, subDA, 'display', 'off');
+    DD_div_DA(i,:) = calculate_ration_of_areas(subDD, subDA, 'display', 'on');
+    pause
+    close all
     DD_div_AA(i,:) = calculate_ration_of_areas(subDD, subAA, 'display', 'off');
     DA_div_AA(i,:) = calculate_ration_of_areas(subDA, subAA, 'display', 'off');
 end
 
 %%
 
-i_gamma = 17;
+i_gamma = 38;
 E_soll = 0.5;
 %gamma_calc =  bandData.intensities(i_gamma,4).*(1./0.5 - 1) ./  bandData.intensities(i_gamma,1) 
     
