@@ -87,6 +87,8 @@ end
 
 
 %%
+path0 = cd;
+cd('/Users/jonasfunke/Documents/MATLAB/MATLAB_TOOLBOX/TYPHOON/private')
 DD_div_DA = zeros(size(bandData.intensities,1), 2);
 DD_div_AA = zeros(size(bandData.intensities,1), 2);
 DA_div_AA = zeros(size(bandData.intensities,1), 2);
@@ -96,16 +98,16 @@ for i=1:size(bandData.intensities,1)
     subDD = gelData.images{1}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
     subAA = gelData.images{2}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
     subDA = gelData.images{4}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
-    DD_div_DA(i,:) = calculate_ration_of_areas(subDD, subDA, 'display', 'on');
-    pause
-    close all
+    DD_div_DA(i,:) = calculate_ration_of_areas(subDD, subDA, 'display', 'off');
+   % pause
+   % close all
     DD_div_AA(i,:) = calculate_ration_of_areas(subDD, subAA, 'display', 'off');
     DA_div_AA(i,:) = calculate_ration_of_areas(subDA, subAA, 'display', 'off');
 end
-
+cd(path0)
 %%
 
-i_gamma = 38;
+i_gamma = 32;
 E_soll = 0.5;
 %gamma_calc =  bandData.intensities(i_gamma,4).*(1./0.5 - 1) ./  bandData.intensities(i_gamma,1) 
     
@@ -169,3 +171,18 @@ legend({ 'FRET from intgration', 'FRET from scatterplot'})
 set(gca, 'XLim', [1 n_bands]);
 
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized.tif']); %save figure
+
+%% Plot 
+close all
+n_bands = size(bandData.intensities,1);
+cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 20 5], 'Position', [0 1000 2000 500]);
+
+bar(  1:n_bands, E)
+xlabel('Lane'), ylabel('FRET efficiency')
+
+title({['gamma=' num2str(gamma_calc) ]})
+set(gca, 'XLim', [0 n_bands+1], 'YLim', [0.35 0.65]);
+
+print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized_barplot.tif']); %save figure
+
+print(cur_fig, '-depsc2' , [path_out filesep 'FRET_normalized_barplot.eps']); %save figure
