@@ -34,7 +34,6 @@ profileData = get_gel_lanes(gelData);
 w = 10;
 
 plot_image_ui(gelData.images{2})
-N_lanes = 
 
 %% calculate intensities based on ratio
 %{
