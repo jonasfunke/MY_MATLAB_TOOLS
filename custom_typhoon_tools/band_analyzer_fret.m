@@ -87,8 +87,6 @@ end
 
 
 %%
-path0 = cd;
-cd('/Users/jonasfunke/Documents/MATLAB/MATLAB_TOOLBOX/TYPHOON/private')
 DD_div_DA = zeros(size(bandData.intensities,1), 2);
 DD_div_AA = zeros(size(bandData.intensities,1), 2);
 DA_div_AA = zeros(size(bandData.intensities,1), 2);
@@ -104,10 +102,10 @@ for i=1:size(bandData.intensities,1)
     DD_div_AA(i,:) = calculate_ration_of_areas(subDD, subAA, 'display', 'off');
     DA_div_AA(i,:) = calculate_ration_of_areas(subDA, subAA, 'display', 'off');
 end
-cd(path0)
 %%
 
 i_gamma = [1, 32, 48];
+
 E_soll = 0.5;
 %gamma_calc =  bandData.intensities(i_gamma,4).*(1./0.5 - 1) ./  bandData.intensities(i_gamma,1) 
     
@@ -123,6 +121,7 @@ E_integrate = bandData.intensities(:,4) ./ (gamma_calc.*bandData.intensities(:,1
 
 %% save data
 close all
+disp('Saving data...')
 save([path_out prefix_out '_data.mat'])
 disp('data saved...')
 
@@ -188,3 +187,4 @@ set(gca, 'XLim', [0 n_bands+1], 'YLim', [0.35 0.65]);
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized_barplot.tif']); %save figure
 
 print(cur_fig, '-depsc2' , [path_out filesep 'FRET_normalized_barplot.eps']); %save figure
+

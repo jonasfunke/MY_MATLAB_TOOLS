@@ -12,9 +12,8 @@ gelData = background_correct_gel_image(gelData_raw, 'numberOfAreas', 4);
 
 %% overlay images 
 [ch2_shift, ch2_dx, ch2_dy] = overlay_image(gelData.images{1}, gelData.images{2}, 'display', 'off');
-
 gelData.images_raw = gelData.images;
-gelData.images = {gelData.images{1}, ch2_shift, gelData.images{2}};
+gelData.images = {gelData.images{1}, ch2_shift};
 
 %% create output dir
 prefix_out = [gelData.filenames{1}(1:end-4) '_analysis_' datestr(now, 'yyyy-mm-dd_HH-MM')];
@@ -23,113 +22,80 @@ prefix_out = tmp{1};
 path_out = [gelData.pathnames{1} prefix_out filesep];
 mkdir(path_out);
 
-%% shift images
-%[dd_bg, da_x_min, da_y_min] = overlay_image(da_bg, dd_bg, 10);
-%[aa_bg, aa_x_min, aa_y_min]= overlay_image(da_bg, aa_bg, 10);
+%% deterime profiles
+profileData = get_gel_lanes(gelData, 'display', 'off', 'cutoff', 0.01);
 
-%% find profiles
-profileData = get_gel_lanes(gelData);
+%% Calculate ratio of bands
+w_band = 10;
+n_bands = size(profileData.lanePositions, 1);
+I_mean = zeros(n_bands, gelData.nrImages);
+ratio = zeros(n_bands, 1);
 
-%% Calculate ratio based on scatterplot 
-w = 10;
-
-plot_image_ui(gelData.images{2})
-N_lanes = 
-
-%% calculate intensities based on ratio
-%{
-I = zeros(18,3);
-for i=1:18
-    pos = bandData.positions(i,:);
-    subDD = gelData.images{1}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
-    subAA = gelData.images{2}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
-    subDA = gelData.images{4}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
+path0 = cd;
+cd('/Users/jonasfunke/Documents/MATLAB/MATLAB_TOOLBOX/TYPHOON/private')
+for i=1:n_bands
+    [I_max, i_max] = max(profileData.profiles{1, i}); % Find maximum of lane based on 1st channel
+    pos = profileData.lanePositions(i,:);
     
-    shiftDA = min(min(min(subDA))+0.000000001,0.000000001)
-    shiftDD = min(min(min(subDD))+0.000000001,0.000000001)
-        shiftAA = min(min(min(subAA))+0.000000001,0.000000001)
-
-    E3(i) = sum(sum(( (subAA-shiftAA)./ sum(subAA(:)-shiftAA)).* (subDA-shiftDA) ./ ((subDA-shiftDA) + gamma_calc.*(subDD-shiftDD)))) ;
+    band_ch1 = gelData.images{1}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
+    band_ch2 = gelData.images{2}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
+    p = calculate_ration_of_areas(band_ch2, band_ch1, 'display', 'off');
+    ratio(i) = p(1);
     
-    bla =  (subDA-shiftDA) ./ ((subDA-shiftDA) + gamma_calc.*(subDD-shiftDD));
-    prob = (subAA-shiftAA)./ sum(subAA(:)-shiftAA);
-    [n, x] = histwc(bla(:), prob(:), 300);
-    figure
-    bar(x, n)
-    title([num2str(i) ' weighted'])
-
-    %figure
-    %hist(bla(:), 100)
-    
-    %imagesc(   (subAA./ sum(subAA(:))).* (subDA+shiftDA) ./ ((subDA+shiftDA) + gamma_calc.*(subDD+shiftDD))) , colormap gray, axis image
-    
-    %pause
-    p = calculate_ration_of_areas(subDD, subAA, 'display', 'off')
-    I(i,1) = p(1);   
-   % title(num2str(i))
-    p = calculate_ration_of_areas(subDA, subAA, 'display', 'off')
-    I(i,2) = p(1);
-      %  title(num2str(i))
-
-    p = calculate_ration_of_areas(subDD, subDA, 'display', 'off')
-    I(i,3) = p(1);
-      %  title(num2str(i))
-
+    for channel = 1:gelData.nrImages
+        cur_band =  gelData.images{channel}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
+        I_mean(i,channel) = mean(cur_band(:));
+    end
 end
+cd(path0)
 
+
+%% plot areas 
+%{
+close all
+imagesc(gelData.images{1}), axis image, colormap gray, hold on
+
+for i=1:n_bands
+    [I_max, i_max] = max(profileData.profiles{ 1, i}); % based on 1st channel
+    pos = profileData.lanePositions(i,:);
+    rectangle('Position', [pos(1), pos(3)+i_max-w, pos(2)-pos(1), 2*w], 'EdgeColor', 'r');
+end
 %}
-
-%%
-gamma_calc =  bandData.intensities(end,4).*(1./0.5 - 1) ./  bandData.intensities(end,1) 
-E = bandData.intensities(:,4) ./ (gamma_calc.*bandData.intensities(:,1) + bandData.intensities(:,4));
-
 
 %% save data
 close all
+disp('Saving data...')
 save([path_out prefix_out '_data.mat'])
 disp('data saved...')
 
-%% write corrected images
-disp('Writing images')
+%% Plot mean intensity of band
+cur_fig = figure();
+subplot(2,1,1)
+plot(1:n_bands, I_mean(:,1), '.-', 1:n_bands,I_mean(:,2), '.-')
+set(gca, 'XLim', [0, n_bands+1])
+xlabel('Lane')
+ylabel('Mean intensity [a.u.]')
+legend({'channel 1', 'channel 2'}, 'location', 'best')
 
-t = Tiff([path_out filesep 'da_cor.tif'],'w');
-t.setTag('Photometric',Tiff.Photometric.MinIsWhite);
-t.setTag('BitsPerSample',16);
-t.setTag('SampleFormat',Tiff.SampleFormat.UInt);
-t.setTag('ImageLength',size(da_cor,1));
-t.setTag('ImageWidth',size(da_cor,2));
-t.setTag('SamplesPerPixel',1);
-t.setTag('PlanarConfiguration',Tiff.PlanarConfiguration.Chunky);
-t.write( uint16(da_cor-min(da_cor(:)))  );
-t.close();
 
-t = Tiff([path_out filesep 'da_cor+bg.tif'],'w');
-t.setTag('Photometric',Tiff.Photometric.MinIsWhite);
-t.setTag('BitsPerSample',16);
-t.setTag('SampleFormat',Tiff.SampleFormat.UInt);
-t.setTag('ImageLength',size(da_cor,1));
-t.setTag('ImageWidth',size(da_cor,2));
-t.setTag('SamplesPerPixel',1);
-t.setTag('PlanarConfiguration',Tiff.PlanarConfiguration.Chunky);
-t.write( uint16(da_cor+gelData.background{3}.p00)  );
-t.close();
- 
-disp('Done.')
+subplot(2,1,2)
+plot(1:n_bands, I_mean(:,1)-mean(I_mean(:,1)), '.-', 1:n_bands,I_mean(:,2)-mean(I_mean(:,2)), '.-')
+set(gca, 'XLim', [0, n_bands+1])
+xlabel('Lane')
+ylabel('Mean intensity - mean intensity of bands  [a.u.]')
+legend({'channel 1', 'channel 2'}, 'location', 'best')
 
-%% Plot 
+print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'Total_intensity.tif']); %save figure
 
-n_bands = size(bandData.intensities,1);
-cur_fig = figure;
-subplot(3, 1, 1)
-%plot(1:n_bands, bandData.intensities(:,2), 'r.-', 1:n_bands, bandData.intensities(:,1), 'g.-', 1:n_bands, bandData.intensities(:,4), 'b.-')
-plot( 1:n_bands, gamma_calc.*bandData.intensities(:,1)./bandData.intensities(:,2), 'g.-', 1:n_bands, bandData.intensities(:,4)./bandData.intensities(:,2), 'b.-')
-xlabel('Lane'), ylabel('Normalized bandintensity')
-legend({'gamma * D->D / A->A', 'D->A / A->A'}, 'location', 'best')
+%% plot Ratio
+cur_fig = figure();
+plot(1:n_bands, I_mean(:,2)./I_mean(:,1), '.-', 1:n_bands, ratio, '.-')
+set(gca, 'XLim', [0, n_bands+1])
+xlabel('Lane')
+ylabel('Relative intensity [channel 2 / channel 1]')
+legend({'From mean intensities', 'from scatter-plot'}, 'location', 'best')
 
-subplot(3, 1, 2:3)
-plot(1:n_bands, E, 'k.-')
-xlabel('Lane'), ylabel('FRET efficiency')
+print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'Relative_intensity.tif']); %save figure
 
-legend({['gamma=' num2str(gamma_calc) ]})
-
-print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized.tif']); %save figure
+%%
+disp('done')

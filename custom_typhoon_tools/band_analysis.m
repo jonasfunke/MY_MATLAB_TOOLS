@@ -13,11 +13,20 @@ gelData = background_correct_gel_image(gelData_raw, 'numberOfAreas', 4);
 %% rotate image
 gelData = rotate_gel_image(gelData);
 
+
+%% overlay images 
+[ch1_shift, ch1_dx, ch1_dy] = overlay_image(gelData.images{2}, gelData.images{1}, 'display', 'off');
+
+gelData.images_raw = gelData.images;
+gelData.images = {ch1_shift, gelData.images{2} };
+
+
 %% integrate bands
 bands = get_band_intensities(gelData);
 
 %% create output dir
 prefix_out = [gelData.filenames{1}(1:end-4) '_bands'];
+prefix_out = [gelData.filenames{1}(1:end-4) '_bands-analysis_' datestr(now, 'yyyy-mm-dd_HH-MM')];
 tmp = inputdlg({'Name of analysis (prefix):'}, 'Name of analysis (prefix):' , 1, {prefix_out} );
 prefix_out = tmp{1};
 path_out = [gelData.pathnames{1} prefix_out filesep];
@@ -25,6 +34,40 @@ mkdir(path_out);
 
 %% save data
 save([path_out prefix_out '_data.mat'])
+
+%%
+GFP_to_FS = zeros(size(bands.intensities,1), 2);
+cd('/Users/jonasfunke/Documents/MATLAB/MATLAB_TOOLBOX/TYPHOON/private')
+for i=1:size(bands.intensities,1)
+    pos = bands.positions(i,:);
+    subGFP = gelData.images{1}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
+    subFS = gelData.images{2}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
+    GFP_to_FS(i,:) = calculate_ration_of_areas(subGFP, subFS, 'display', 'off');
+    
+end
+%%
+close all
+subplot(2,1,1)
+plot(bands.intensities)
+legend({'GFP', 'FS'})
+subplot(2,1,2)
+plot(1:size(bands.intensities,1), bands.intensities(:,1)./bands.intensities(:,2), '.-', ...
+    1:size(bands.intensities,1), GFP_to_FS(:,1), '.-')
+legend({'GFP/FS'})
+
+%%
+close all
+j = [1:6; 7:12; 13:18; 19:24; 25:30];
+hold all
+for i=1:5
+    %plot(1:6, bands.intensities(j(i,:),1)./bands.intensities(j(i,:),2), '.-', ...
+    %1:6, GFP_to_FS(j(i,:),1), '.-')
+    y = GFP_to_FS(j(i,:),1);
+    
+    %y = (y-y(1))./(y(5)-y(1));
+    plot(1:6,y , '.-')
+end
+legend({'3', '3-26, 39 A', '3-198, 23 A', '3-212, 39 A', '132-212, 31 A'})
 
 %% compute yield
 mono1 = bands.intensities(2:3:end,1);
