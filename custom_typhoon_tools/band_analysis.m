@@ -25,7 +25,6 @@ gelData.images = {ch1_shift, gelData.images{2} };
 bands = get_band_intensities(gelData);
 
 %% create output dir
-prefix_out = [gelData.filenames{1}(1:end-4) '_bands'];
 prefix_out = [gelData.filenames{1}(1:end-4) '_bands-analysis_' datestr(now, 'yyyy-mm-dd_HH-MM')];
 tmp = inputdlg({'Name of analysis (prefix):'}, 'Name of analysis (prefix):' , 1, {prefix_out} );
 prefix_out = tmp{1};
