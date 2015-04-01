@@ -107,14 +107,16 @@ end
 cd(path0)
 %%
 
-i_gamma = 32;
+i_gamma = [1, 32, 48];
 E_soll = 0.5;
 %gamma_calc =  bandData.intensities(i_gamma,4).*(1./0.5 - 1) ./  bandData.intensities(i_gamma,1) 
     
 E_raw = 1./(1+DD_div_DA(:,1));
 gamma_calc = (1-E_soll)./E_soll./DD_div_DA(i_gamma,1)
+gamma_calc = gamma_calc(2);
 E = 1./(1+gamma_calc.*DD_div_DA(:,1));
 
+%%
 gamma_calc_integrate =  bandData.intensities(i_gamma,4).*(1./E_soll - 1) ./  bandData.intensities(i_gamma,1) 
 E_integrate = bandData.intensities(:,4) ./ (gamma_calc.*bandData.intensities(:,1) + bandData.intensities(:,4));
 
