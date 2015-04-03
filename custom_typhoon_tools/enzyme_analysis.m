@@ -32,7 +32,8 @@ mono2 = bands.intensities(3:3:end,2);
 dimer2 = bands.intensities(1:3:end,2);
 yield = [ [dimer1 ./ (dimer1 + mono1)],  [dimer2 ./ (dimer2 + mono2)]];
 
-%% save data
+%% save data 
+
 save([path_out prefix_out '_data.mat'])
 
 %% plot total intensity
@@ -64,7 +65,7 @@ subplot(2,1,1)
 plot(1:n_samples, mono1+dimer1, 'g.-', 1:n_samples, mono2+dimer2, 'r.-')
 xlabel('Lane')
 ylabel('Total Intensity')
-legend({'cy3-channel', 'cy5-channel'}, 'Location', 'best')
+legend({'cy3-channel', 'cy5-channel'}, 'Location', 'best') 
 set(gca, 'XLim', [1 n_samples])
 
 subplot(2,1,2)
@@ -74,6 +75,7 @@ xlabel('Lane')
 ylabel('Yield')
 legend({'cy3-channel', 'cy5-channel'}, 'Location', 'best')
 set(gca, 'XLim', [1 n_samples])
+print(cur_fig, '-dtiff', '-r 300' , [path_out filesep prefix_out '_tot-intensity_yield.tif']); %save figure
 
 %%
 %{
