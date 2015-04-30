@@ -1,4 +1,4 @@
-function [ r_mean ] = dsDNA_mean_end_to_end_distances_semiflexible_polymer( L, exponent, lp)
+function [ r_mean, sigma ] = dsDNA_mean_end_to_end_distances_semiflexible_polymer( L, exponent, lp)
 %UNTITLED5 Summary of this function goes here
 %   Detailed explanation goes here
     if nargin < 3
