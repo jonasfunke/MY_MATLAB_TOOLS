@@ -38,7 +38,7 @@ gelData.images{3} = da_cor; % append to images
 profileData = get_gel_lanes(gelData, 'display', 'off', 'cutoff', 0.01);
 
 %% Calculate FRET efficiency for leading band
-w_band = 5;
+w_band = 10;
 n_bands = size(profileData.lanePositions, 1);
 I_mean = zeros(n_bands, gelData.nrImages);
 
@@ -88,7 +88,7 @@ for i=1:n_bands
 end
 cd(path0)
 
-
+close all
 %% plot areas 
 %{
 close all
@@ -102,7 +102,7 @@ end
 %}
 
 
-i_gamma = [3, 30];
+i_gamma = [1, 34, 50];
 
 E_soll = 0.5;
 %gamma_calc =  bandData.intensities(i_gamma,4).*(1./0.5 - 1) ./  bandData.intensities(i_gamma,1) 
@@ -183,7 +183,7 @@ plot( 1:n_bands, gamma_calc.*I_mean(:,1)./I_mean(:,2), 'g.--', 1:n_bands, I_mean
      1:n_bands, gamma_calc.*DD_div_AA(:,1), 'g.-', 1:n_bands, DA_div_AA(:,1), 'b.-')
 xlabel('Lane'), ylabel('Normalized bandintensity')
 legend({'gamma * D->D / A->A', 'D->A / A->A'}, 'location', 'best')
-set(gca, 'XLim', [1 n_bands],  'YLim', [0 3]);
+set(gca, 'XLim', [1 n_bands],  'YLim', [0 1]);
 
 subplot(3, 1, 2:3)
 plot( 1:n_bands, E_integrate, 'k.--', 1:n_bands, E, 'k.-')
