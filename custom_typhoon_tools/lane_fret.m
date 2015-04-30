@@ -42,6 +42,7 @@ w_band = 10;
 n_bands = size(profileData.lanePositions, 1);
 I_mean = zeros(n_bands, gelData.nrImages);
 
+areas = zeros(n_bands, 4);
 DD_div_DA = zeros(n_bands, 2);
 DD_div_AA = zeros(n_bands, 2);
 DA_div_AA = zeros(n_bands, 2);
@@ -58,6 +59,7 @@ for i=1:n_bands
     subplot(3,1,1)
     rectangle('Position', [pos(1), pos(3)+i_max-w_band, pos(2)-pos(1), 2*w_band], 'EdgeColor', 'r');
     
+    areas(i,:) = [pos(1), pos(3)+i_max-w_band, pos(2)-pos(1), 2*w_band];
     subplot(3,1,2:3)
     hold off
     plot(1:length( profileData.profiles{1,i}), profileData.profiles{1,i}, 'g'), hold on
@@ -77,7 +79,7 @@ for i=1:n_bands
     DD_div_AA(i,:) = calculate_ration_of_areas(subDD, subAA, 'display', 'off');
     DA_div_AA(i,:) = calculate_ration_of_areas(subDA, subAA, 'display', 'off');
     
-    pause
+    %pause
     %p = calculate_ration_of_areas(band_ch2, band_ch1, 'display', 'off');
     %ratio(i) = p(1);
     
@@ -89,20 +91,11 @@ end
 cd(path0)
 
 close all
-%% plot areas 
-%{
-close all
-imagesc(gelData.images{1}), axis image, colormap gray, hold on
 
-for i=1:n_bands
-    [I_max, i_max] = max(profileData.profiles{ 1, i}); % based on 1st channel
-    pos = profileData.lanePositions(i,:);
-    rectangle('Position', [pos(1), pos(3)+i_max-w, pos(2)-pos(1), 2*w], 'EdgeColor', 'r');
-end
-%}
+%%
 
 
-i_gamma = [1, 34, 50];
+i_gamma = [22];
 
 E_soll = 0.5;
 %gamma_calc =  bandData.intensities(i_gamma,4).*(1./0.5 - 1) ./  bandData.intensities(i_gamma,1) 
@@ -153,27 +146,18 @@ t.close();
 disp('Done.')
 
 
+%% plot areas 
 
+cur_fig = figure;
+imagesc(gelData.images{1}, [0 3.*std(gelData.images{1}(:))]), axis image, colormap gray, hold on
 
+for i=1:n_bands
+    rectangle('Position', areas(i,:), 'EdgeColor', 'r');
+    text(areas(i,1)+areas(i,3)/2, areas(i,2) , num2str(i), 'Color', 'r', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center')
+end
 
-%% Plot mean intensity of band
-cur_fig = figure();
-subplot(2,1,1)
-plot(1:n_bands, I_mean(:,1), '.-', 1:n_bands,I_mean(:,2), '.-')
-set(gca, 'XLim', [0, n_bands+1])
-xlabel('Lane')
-ylabel('Mean intensity [a.u.]')
-legend({'channel 1', 'channel 2'}, 'location', 'best')
+print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'bands.tif']); %save figure
 
-
-subplot(2,1,2)
-plot(1:n_bands, I_mean(:,1)-mean(I_mean(:,1)), '.-', 1:n_bands,I_mean(:,2)-mean(I_mean(:,2)), '.-')
-set(gca, 'XLim', [0, n_bands+1])
-xlabel('Lane')
-ylabel('Mean intensity - mean intensity of bands  [a.u.]')
-legend({'channel 1', 'channel 2'}, 'location', 'best')
-
-print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'Total_intensity.tif']); %save figure
 
 %% Plot 
 cur_fig = figure;
