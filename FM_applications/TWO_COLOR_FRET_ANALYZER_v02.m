@@ -1,11 +1,9 @@
 %% startup
 clc, clear all, close all
 path0 = cd;
-run('my_prefs.m')
-
 
 %% LOAD STACK OF MOVIES
-pname=uigetdir(data_dir,'Choose the folder with all .fits files.');
+pname=uigetdir(data_directory,'Choose the folder with all .fits files.');
 files_green = pickFirstFitsFiles(pname, 'green');
 files_red = pickFirstFitsFiles(pname, 'red');
 
