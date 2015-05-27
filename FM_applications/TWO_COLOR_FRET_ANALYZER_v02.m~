@@ -17,7 +17,7 @@ mkdir(path_out)
 %% SET PARAMETER
 input = {'First Frame:', 'Last Frame (-1=all):', 'Sequence green (D->D, D->A):', 'Sequence red (A->A):',... % sample options
     'Radius of peak [pixel]:', 'Integration radius [pixel]:', 'Average Frame length [frames]:'};
-input_default = {'2', '-1', '10', '01', '4', '3', '-1'};
+input_default = {'2', '-1', '10', '01', '3', '3', '-1'};
 tmp = inputdlg(input, 'Parameters', 1, input_default);
 
 
@@ -124,10 +124,12 @@ end
 close(h)
 
 %% SORT OUT: remove spots where ratio of width is not close to 1 and which are to large
+sigma_threshold = 5; % usually = 2
+ratio_thresholds = [0 2]; % usually = [0.2, 1.2]
 
 criteria = ones(N_peaks_raw,4 );
-criteria(:,1:2) = filter_spots(dd_fit_raw(:,3:4), [0.8 1.2], 2);
-criteria(:,3:4) = filter_spots(aa_fit_raw(:,3:4), [0.8 1.2], 2);
+criteria(:,1:2) = filter_spots(dd_fit_raw(:,3:4), ratio_thresholds, sigma_threshold);
+criteria(:,3:4) = filter_spots(aa_fit_raw(:,3:4), ratio_thresholds, sigma_threshold);
 accepted = [criteria(:,1) & criteria(:,2) & criteria(:,3) & criteria(:,4)];
 
 %remove not-accepted spots
@@ -277,8 +279,8 @@ for m=1:N_movie
 end
 disp('Data written to txt-file.')
 
-
 %%
+%{
 
 d = sqrt(  (peaks(:,1)-peaks(:,3)).^2 + (peaks(:,2)-peaks(:,4)).^2  );
 
@@ -353,6 +355,7 @@ for i=1:size(traces,1)
     
 end
 close(h)
+%}
 %%
 
 
@@ -364,10 +367,10 @@ mkdir(path_fig)
 
 w_plot = 6;
 close all
-cur_fig = figure(); %figure('Visible','on', 'PaperPositionMode', 'auto','PaperUnits','points','PaperPosition', [0 0 20 10], 'Position', [250 500 1000 500 ]);
+cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 1200 400], 'Position', [250 500 1200 400 ]);
 
 %231
-for i=1:1 %size(traces,1)
+for i=1:size(traces,1)
     %Idd = traces{i,1}(:,4)-traces{i,1}(end,4);
     %Ida = traces{i,2}(:,4)-traces{i,2}(end,4);
     
@@ -381,30 +384,28 @@ for i=1:1 %size(traces,1)
     x_aa = traces{i,3}(1,2)+1;
     y_aa = traces{i,3}(1,3)+1;
     
-    subplot(4,1, [1,5,9])
-    imagesc(avg_img{traces{i,4},3}), colormap gray, axis ihold on
-    plot(x_aa, y_aa, 'r.', 'MarkerSize', 15 )
-    ellipse(r_integrate, r_integrate, 0, x_aa, y_aa, 'r');
-    
-    subplot(4,1, 2:4)
-    plot(traces{i,1}(:,1), traces{i,1}(:,4), 'g-', traces{i,2}(:,1), traces{i,2}(:,4), 'b-',  'Linewidth', 1)
-     ylabel('Integr. Intensity')
-    title(num2str(i))
-    
-    subplot(4,1, 6:8)
-    plot(traces{i,3}(:,1), traces{i,3}(:,4), 'r',  'Linewidth', 1)
-    ylabel('Integr. Intensity')
-        
-    subplot(4,1, 10:12)
-    plot(traces{i,1}(:,1), Ida ./ (Idd+Ida), 'k', 'Linewidth', 1)
+    subplot(3,5, [1,2, 6,7, 11, 12] )
+    imagesc(avg_img{traces{i,4},3}), colormap gray, axis image, hold on
+    plot( x_dd, y_dd, 'g+',x_aa, y_aa, 'rx', 'MarkerSize', 15 )
+    set(gca, 'YDir', 'normal')
 
-    xlabel('Framenumber'), ylabel('E_app')
-    set(gca, 'YLim', [min(Ida ./ (Idd+Ida)) max(Ida ./ (Idd+Ida))])
-    set(gca, 'YLim', [0.3 0.6])
-    %print(cur_fig, '-dtiff', '-r300', [path_fig filesep 'trace_' sprintf('%.03i',i) '.tif'])
+    %ellipse(r_integrate, r_integrate, 0, x_aa, y_aa, 'r');
+    
+    subplot(3,5, [3:5,8:10])
+    plot(traces{i,1}(:,1), traces{i,1}(:,4), 'g-', ...
+        traces{i,2}(:,1), traces{i,2}(:,4), 'b-',  ...
+        'Linewidth', 0.5)
+   %  ylabel('Integr. Intensity')
+    title(['Spot ' num2str(i) ' of ' num2str(size(traces,1)) ', Movie ' num2str(i), 'x=' num2str(x_aa), 'y=' num2str(y_aa)])
+    
+    subplot(3,5, 13:15)
+ %   ylabel('Integr. Intensity')
+   plot(traces{i,3}(:,1), traces{i,3}(:,4) , 'r',  'Linewidth', 0.5)     
+
+   % print(cur_fig, '-dtiff', '-r300', [path_fig filesep 'trace_' sprintf('%.03i',i) '.tif'])
 
     pause
-    
+   
 end
 
 
@@ -417,28 +418,34 @@ for i=1:1 %N_movie
     
     
      %D_ex D_em
+     %%
     imagesc(avg_img{i,1}),colormap gray, colorbar, axis image, hold on
     plot(positions{i}(:,1) , positions{i}(:,2)  , 'go'), hold on
+    plot(positions{i}(:,3) , positions{i}(:,4)  , 'rd'), hold on
+    set(gca, 'YDir', 'normal')
+    %%
     title('D -> D'),
   
     print(cur_fig, '-dtiff', '-r300', [path_out filesep 'image_' sprintf('%.02i',i) '_dd.tif'])
     
         
-    
+    %%
      %D_ex A_em
     imagesc(avg_img{i,2}),colormap gray, colorbar, axis image, hold on
     plot(positions{i}(:,3) , positions{i}(:,4)  , 'bo'), hold on
     title('D -> A'),
-  
+  %%
     print(cur_fig, '-dtiff', '-r300', [path_out filesep 'image_' sprintf('%.02i',i) '_da.tif'])
     
         
-    
+    %%
      %A_ex A_em
     imagesc(avg_img{i,3}),colormap gray, colorbar, axis image, hold on
     plot(positions{i}(:,3) , positions{i}(:,4)  , 'ro'), hold on
     title('A -> A'),
-  
+        set(gca, 'YDir', 'normal')
+
+  %%
     print(cur_fig, '-dtiff', '-r300', [path_out filesep 'image_' sprintf('%.02i',i) '_aa.tif'])
 end
 %%
