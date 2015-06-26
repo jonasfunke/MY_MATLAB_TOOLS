@@ -32,14 +32,16 @@ I_mean = zeros(n_bands, gelData.nrImages);
 ratio = zeros(n_bands, 1);
 
 path0 = cd;
-cd('/Users/jonasfunke/Documents/MATLAB/MATLAB_TOOLBOX/TYPHOON/private')
+cd('/Users/jonasfunke/MATLAB/MATLAB_TOOLBOX/TYPHOON/private')
 for i=1:n_bands
     [I_max, i_max] = max(profileData.profiles{1, i}); % Find maximum of lane based on 1st channel
     pos = profileData.lanePositions(i,:);
     
     band_ch1 = gelData.images{1}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
     band_ch2 = gelData.images{2}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
-    p = calculate_ration_of_areas(band_ch2, band_ch1, 'display', 'off');
+    p = calculate_ration_of_areas(band_ch2, band_ch1, 'display', 'on');
+    pause
+    close all
     ratio(i) = p(1);
     
     for channel = 1:gelData.nrImages
@@ -96,6 +98,16 @@ ylabel('Relative intensity [channel 2 / channel 1]')
 legend({'From mean intensities', 'from scatter-plot'}, 'location', 'best')
 
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'Relative_intensity.tif']); %save figure
+%%
+cur_fig = figure();
+plot(1:n_bands, I_mean(:,1)./I_mean(:,2), '.-', 1:n_bands, 1./ratio, '.-')
+set(gca, 'XLim', [0, n_bands+1])
+xlabel('Lane')
+ylabel('Relative intensity [channel 1 / channel 2]')
+legend({'From mean intensities', 'from scatter-plot'}, 'location', 'best')
+
+%print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'Relative_intensity_ch2divch1.tif']); %save figure
+
 
 %%
 disp('done')
