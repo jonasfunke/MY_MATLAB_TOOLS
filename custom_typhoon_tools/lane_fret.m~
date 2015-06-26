@@ -46,12 +46,9 @@ while more_lanes
         profileData.lanePositions = [profileData.lanePositions; profileData_tmp.lanePositions];
         profileData.fullProfiles = [profileData.fullProfiles, profileData_tmp.fullProfiles];
     end
-    i = i + 1;
-    button = questdlg('More lanes?','more lanes','more','enough', 'enough') ;
-    if strcmp(button, 'enough')
-        more_lanes = 0;
-    end
     
+    button = questdlg('More lanes?','more la','str1','str2',default) 
+        more_lanes = 0;
 end
 
 %% Calculate FRET efficiency for leading band
