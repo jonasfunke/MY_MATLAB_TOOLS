@@ -413,7 +413,7 @@ close all
 fig_dim =2*[10 10];
 cur_fig = figure();%'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 fig_dim(1) fig_dim(2)], 'Position', [0 scrsz(4) fig_dim(1)*40 fig_dim(2)*40]);
 
-for i=1:1 %N_movie
+for i=1:N_movie
     
     
      %D_ex D_em
