@@ -36,25 +36,6 @@ gelData.images{3} = da_cor; % append to images
 
 %% deterime profiles
 profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.15, 'selection_type', 'manual');
-%%
-more_lanes = 1;
-i = 1;
-while more_lanes
-    if i==1
-        profileData = get_gel_lanes(gelData, 'display', 'off', 'cutoff', 0.01);
-    else
-        profileData_tmp = get_gel_lanes(gelData, 'display', 'off', 'cutoff', 0.01);
-        profileData.profiles = [profileData.profiles, profileData_tmp.profiles];
-        profileData.lanePositions = [profileData.lanePositions; profileData_tmp.lanePositions];
-        profileData.fullProfiles = [profileData.fullProfiles, profileData_tmp.fullProfiles];
-    end
-    i = i + 1;
-    button = questdlg('More lanes?','more lanes','more','enough', 'enough') ;
-    if strcmp(button, 'enough')
-        more_lanes = 0;
-    end
-    
-end
 
 %% Calculate FRET efficiency for leading band
 w_band = 10;
