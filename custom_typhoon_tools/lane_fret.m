@@ -35,6 +35,8 @@ da_cor = gelData.images{3} - leak_dir(1,1).*gelData.images{1} - leak_dir(2,1).*g
 gelData.images{3} = da_cor; % append to images
 
 %% deterime profiles
+profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.15, 'selection_type', 'manual');
+%%
 more_lanes = 1;
 i = 1;
 while more_lanes
@@ -86,7 +88,7 @@ for i=1:n_bands
     vline(i_max-w_band, {'k--'});
     vline(i_max+w_band, {'k--'});
     
-    
+    %pause
     subDD = gelData.images{1}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
     subAA = gelData.images{2}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
     subDA = gelData.images{3}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
@@ -110,7 +112,9 @@ cd(path0)
 close all
 
 %%
-x = inputdlg('Enter space-separated numbers:',...
+close all
+imagesc(gelData.images{2}), colormap gray, axis image
+x = inputdlg('Enter space-separated index for reference samples:',...
              'Sample', [1 50]);
 i_gamma = str2num(x{:})
 %%
@@ -168,13 +172,13 @@ disp('Done.')
 
 %% plot areas 
 
-cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 20 5], 'Position', [0 1000 2000 500]);imagesc(gelData.images{1}, [0 3.*std(gelData.images{1}(:))]), axis image, colormap gray, hold on
+cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 1000 500], 'Position', [0 1000 1000 500]);imagesc(gelData.images{1}, [0 3.*std(gelData.images{1}(:))]), axis image, colormap gray, hold on
 
 for i=1:n_bands
-    rectangle('Position', areas(i,:), 'EdgeColor', 'r');
-    text(areas(i,1)+areas(i,3)/2, areas(i,2) , num2str(i), 'Color', 'r', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center')
+    rectangle('Position', areas(i,:), 'EdgeColor', 'r', 'Linewidth', 1);
+    text(areas(i,1)+areas(i,3)/2, areas(i,2) , num2str(i), 'Color', 'r', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 8)
 end
-
+set(gca, 'XTickLabel', [], 'YTickLabel', [])
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'bands.tif']); %save figure
 
 
