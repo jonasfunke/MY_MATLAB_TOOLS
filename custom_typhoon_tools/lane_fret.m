@@ -35,7 +35,7 @@ da_cor = gelData.images{3} - leak_dir(1,1).*gelData.images{1} - leak_dir(2,1).*g
 gelData.images{3} = da_cor; % append to images
 
 %% deterime profiles
-profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.15, 'selection_type', 'manual');
+profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.15, 'selection_type', 'automatic');
 
 %% Calculate FRET efficiency for leading band
 w_band = 10;
@@ -148,9 +148,6 @@ t.setTag('PlanarConfiguration',Tiff.PlanarConfiguration.Chunky);
 t.write( uint16(da_cor+gelData.background{3}.p00)  );
 t.close();
  
-disp('Done.')
-
-
 %% plot areas 
 
 cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 1000 500], 'Position', [0 1000 1000 500]);imagesc(gelData.images{1}, [0 3.*std(gelData.images{1}(:))]), axis image, colormap gray, hold on
