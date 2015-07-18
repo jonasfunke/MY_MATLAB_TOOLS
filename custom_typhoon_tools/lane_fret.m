@@ -35,7 +35,7 @@ da_cor = gelData.images{3} - leak_dir(1,1).*gelData.images{1} - leak_dir(2,1).*g
 gelData.images{3} = da_cor; % append to images
 
 %% deterime profiles
-profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.15, 'selection_type', 'automatic');
+profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.05, 'selection_type', 'automatic');
 
 %% Calculate FRET efficiency for leading band
 w_band = 10;
@@ -100,14 +100,15 @@ x = inputdlg('Enter space-separated index for reference samples:',...
 i_gamma = str2num(x{:})
 %%
 
-%i_gamma = [9];
-
-E_soll = 0.5;
-%gamma_calc =  bandData.intensities(i_gamma,4).*(1./0.5 - 1) ./  bandData.intensities(i_gamma,1) 
-    
-E_raw = 1./(1+DD_div_DA(:,1));
-gamma_calc = (1-E_soll)./E_soll./DD_div_DA(i_gamma,1)
-gamma_calc = mean(gamma_calc)
+% %i_gamma = [9];
+% 
+ E_soll = 0.5;
+% %gamma_calc =  bandData.intensities(i_gamma,4).*(1./0.5 - 1) ./  bandData.intensities(i_gamma,1) 
+%     
+ E_raw = 1./(1+DD_div_DA(:,1));
+ gamma_calc = (1-E_soll)./E_soll./DD_div_DA(i_gamma,1)
+ gamma_calc = mean(gamma_calc)
+%gamma_calc = 1;
 E = 1./(1+gamma_calc.*DD_div_DA(:,1));
 
 %%

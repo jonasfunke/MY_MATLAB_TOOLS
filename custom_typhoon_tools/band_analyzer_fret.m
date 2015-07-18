@@ -103,19 +103,22 @@ for i=1:size(bandData.intensities,1)
     DA_div_AA(i,:) = calculate_ration_of_areas(subDA, subAA, 'display', 'off');
 end
 %%
+% 
+% i_gamma = [1, 32, 48];
+% 
+% E_soll = 0.5;
+% %gamma_calc =  bandData.intensities(i_gamma,4).*(1./0.5 - 1) ./  bandData.intensities(i_gamma,1) 
+%     
+% E_raw = 1./(1+DD_div_DA(:,1));
+% gamma_calc = (1-E_soll)./E_soll./DD_div_DA(i_gamma,1)
+% gamma_calc = gamma_calc(2);
+gamma_calc = 1;
 
-i_gamma = [1, 32, 48];
-
-E_soll = 0.5;
-%gamma_calc =  bandData.intensities(i_gamma,4).*(1./0.5 - 1) ./  bandData.intensities(i_gamma,1) 
-    
-E_raw = 1./(1+DD_div_DA(:,1));
-gamma_calc = (1-E_soll)./E_soll./DD_div_DA(i_gamma,1)
-gamma_calc = gamma_calc(2);
 E = 1./(1+gamma_calc.*DD_div_DA(:,1));
 
 %%
-gamma_calc_integrate =  bandData.intensities(i_gamma,4).*(1./E_soll - 1) ./  bandData.intensities(i_gamma,1) 
+%gamma_calc_integrate =  bandData.intensities(i_gamma,4).*(1./E_soll - 1) ./  bandData.intensities(i_gamma,1) 
+gamma_calc_integrate = 1; % bandData.intensities(i_gamma,4).*(1./E_soll - 1) ./  bandData.intensities(i_gamma,1) 
 E_integrate = bandData.intensities(:,4) ./ (gamma_calc.*bandData.intensities(:,1) + bandData.intensities(:,4));
 
 
@@ -151,6 +154,18 @@ t.write( uint16(da_cor+gelData.background{3}.p00)  );
 t.close();
  
 disp('Done.')
+
+
+%% plot areas 
+areas =  bandData.positions;
+cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 1000 500], 'Position', [0 1000 1000 500]);imagesc(gelData.images{1}, [0 3.*std(gelData.images{1}(:))]), axis image, colormap gray, hold on
+
+for i=1:n_bands
+    rectangle('Position', areas(i,:), 'EdgeColor', 'r', 'Linewidth', 1);
+    text(areas(i,1)+areas(i,3)/2, areas(i,2) , num2str(i), 'Color', 'r', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 8)
+end
+set(gca, 'XTickLabel', [], 'YTickLabel', [])
+print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'bands.tif']); %save figure
 
 %% Plot 
 n_bands = size(bandData.intensities,1);
