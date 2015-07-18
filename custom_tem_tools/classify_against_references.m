@@ -91,7 +91,7 @@ end
 %%
 
 
-for i=2:2 %N_img % loop through images
+for i=1:33 %N_img % loop through images
 
     figure(1)
     subplot(1,4,1)
@@ -110,12 +110,12 @@ for i=2:2 %N_img % loop through images
     
     subplot(1,4,3)
     imagesc(ref_filtered(:,:,best_ref(i))), axis image
-    title('Reference')
+    title(['Reference ' num2str(best_ref(i))])
 
     x_cor = normxcorr2(ref_filtered(:,:,best_ref(i)), rotations(:,:,best_rot(i))) ;
 
     subplot(1,4,4)
-    imagesc(x_cor(100:300,100:300) ), axis image, colorbar
+    imagesc(x_cor(100:300,100:300) ), axis image
     title('x-correlation image')
    pause
 end
