@@ -44,33 +44,25 @@ end
 %figure(1)
 %montage(bla, 'DisplayRange', [min(bla(:)) max(bla(:))])
 
-figure(2)
+figure(1)
 %montage(ref_filtered, 'DisplayRange', [min(ref_filtered(:)) max(ref_filtered(:))])
 ref_filt_plot = reshape(ref_filtered, 200,200,1,N_ref);
 montage(ref_filt_plot, 'DisplayRange', [min(ref_filt_plot(:)) max(ref_filt_plot(:))])
-%%
-
-figure(3)
-montage(subt, 'DisplayRange', [min(subt(:)) max(subt(:))])
-
-
-
-
 
 %% Classify
-
-
-alpha = 0:dalpha:359;
-n_rot = length(alpha); % number of rotations
-
 best_ref = zeros(N_img,1);
 best_rot = zeros(N_img,1);
 
-
-
-for i=1:50 %N_img % loop through images
-
-    data(i,:) = find_best_class(ref_filtered, img(:,:,i));
+% start cluster/parallel pool
+my_pool = parpool(2);
+%figure(1)
+tic
+classification = zeros(N_img, 4);  % best_ref, alpha, mirror, cc
+parfor i=1:10 %N_img % loop through images
+    %disp(['Correllating image ' num2str(i)])
+    %classification(i,2:end) = find_best_class(ref_filtered, img(i,:,:), dalpha);
+    
+    classification(i,:) = find_best_class(ref_filtered, img(:,:,i), dalpha);
     
    % [best_corr, i_tmp] = max(correlations(:));
    % [best_rot(i), best_ref(i)] = ind2sub(size(correlations),i_tmp);
@@ -103,39 +95,50 @@ for i=1:50 %N_img % loop through images
 %     pause(0.1)
     
     
-    
 end
+toc
+classification = [[1:N_img]' classification]; % add image index
 
+% close parallel pool
 %%
 
 
-for i=2:2%N_img % loop through images
+for i=1:5%N_img % loop through images
 
     figure(1)
     subplot(1,4,1)
     imagesc(img(:,:,i)), axis image
-    title('Original image')
+    title(['Original image ' num2str(i)]  )
  
     subplot(1,4,2)
-    mirrored = floor(best_rot(i)/n_rot);
-    if mirrored
-        rot_found =  flip(imrotate(img(:,:,i), alpha(best_rot(i)-n_rot), 'crop'),1);
-    else
-        rot_found = imrotate(img(:,:,i), alpha(best_rot(i)), 'crop');
-    end
+    rot_found = my_imagetransform(img(:,:,i), classification(i,4), classification(i,3));
     imagesc(rot_found), axis image
     title('Rotation found')
     
     subplot(1,4,3)
-    imagesc(ref_filtered(:,:,best_ref(i))), axis image
-    title(['Reference ' num2str(best_ref(i))])
+    imagesc(ref_filtered(:,:,classification(i,2))), axis image
+    title(['Reference ' num2str(classification(i,2))])
 
-    x_cor = normxcorr2(ref_filtered(:,:,best_ref(i)), rot_found) ;
-
+    x_cor = normxcorr2(ref_filtered(:,:,classification(i,2)), rot_found) ;
     subplot(1,4,4)
     imagesc(x_cor(100:300,100:300) ), axis image
     title('x-correlation image')
    pause
 end
 
+
+
+
+
+
+%%
+
+mycluster = parcluster('SharedCluster');
+n_worker=63;
+
+
+%j = batch(mycluster, @test_function,1,'CaptureDiary',true, 'CurrentDirectory', '.','AdditionalPaths', {'/nfs/matlabuser'}, 'Pool', n_worker(n));
+j = batch(mycluster, @test_function, 1,'CaptureDiary',true, 'CurrentDirectory', '.','AdditionalPaths', {'/nfs/matlabuser/jonasfunke/MATLAB/parallel_test'}, 'Pool',  n_worker(n));
+wait(j)
+result = j.fetchOutputs{1};% Get results into a cell array
 
