@@ -86,7 +86,7 @@ for i=1:1000 % loop through images
 end 
 
 
-
+%%
 for i=1:200%N_img % loop through images
     figure(1)
     
@@ -95,21 +95,24 @@ for i=1:200%N_img % loop through images
     imagesc(rot_found), axis image
     title(['Rotated image ' num2str(i)])
     
-    subplot(2,2,2)
-    imagesc(ref_filtered(:,:,classification_cor(i,1))), axis image
-    title(['Reference ' num2str(classification_cor(i,1)) ', (cor = ' num2str(tmp_cor) ')'])
 
    subplot(2,2,[3 4])
 
     hold off
     imagesc(cor_matrix_cor{i}'), axis image, colorbar, hold on
     
-    [~, i_tmp] = max(cor_matrix_cor{i}(:)); % use best overall correlation
+    [tmp_cor, i_tmp] = max(cor_matrix_cor{i}(:)); % use best overall correlation
     [best_rot, best_ref] = ind2sub(size(cor_matrix_cor{i}),i_tmp);
     plot( best_rot,best_ref, 'ro')
    
     xlabel('Rotation'), ylabel('Reference')
     title('Maximum correlation')
+    
+        subplot(2,2,2)
+    imagesc(ref_filtered(:,:,classification_cor(i,1))), axis image
+    title(['Reference ' num2str(classification_cor(i,1)) ', (cor = ' num2str(tmp_cor) ')'])
+
+    
    pause
 end
 

@@ -73,8 +73,8 @@ width = diff(x);
 %
 bla = tmp(2:end-1,2) ./ width;
 close all
-area(tmp(:,1), tmp(:,2)), hold on
-%plot(tmp(2:end-1,1) , bla, '.-')
+%area(tmp(:,1), tmp(:,2)), hold on
+area(tmp(2:end-1,1) , bla)
 
 
 
