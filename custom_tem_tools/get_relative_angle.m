@@ -12,7 +12,7 @@ end
 
 [fname, pname] =uigetfile('*.xls', 'Select output file of imageJ.');
 data = dlmread([pname fname], '\t', 1); % load data
-
+%keyboard
 % convert absolute angles to relative angles
 
 dalpha = zeros(size(data,1)/2,1);
