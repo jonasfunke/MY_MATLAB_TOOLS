@@ -386,6 +386,8 @@ for i=1:size(traces,1)
     
     subplot(3,5, [1,2, 6,7, 11, 12] )
     imagesc(avg_img{traces{i,4},3}), colormap gray, axis image, hold on
+    plot(positions{traces{i,4}}(:,3) , positions{traces{i,4}}(:,4)  , 'ro'), hold on
+
     plot( x_dd, y_dd, 'g+',x_aa, y_aa, 'rx', 'MarkerSize', 15 )
     set(gca, 'YDir', 'normal')
 
@@ -396,7 +398,7 @@ for i=1:size(traces,1)
         traces{i,2}(:,1), traces{i,2}(:,4), 'b-',  ...
         'Linewidth', 0.5)
    %  ylabel('Integr. Intensity')
-    title(['Spot ' num2str(i) ' of ' num2str(size(traces,1)) ', Movie ' num2str(i), ', x=' num2str(x_aa), ', y=' num2str(y_aa)])
+    title(['Spot ' num2str(i) ' of ' num2str(size(traces,1)) ', Movie ' num2str(traces{i,4}), ', x=' num2str(x_aa), ', y=' num2str(y_aa)])
     
     subplot(3,5, 13:15)
  %   ylabel('Integr. Intensity')
@@ -412,11 +414,11 @@ close all
 cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 1200 400], 'Position', [250 500 1200 400 ]);
 
 %231
-for i=1:size(traces,1)
+for i=130:130 %size(traces,1)
     %Idd = traces{i,1}(:,4)-traces{i,1}(end,4);
     %Ida = traces{i,2}(:,4)-traces{i,2}(end,4);
     
-    Idd = traces{i,1}(:,4)-traces{i,1}(end,4);
+    Idd = traces{i,1}(:,4)-traces{i,2}(end,4);%-traces{i,1}(end,4);
     Ida = traces{i,2}(:,4)-traces{i,2}(end,4);
     E = Ida./(Ida+Idd);
     
@@ -434,20 +436,30 @@ for i=1:size(traces,1)
         'Linewidth', 0.5)
    %  ylabel('Integr. Intensity')
     title(['Spot ' num2str(i) ' of ' num2str(size(traces,1)) ', Movie ' num2str(i), 'x=' num2str(x_aa), 'y=' num2str(y_aa)])
-    
+legend({'D->D', 'D->A'})
     subplot(3,5,6:10)
  %   ylabel('Integr. Intensity')
    plot(traces{i,3}(:,1), traces{i,3}(:,4) , 'r',  'Linewidth', 0.5)     
+   ylabel('A->A')
 
     subplot(3,5,11:15)
  %   ylabel('Integr. Intensity')
    plot(traces{i,1}(:,1), E , 'k',  'Linewidth', 0.5)     
    set(gca, 'YLim', [0 1])
    
+   xlabel('Time [s]')
+   ylabel('FRET')
    % print(cur_fig, '-dtiff', '-r300', [path_fig filesep 'trace_' sprintf('%.03i',i) '.tif'])
 
-    pause
+   % pause
    
+   figure(2)
+   hist(E(1:590), 20)
+   xlabel('FRET')
+   ylabel('Number of frames')
+   figure(3)
+     plot(traces{i,1}(:,1), E , 'k-',  'Linewidth', 0.5)     
+   set(gca, 'YLim', [0 1])
 end
 
 %% plot average images with traces
@@ -459,12 +471,12 @@ for i=1:N_movie
     
     
      %D_ex D_em
-     %%
+     %
     imagesc(avg_img{i,1}),colormap gray, colorbar, axis image, hold on
     plot(positions{i}(:,1) , positions{i}(:,2)  , 'go'), hold on
     plot(positions{i}(:,3) , positions{i}(:,4)  , 'rd'), hold on
     set(gca, 'YDir', 'normal')
-    %%
+    %
     title('D -> D'),
   
     print(cur_fig, '-dtiff', '-r300', [path_out filesep 'image_' sprintf('%.02i',i) '_dd.tif'])
@@ -472,21 +484,21 @@ for i=1:N_movie
         
     %%
      %D_ex A_em
-    imagesc(avg_img{i,2}),colormap gray, colorbar, axis image, hold on
+    imagesc(avg_img{i,2}, [0 1000]),colormap gray, colorbar, axis image, hold on
     plot(positions{i}(:,3) , positions{i}(:,4)  , 'bo'), hold on
     title('D -> A'),
   %%
     print(cur_fig, '-dtiff', '-r300', [path_out filesep 'image_' sprintf('%.02i',i) '_da.tif'])
     
         
-    %%
+    %
      %A_ex A_em
     imagesc(avg_img{i,3}),colormap gray, colorbar, axis image, hold on
     plot(positions{i}(:,3) , positions{i}(:,4)  , 'ro'), hold on
     title('A -> A'),
         set(gca, 'YDir', 'normal')
 
-  %%
+  %
     print(cur_fig, '-dtiff', '-r300', [path_out filesep 'image_' sprintf('%.02i',i) '_aa.tif'])
 end
 %%

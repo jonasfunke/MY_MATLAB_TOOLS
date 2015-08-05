@@ -2,7 +2,7 @@ function [ result, err, ci, area ] = fit_gauss2d_mainaxis_bg( x0, y0, sigma, w_f
 %UNTITLED2 Summary of this function goes here
 %   c_init = [x_0 y_0 s_x s_y A-bg bg];
     alpha = 0;
-    options = optimset('Algorithm','levenberg-marquardt','display','off', 'MaxFunEvals',50000,'TolFun',1e-9,'MaxIter',50000, 'TolX', 1e-9); %'Algorithm','levenberg-marquardt',
+    options = optimset('Algorithm','levenberg-marquardt','display','off', 'MaxFunEvals',50000,'TolFun',1e-9,'MaxIter',1000, 'TolX', 1e-9); %'Algorithm','levenberg-marquardt',
 
     area = [  max(x0-w_fit,1) , min(x0+w_fit,size(img,1)) , max(y0-w_fit,1) , min(y0+w_fit,size(img,2)) ];
     [X,Y] = meshgrid(area(1):area(2) , area(3):area(4) );
