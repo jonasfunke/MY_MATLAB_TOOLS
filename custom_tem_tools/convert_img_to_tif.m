@@ -1,4 +1,4 @@
-function [] = img_to_tif( )
+function [] = convert_img_to_tif( )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
     [fname, pname] = uigetfile('*.img', 'Select img file');

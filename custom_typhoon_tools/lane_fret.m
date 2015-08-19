@@ -95,6 +95,12 @@ close all
 %%
 close all
 imagesc(gelData.images{2}), colormap gray, axis image
+
+for i=1:n_bands
+    rectangle('Position', areas(i,:), 'EdgeColor', 'r', 'Linewidth', 1);
+    text(areas(i,1)+areas(i,3)/2, areas(i,2) , num2str(i), 'Color', 'r', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 8)
+end
+%%
 x = inputdlg('Enter space-separated index for reference samples:',...
              'Sample', [1 50]);
 i_gamma = str2num(x{:})
