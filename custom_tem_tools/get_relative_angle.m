@@ -10,7 +10,7 @@ else
     r_slice = varargin{2};
 end
 
-[fname, pname] =uigetfile('*.xls', 'Select output file of imageJ.');
+[fname, pname] =uigetfile('*.*', 'Select output file of imageJ.');
 data = dlmread([pname fname], '\t', 1); % load data
 %keyboard
 % convert absolute angles to relative angles

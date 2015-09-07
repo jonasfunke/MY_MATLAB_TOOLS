@@ -15,7 +15,7 @@ function [] = convert_img_to_tif( )
         for i=1:size(img,3)
             %imwrite(uint16(img(:,:,i)), [path_out filesep fname(1:end-4) sprintf('_%04i.tif', i)]);
             tmp = img(:,:,i)-min(img(:));
-            imwrite(uint16( (2^16-1).*tmp./max(img(:)) ), [path_out filesep fname(1:end-4) sprintf('_%04i.tif', i)]);
+            imwrite(uint16( (2^16-1).*tmp./max(tmp(:)) ), [path_out filesep fname(1:end-4) sprintf('_%04i.tif', i)]);
         end
     else
          for i=1:size(img,3)
