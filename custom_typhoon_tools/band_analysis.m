@@ -15,10 +15,10 @@ gelData = rotate_gel_image(gelData);
 
 
 %% overlay images 
-[ch1_shift, ch1_dx, ch1_dy] = overlay_image(gelData.images{2}, gelData.images{1}, 'display', 'off');
+%[ch1_shift, ch1_dx, ch1_dy] = overlay_image(gelData.images{2}, gelData.images{1}, 'display', 'off');
 
-gelData.images_raw = gelData.images;
-gelData.images = {ch1_shift, gelData.images{2} };
+%gelData.images_raw = gelData.images;
+%gelData.images = {ch1_shift, gelData.images{2} };
 
 
 %% integrate bands
@@ -34,26 +34,60 @@ mkdir(path_out);
 %% save data
 save([path_out prefix_out '_data.mat'])
 
+%% plot areas 
+areas =  bands.positions;
+cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 1000 500], 'Position', [0 1000 1000 500]);imagesc(gelData.images{1}, [0 3.*std(gelData.images{1}(:))]), axis image, colormap gray, hold on
+
+for i=1:size(bands.intensities,1)
+    rectangle('Position', areas(i,:), 'EdgeColor', 'r', 'Linewidth', 1);
+    text(areas(i,1)+areas(i,3)/2, areas(i,2) , num2str(i), 'Color', 'r', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 8)
+end
+set(gca, 'XTickLabel', [], 'YTickLabel', [])
+print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'bands.tif']); %save figure
+
+
 %%
 GFP_to_FS = zeros(size(bands.intensities,1), 2);
-cd('/Users/jonasfunke/Documents/MATLAB/MATLAB_TOOLBOX/TYPHOON/private')
+%cd('/Users/jonasfunke/Documents/MATLAB/MATLAB_TOOLBOX/TYPHOON/private')
 for i=1:size(bands.intensities,1)
     pos = bands.positions(i,:);
     subGFP = gelData.images{1}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
     subFS = gelData.images{2}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
     GFP_to_FS(i,:) = calculate_ration_of_areas(subGFP, subFS, 'display', 'off');
+  %  pause
     
 end
 %%
-close all
 subplot(2,1,1)
 plot(bands.intensities)
 legend({'GFP', 'FS'})
+
 subplot(2,1,2)
-plot(1:size(bands.intensities,1), bands.intensities(:,1)./bands.intensities(:,2), '.-', ...
-    1:size(bands.intensities,1), GFP_to_FS(:,1), '.-')
+%plot(1:size(bands.intensities,1), bands.intensities(:,1)./bands.intensities(:,2), '.-')
+bar(bands.intensities(:,1)./bands.intensities(:,2)), hold on
+plot(1:size(bands.intensities,1), GFP_to_FS(:,1), 'r.-')
 legend({'GFP/FS'})
 
+%%
+r = bands.intensities(:,1)./bands.intensities(:,2);
+unpure = r(1:2:end);
+figure(1)
+t = [1, 3, 7, 22, 30];
+plot(t, unpure(1:5) , '.-', ...
+    t, unpure(6:10) , '.-', ...
+    t, unpure(11:15) , '.-')
+legend({'6 uM GFP', '30 uM GFP', '60 uM GFP'})
+xlabel('Time [h]'), ylabel('GFP/FS')
+
+
+pure = r(2:2:end);
+figure(2)
+t = [1, 3, 7, 22, 30];
+plot(t, pure(1:5) , '.-', ...
+    t, pure(6:10) , '.-', ...
+    t, pure(11:15) , '.-')
+legend({'6 uM GFP', '30 uM GFP', '60 uM GFP'})
+xlabel('Time [h]'), ylabel('GFP/FS')
 %%
 close all
 j = [1:6; 7:12; 13:18; 19:24; 25:30];

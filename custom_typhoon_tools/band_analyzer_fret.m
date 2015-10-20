@@ -112,7 +112,7 @@ end
 % E_raw = 1./(1+DD_div_DA(:,1));
 % gamma_calc = (1-E_soll)./E_soll./DD_div_DA(i_gamma,1)
 % gamma_calc = gamma_calc(2);
-gamma_calc = 1;
+gamma_calc = 8;
 
 E = 1./(1+gamma_calc.*DD_div_DA(:,1));
 
