@@ -1,4 +1,4 @@
-function [  ] = dismiss_particles(  )
+function [  ] = dismiss_particles( filter_bool )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -8,15 +8,25 @@ function [  ] = dismiss_particles(  )
     N_particles = size(img,3);
 
     use = zeros(N_particles, 1);
-
+    r_filter = 15;
+    f_filter = fspecial('gaussian', 3*r_filter , r_filter); % gaussian filter
+    
     cf = figure(1);
     go_on = 1;
     i = 1;
     %key = 1;
     while go_on
         j = i; % consider j-th particle
-
-        imagesc( img(:,:, j)), axis image, colormap gray
+        
+        if filter_bool
+            tmp2 = img(:,:, j);
+            tmp =  double(tmp2)-double(imfilter(tmp2, f_filter, 'same'));
+            tmp = tmp-min(tmp(:));
+            tmp =  tmp*(2^16-1)./max(tmp(:));
+        else
+            tmp = img(:,:, j);
+        end
+        imagesc(tmp), axis image, colormap gray
         title(['Image ' num2str(i) ' of ' num2str(N_particles)  ])
 
         k=waitforbuttonpress;
