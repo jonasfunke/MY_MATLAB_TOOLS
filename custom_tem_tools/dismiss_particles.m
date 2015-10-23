@@ -56,5 +56,6 @@ function [  ] = dismiss_particles(  )
     % write output
     WriteImagic(img(:,:,use==1), [pname fname(1:end-4) '_cleaned'])
     dlmwrite([pname fname(1:end-4) '_cleaned_history.txt'], [[1:N_particles]' use], '\t')
+    disp([num2str(N_particles-sum(use)) ' of ' num2str(N_particles) ' particles dismissed. ' num2str(sum(use)) ' particles remaining.'])
 end
 
