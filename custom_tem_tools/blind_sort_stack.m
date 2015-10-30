@@ -1,4 +1,4 @@
-function [ data_out ] = blind_sort_stack( data_array )
+function [ data_out ] = blind_sort_stack( data_array, output_file )
 %
 %   Detailed explanation goes here
 
@@ -38,13 +38,14 @@ function [ data_out ] = blind_sort_stack( data_array )
                      go_on = 0;
                      disp('Quit')
                 else
-                   % if strcmp(tmp, 'w')
-                        %save([pname fname(1:end-4) '_sorting_1-' num2str(i) '.mat'], 'use')
-                        %disp('data written')
-                   % else
+                   if strcmp(tmp, 'w')
+                        save([output_file '_sorting_1-' num2str(i) '.mat'], 'use')
+                        disp('data written')
+                        i = i-1;
+                    else
                         disp([num2str(j) ' used'])
                         use(j) = 1;
-                   % end
+                    end
                 end
             end
         end
@@ -74,7 +75,8 @@ function [ data_out ] = blind_sort_stack( data_array )
         data_out(i).history = [data_out(i).history; {message}];
         disp(message)
     end
-
+    save([output_file '_sorting_all.mat'], 'data_out', 'use')
+    
     close(cf)
     
 
