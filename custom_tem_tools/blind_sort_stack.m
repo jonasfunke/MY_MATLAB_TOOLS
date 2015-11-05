@@ -14,6 +14,9 @@ function [ data_out ] = blind_sort_stack( data_array, output_file )
     p = randperm(N_particles)';
     use = zeros(N_particles, 1);
     
+    % make a waitbar
+    h = waitbar(0,'Completed');
+   
     % loop through mixed data set
     cf = figure(1);
     go_on = 1;
@@ -39,7 +42,7 @@ function [ data_out ] = blind_sort_stack( data_array, output_file )
                      disp('Quit')
                 else
                    if strcmp(tmp, 'w')
-                        save([output_file '_sorting_1-' num2str(i) '.mat'], 'use')
+                        save([output_file '_sorting_1-' num2str(i) '.mat'], 'use', 'p')
                         disp('data written')
                         i = i-1;
                     else
@@ -56,6 +59,7 @@ function [ data_out ] = blind_sort_stack( data_array, output_file )
         else
             i=i+1;
         end
+        waitbar(i/N_particles, h, [num2str(round(100*i/N_particles)) '% completed'])
     end
     
     used_angles = all_angles(use==1,:);    
@@ -75,8 +79,9 @@ function [ data_out ] = blind_sort_stack( data_array, output_file )
         data_out(i).history = [data_out(i).history; {message}];
         disp(message)
     end
-    save([output_file '_sorting_all.mat'], 'data_out', 'use')
+    save([output_file '_sorting_all.mat'], 'data_out', 'use', 'p')
     
+    close(h)
     close(cf)
     
 
