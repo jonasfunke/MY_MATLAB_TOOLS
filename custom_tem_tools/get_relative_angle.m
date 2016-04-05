@@ -9,11 +9,9 @@ else
     r_angle = varargin{1};
     r_slice = varargin{2};
 end
-%%
 [fname, pname] =uigetfile('*.*', 'Select output file of imageJ.');
 data = dlmread([pname fname], '\t', 1); % load data
-%%
-%keyboard
+
 % convert absolute angles to relative angles
 
 dalpha = zeros(size(data,1)/2,2);
