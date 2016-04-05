@@ -3,13 +3,17 @@ function [  ] = crop_tem_micrographs( filter_bool )
 
     [ pname] =uigetdir('Select directory.');
     
-    path_out = [pname '_cropped'];
+    if filter_bool
+        path_out = [pname '_cropped_filtered'];
+    else
+        path_out = [pname '_cropped'];
+    end
     mkdir(path_out)
     
     files = dir([pname filesep '*.TIF']);
     
     % filter stuff
-    r_filter = 30;
+    r_filter = 50;
     f_filter = fspecial('gaussian', 2*r_filter , r_filter); % gaussian filter
 
     
