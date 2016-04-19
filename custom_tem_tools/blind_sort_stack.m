@@ -1,4 +1,4 @@
-function [ data_out ] = blind_sort_stack( data_array, output_file )
+function [ data_out ] = blind_sort_stack( data_array, output_file, filter_bool )
 %
 %   Detailed explanation goes here
 
@@ -14,6 +14,11 @@ function [ data_out ] = blind_sort_stack( data_array, output_file )
     p = randperm(N_particles)';
     use = zeros(N_particles, 1);
     
+    
+    if filter_bool
+       r_filter = 20;
+       f_filter = fspecial('gaussian', 2*r_filter , r_filter); % gaussian filter
+    end
     % make a waitbar
     h = waitbar(0,'Completed');
    
@@ -24,7 +29,22 @@ function [ data_out ] = blind_sort_stack( data_array, output_file )
     while go_on
         j = p(i); % consider j-th particle
 
-        imagesc( data_array(all_angles(j,3)).particles(:,:,all_angles(j,2)) ), axis image, colormap gray
+        if filter_bool
+            img = data_array(all_angles(j,3)).particles(:,:,all_angles(j,2)); 
+
+            %subplot(1, 2, 1)
+            %imagesc( double(img)-double(imfilter(img, f_filter, 'same')) ), axis image, colormap gray, colorbar
+            
+            %subplot(1, 2, 2)
+            img_filt = double(img)-double(imfilter(img, f_filter, 'same'));
+            imagesc( img_filt , mean(img_filt(:))*[1 1]+[-4 +4]*std(img_filt(:))), axis image, colormap gray
+
+            
+        else
+
+             img = data_array(all_angles(j,3)).particles(:,:,all_angles(j,2));
+             imagesc(img, mean(img(:))*[1 1]+[-4 +4]*std(img(:))  ), axis image, colormap gray
+        end
         title(['Image ' num2str(i) ' of ' num2str(N_particles) ', angle = ' num2str(all_angles(j,1)) ])
 
         k=waitforbuttonpress;
