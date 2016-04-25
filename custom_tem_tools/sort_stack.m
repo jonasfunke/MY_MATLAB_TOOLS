@@ -1,4 +1,4 @@
-function [ data_out ] = sort_stack( varargin )
+function [ data_out, data_out2 ] = sort_stack( varargin )
 %UNTITLED6 Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -68,6 +68,21 @@ function [ data_out ] = sort_stack( varargin )
     data_out.history = [data_out.history; {message}];
     disp(message)
 
+    
+    data_out2 = data; % copy struct
+    data_out2.angles = data.angles(use==0);
+    data_out2.particles = data.particles(:,:,use==0);
+    if isempty(data.history)
+        data_out2.history = {['sorted on ' datestr(now, 'yyyy-mm-dd_HH-MM')]};
+    else
+        data_out2.history = [data_out2.history; {['sorted on ' datestr(now, 'yyyy-mm-dd_HH-MM')]}];
+    end
+    message = [num2str(N_particles-sum(use)) ' of ' num2str(N_particles) ' particles dismissed. Dismissed particles remain in this stack. ' num2str(sum(use)) ' particles.'];
+    
+    data_out2.history = [data_out2.history; {message}];
+    disp(message)
+    
+    
     close(cf)
     
 

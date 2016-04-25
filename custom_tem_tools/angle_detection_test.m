@@ -136,4 +136,91 @@ surf(T,R, B), axis image
 
 %% Average
 
+
+
+
+
 %% Find peaks
+
+
+
+
+%% 2nd try
+
+%%
+close all, clear all, clc
+
+[fname, pname] = uigetfile('*.img', 'Select img stack');
+
+%%
+particles = ReadImagic([pname fname]);
+N_particles = size(img,3);
+
+
+
+%% FFT
+for i=10:15
+img = particles(:,:,i);
+
+r_highpass =15; % pixel
+r_lowpass = 2; % pixel
+f_highpass = fspecial('gaussian', 2*r_highpass, r_highpass); % gaussian filter
+f_lowpass = fspecial('gaussian', 2*r_lowpass, r_lowpass); % gaussian filter
+
+
+img_filter =  double(imfilter(img, f_lowpass, 'same'))-double(imfilter(img, f_highpass, 'same'));
+
+
+img_fourier = abs(fftshift(fft2(img_filter)));
+
+figure(1), clf
+subplot(2, 2, 1)
+imagesc(img), axis image
+
+subplot(2, 2, 2)
+imagesc(img_filter), axis image
+
+subplot(2, 2, 3)
+imagesc(abs(fftshift(fft2(img))), [0, 1000]), axis image
+
+subplot(2, 2, 4)
+imagesc( img_fourier, [0, 1000]), axis image
+
+
+[X,Y] = meshgrid([-99.5:99.5]', [-99.5:99.5]');
+
+
+xy = [X(:), Y(:), img_fourier(:)];
+
+rt = [sqrt(xy(:,1).^2+xy(:,2).^2), atan2(xy(:,1), xy(:,2)), xy(:,3)];
+
+r_max = 50;
+rt_2 = rt(rt(:,1)<40,:);
+
+
+%rt_2 = rt(rt(:,3)>400,:);
+
+
+%rt_2(rt_2(:,2)<0,2) = rt_2(rt_2(:,2)<0,2)+pi; 
+
+x_points = -pi:0.0175:pi;
+n = zeros(size(x_points));
+h = 0.0175*2;
+for j=1:length(rt_2(:,2)) % loop over data
+    n = n + rt_2(j,3)*normpdf(x_points, rt_2(j,2), h);
+end
+
+p = n/200; %/sum(rt_2(:,3));
+
+
+
+figure(2)
+plot(rt_2(:,2)*180/pi,rt_2(:,3), '.', x_points*180/pi, p)
+
+
+
+pause
+end
+
+
+
