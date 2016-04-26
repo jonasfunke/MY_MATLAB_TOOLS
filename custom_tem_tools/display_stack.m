@@ -11,27 +11,26 @@ function [ index_out ] = display_stack( varargin )
         data = varargin{1};
     end
     dx = 4;
-    xhist = 0:dx:120;
-    n = hist(data.angles(:), xhist);
+    [n, p, xhist] = uniform_kernel_density(data.angles(:), 3, 0, 120, 0.1);
     
     [angles_sorted, sort_index] = sortrows(data.angles, +1);
     i = [1:size(data.angles,1)]';
 
     cf = figure();
     
-    subplot(1, 4, 1:2)
+    subplot(3, 2, 1:4)
     imagesc(data.particles(:,:,sort_index(1))), axis image, colormap gray
    % title(['Ref ' num2str(t) ', particle ' num2str(i) ', cc = ' num2str(data(t).stats(sort_index(1),3))])
     cur_img = gca;
     
-    subplot(1, 4, 4)
+    subplot(3, 2, 6)
     ylim = [min(data.angles) max(data.angles)];    
     plot(n, xhist)
     set(gca, 'Ylim', ylim)
 
     grid on
 
-    subplot(1, 4, 3)
+    subplot(3, 2, 5)
     plot(i, angles_sorted, 'b'), hold on
     set(gca, 'YLim', ylim, 'XLim', [1 i(end)]);
     h = imline(gca, round(length(data.angles)/2).*[1 1], ylim);

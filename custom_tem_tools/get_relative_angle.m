@@ -51,7 +51,8 @@ function [ dalpha ] = get_relative_angle(varargin)
         [fname_img, pname_img] = uigetfile('*.img', 'Select corresponding img file');
         img = ReadImagic([pname_img filesep fname_img]); % read imagic file
         particles = img(:,:,dalpha(:,2));
-        name = inputdlg({'Name of stack:'}, 'Name', 1, {fname});
+        tmp = inputdlg({'Name of stack:'}, 'Name', 1, {fname});
+        name = tmp{1};
         angles = dalpha(:,1);
         history = [{['Created on ' datestr(now, 'yyyy-mm-dd:')]}; ...
             {['from ' pname_img fname_img]}];
