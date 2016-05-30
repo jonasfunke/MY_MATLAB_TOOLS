@@ -11,12 +11,12 @@ gelData_raw = check_gel_saturation(gelData_raw);
 gelData = background_correct_gel_image(gelData_raw, 'histogram_background', 'on');
 gelData.background
 gelData = background_correct_gel_image(gelData_raw, 'numberOfAreas', 4);
+gelData.images_raw = gelData.images;
 
 %% overlay images 
-[dd_shift, dd_dx, dd_dy] = overlay_image(gelData.images{2}, gelData.images{1}, 'display', 'off');
-[da_shift, da_dx, da_dy] = overlay_image(gelData.images{2}, gelData.images{3}, 'display', 'off');
+[dd_shift, dd_dx, dd_dy] = overlay_image(gelData.images_raw{2}, gelData.images_raw{1}, 'display', 'off');
+[da_shift, da_dx, da_dy] = overlay_image(gelData.images_raw{2}, gelData.images_raw{3}, 'display', 'off');
 
-gelData.images_raw = gelData.images;
 gelData.images = {dd_shift, gelData.images{2}, da_shift };
 
 %% create output dir
@@ -38,6 +38,7 @@ gelData.images{3} = da_cor; % append to images
 
 %% deterime profiles
 profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.05, 'selection_type', 'automatic');
+%profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.2, 'selection_type', 'manual');
 
 %% Calculate FRET efficiency for leading band
 w_band = 10;
@@ -49,35 +50,37 @@ DD_div_DA = zeros(n_bands, 2);
 DD_div_AA = zeros(n_bands, 2);
 DA_div_AA = zeros(n_bands, 2);
 
-subplot(3,1,1)
-imagesc(gelData.images{2}), axis image, colormap gray
-hold on
-
+%subplot(3,1,1)
+%imagesc(gelData.images{2}), axis image, colormap gray
+%hold on
+%
 path0 = cd;
 for i=1:n_bands
     [I_max, i_max] = max(profileData.profiles{3, i}); % Find maximum of lane based on 2nd channel (D->A)
     pos = profileData.lanePositions(i,:);
     
-    subplot(3,1,1)
-    rectangle('Position', [pos(1), pos(3)+i_max-w_band, pos(2)-pos(1), 2*w_band], 'EdgeColor', 'r');
+   % subplot(3,1,1)
+   % rectangle('Position', [pos(1), pos(3)+i_max-w_band, pos(2)-pos(1), 2*w_band], 'EdgeColor', 'r');
     
     areas(i,:) = [pos(1), pos(3)+i_max-w_band, pos(2)-pos(1), 2*w_band];
-    subplot(3,1,2:3)
-    hold off
-    plot(1:length( profileData.profiles{1,i}), profileData.profiles{1,i}, 'g'), hold on
-    plot(1:length( profileData.profiles{2,i}), profileData.profiles{2,i}, 'r'), hold on
-    plot(1:length( profileData.profiles{3,i}), profileData.profiles{3,i}, 'b'), hold on
-    vline(i_max, {'k'});
-    vline(i_max-w_band, {'k--'});
-    vline(i_max+w_band, {'k--'});
+    %subplot(3,1,2:3)
+%     hold off
+%     plot(1:length( profileData.profiles{1,i}), profileData.profiles{1,i}, 'g'), hold on
+%     plot(1:length( profileData.profiles{2,i}), profileData.profiles{2,i}, 'r'), hold on
+%     plot(1:length( profileData.profiles{3,i}), profileData.profiles{3,i}, 'b'), hold on
+%     vline(i_max, {'k'});
+%     vline(i_max-w_band, {'k--'});
+%     vline(i_max+w_band, {'k--'});
     
-    %pause
+  %  pause
     subDD = gelData.images{1}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
     subAA = gelData.images{2}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
     subDA = gelData.images{3}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
     DD_div_DA(i,:) = calculate_ration_of_areas(subDD, subDA, 'display', 'off');
-   % pause
-   % close all
+  %  title(num2str(i))
+    
+%     pause
+%     close all
     DD_div_AA(i,:) = calculate_ration_of_areas(subDD, subAA, 'display', 'off');
     DA_div_AA(i,:) = calculate_ration_of_areas(subDA, subAA, 'display', 'off');
     
@@ -91,22 +94,21 @@ for i=1:n_bands
     end
 end
 cd(path0)
-
 close all
 
 %%
 close all
-imagesc(gelData.images{2}), colormap gray, axis image
+imagesc(gelData.images{3}), colormap gray, axis image
 
 for i=1:n_bands
     rectangle('Position', areas(i,:), 'EdgeColor', 'r', 'Linewidth', 1);
     text(areas(i,1)+areas(i,3)/2, areas(i,2) , num2str(i), 'Color', 'r', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 8)
 end
-%%
+
 x = inputdlg('Enter space-separated index for reference samples:',...
              'Sample', [1 50]);
 i_gamma = str2num(x{:})
-%%
+
 
 % %i_gamma = [9];
 % 
@@ -119,11 +121,8 @@ i_gamma = str2num(x{:})
 %gamma_calc = 1;
 E = 1./(1+gamma_calc.*DD_div_DA(:,1));
 
-%%
 %gamma_calc_integrate =  I_mean(i_gamma,3).*(1./E_soll - 1) ./  I_mean(i_gamma,1) 
 E_integrate = I_mean(:,3) ./ (gamma_calc.*I_mean(:,1) + I_mean(:,3));
-
-
 
 %% save data
 close all
@@ -132,7 +131,7 @@ save([path_out prefix_out '_data.mat'])
 disp('data saved...')
 
 
-%% write corrected images
+% write corrected images
 disp('Writing images')
 
 t = Tiff([path_out filesep 'da_cor.tif'],'w');
@@ -157,7 +156,7 @@ t.setTag('PlanarConfiguration',Tiff.PlanarConfiguration.Chunky);
 t.write( uint16(da_cor+gelData.background{3}.p00)  );
 t.close();
  
-%% plot areas 
+% plot areas 
 
 cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 1000 500], 'Position', [0 1000 1000 500]);imagesc(gelData.images{1}, [0 3.*std(gelData.images{1}(:))]), axis image, colormap gray, hold on
 
@@ -169,7 +168,7 @@ set(gca, 'XTickLabel', [], 'YTickLabel', [])
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'bands.tif']); %save figure
 
 
-%% Plot 
+% Plot 
 cur_fig = figure;
 subplot(3, 1, 1)
 %plot(1:n_bands, bandData.intensities(:,2), 'r.-', 1:n_bands, bandData.intensities(:,1), 'g.-', 1:n_bands, bandData.intensities(:,4), 'b.-')
@@ -189,7 +188,7 @@ set(gca, 'XLim', [1 n_bands], 'YLim', [0.3 0.6]);
 
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized.tif']); %save figure
 
-%% Plot 
+% Plot 
 close all
 cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 20 5], 'Position', [0 1000 2000 500]);
 
@@ -203,5 +202,5 @@ print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized_barplot.t
 
 print(cur_fig, '-depsc2' , [path_out filesep 'FRET_normalized_barplot.eps']); %save figure
 
-%%
+
 disp('done')
