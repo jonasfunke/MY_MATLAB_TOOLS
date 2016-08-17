@@ -8,8 +8,8 @@ function [  ] = dismiss_particles( filter_bool )
     N_particles = size(img,3);
 
     use = zeros(N_particles, 1);
-    r_filter = 15;
-    f_filter = fspecial('gaussian', 3*r_filter , r_filter); % gaussian filter
+    r_filter = 8;
+    f_filter = fspecial('average', r_filter); % gaussian filter
     
     cf = figure(1);
     go_on = 1;
@@ -17,18 +17,33 @@ function [  ] = dismiss_particles( filter_bool )
     %key = 1;
     while go_on
         j = i; % consider j-th particle
-        
+        cur_img_orig = img(:,:, j);
         if filter_bool
-            tmp2 = img(:,:, j);
-            tmp =  double(tmp2)-double(imfilter(tmp2, f_filter, 'same'));
-            tmp = tmp-min(tmp(:));
-            tmp =  tmp*(2^16-1)./max(tmp(:));
-        else
-            tmp = img(:,:, j);
-        end
-        imagesc(tmp), axis image, colormap gray
-        title(['Image ' num2str(i) ' of ' num2str(N_particles)  ])
+            scale = mean(cur_img_orig(:)) *[1 1] + [+1 -1]* std(cur_img_orig(:));
+           % tmp =  double(tmp2)-double(imfilter(tmp2, f_filter, 'same'));
+            %tmp = tmp-min(tmp(:));
+            %tmp =  tmp*(2^16-1)./max(tmp(:));
+            tmp =  double(imfilter(cur_img_orig, f_filter, 'same'));
+            
+            subplot(1,2,1)
+            imagesc(tmp), axis image, colormap gray
+            title(['Image ' num2str(i) ' of ' num2str(N_particles)  ])
 
+            subplot(1,2,2)
+            imagesc(cur_img_orig), axis image, colormap gray
+
+            
+        else
+            
+            tmp = cur_img_orig;
+            
+            imagesc(tmp), axis image, colormap gray
+            title(['Image ' num2str(i) ' of ' num2str(N_particles)  ])
+        end
+        
+        
+        
+        
         k=waitforbuttonpress;
         tmp = get(gcf,'currentcharacter');
         if strcmp(tmp, 'd')
@@ -65,7 +80,9 @@ function [  ] = dismiss_particles( filter_bool )
     close(cf)
     % write output
     WriteImagic(img(:,:,use==1), [pname fname(1:end-4) '_cleaned'])
+    WriteImagic(img(:,:,use==0), [pname fname(1:end-4) '_rest'])
     dlmwrite([pname fname(1:end-4) '_cleaned_history.txt'], [[1:N_particles]' use], '\t')
+    save([pname fname(1:end-4) '_cleaned_history.mat'])
     disp([num2str(N_particles-sum(use)) ' of ' num2str(N_particles) ' particles dismissed. ' num2str(sum(use)) ' particles remaining.'])
 end
 

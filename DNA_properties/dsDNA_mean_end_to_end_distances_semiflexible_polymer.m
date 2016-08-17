@@ -1,4 +1,4 @@
-function [ r_mean, sigma ] = dsDNA_mean_end_to_end_distances_semiflexible_polymer( L, exponent, lp)
+function [ r_mean, sigma, distribution ] = dsDNA_mean_end_to_end_distances_semiflexible_polymer( L, exponent, lp)
 %UNTITLED5 Summary of this function goes here
 %   Detailed explanation goes here
     if nargin < 3
@@ -31,8 +31,9 @@ function [ r_mean, sigma ] = dsDNA_mean_end_to_end_distances_semiflexible_polyme
 %             vline(R(tmp(1)));
 %             tmp = find(cumulant-0.75 > 0);
 %             vline(R(tmp(1)));
-          %   plot(R, end_to_end), hold on
-          %   vline(sum(end_to_end.*R));
+             %plot(R, end_to_end), hold on
+             %vline(sum(end_to_end.*R));
+             
             r_mean(i, 1) = sum(end_to_end.*R); % mean
             sigma(i, 1) = sqrt( sum(end_to_end.*(r_mean(i, 1)-R).^2) ); % std
         end
