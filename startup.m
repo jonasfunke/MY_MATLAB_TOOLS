@@ -5,8 +5,8 @@ display('----------------------------------------------------------------')
 
 %% set data directory
 data_dir = data_directory(); % retrive where most data is stored
-matlab_dir = userpath;
-matlab_dir = matlab_dir(1:end-1); % home matlab folder
+%matlab_dir = userpath;
+matlab_dir = '/Users/jonasfunke/MATLAB/'; %matlab_dir(1:end-1); % home matlab folder
 
 %% set default plot styles
 set(0, 'defaulttextinterpreter', 'none')

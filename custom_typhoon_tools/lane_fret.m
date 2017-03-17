@@ -168,7 +168,7 @@ set(gca, 'XTickLabel', [], 'YTickLabel', [])
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'bands.tif']); %save figure
 
 
-% Plot 
+%% Plot 
 cur_fig = figure;
 subplot(3, 1, 1)
 %plot(1:n_bands, bandData.intensities(:,2), 'r.-', 1:n_bands, bandData.intensities(:,1), 'g.-', 1:n_bands, bandData.intensities(:,4), 'b.-')
@@ -184,11 +184,11 @@ xlabel('Lane'), ylabel('FRET efficiency')
 
 title({['gamma=' num2str(gamma_calc) ]})
 legend({ 'FRET from intgration', 'FRET from scatterplot'})
-set(gca, 'XLim', [1 n_bands], 'YLim', [0.3 0.6]);
+set(gca, 'XLim', [1 n_bands], 'YLim', [0 1]);
 
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized.tif']); %save figure
 
-% Plot 
+%% Plot 
 close all
 cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 20 5], 'Position', [0 1000 2000 500]);
 
@@ -196,7 +196,7 @@ bar(  1:n_bands, E)
 xlabel('Lane'), ylabel('FRET efficiency')
 
 title({['gamma=' num2str(gamma_calc) ]})
-set(gca, 'XLim', [0 n_bands+1], 'YLim', [0.2 0.6]);
+set(gca, 'XLim', [0 n_bands+1], 'YLim', [0 1]);
 
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized_barplot.tif']); %save figure
 

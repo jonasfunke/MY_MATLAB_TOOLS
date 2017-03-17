@@ -17,7 +17,7 @@ mkdir(path_out)
 %% SET PARAMETER
 input = {'First Frame:', 'Last Frame (-1=all):', 'Sequence green (D->D, D->A):', 'Sequence red (A->A):',... % sample options
     'Radius of peak [pixel]:', 'Integration radius [pixel]:', 'Average Frame length [frames]:'};
-input_default = {'2', '-1', '10', '01', '3', '3', '-1'};
+input_default = {'2', '-1', '10', '01', '3', '5', '100'};
 tmp = inputdlg(input, 'Parameters', 1, input_default);
 
 
@@ -85,6 +85,9 @@ for i=1:N_movie
     avg_img{i, 1} = dd{i}.average_image(N_frames);
     avg_img{i, 2} = da{i}.average_image(N_frames);
     avg_img{i, 3} = aa{i}.average_image(N_frames);
+    imwrite(uint16(avg_img{i, 1}), [path_out filesep 'movie_' sprintf('%.02i',i) '_averageImage_DD.tif'  ])
+    imwrite(uint16(avg_img{i, 2}), [path_out filesep 'movie_' sprintf('%.02i',i) '_averageImage_DA.tif'  ])
+    imwrite(uint16(avg_img{i, 3}), [path_out filesep 'movie_' sprintf('%.02i',i) '_averageImage_AA.tif'  ])
 end
 
 
@@ -229,7 +232,7 @@ end
 close(h)
 
 
-%% save data
+% save data
 save([path_out filesep 'data.mat'])
 disp(['Saved data to ' path_out])
 
@@ -241,6 +244,7 @@ for i=1:size(traces,1)
     N_min = min([size(traces{i,1},1) size(traces{i,2},1) size(traces{i,3},1) N_min]);
 end
 
+time_per_frame = [0.035 0.035 0.035 0.5 0.5 0.5];%s
 for m=1:N_movie 
     floc= [path_out filesep 'data_movie_' sprintf('%.02i',m) '.txt']; % 
 
@@ -252,11 +256,16 @@ for m=1:N_movie
 
     A_out(:,1) = traces{1,1}(1:N_min,1); % framenumber dd/da
     A_out(:,2) = traces{1,3}(1:N_min,1); % framenumber aa
-
+    A_out(:,3) = traces{1,1}(1:N_min,1)*time_per_frame(m); % time dd/da
+    A_out(:,4) = traces{1,3}(1:N_min,1)*time_per_frame(m); % time aa
+    
     for i=1:N_tmp
-        A_out(:,2+3*(i-1)+1) = traces{index(i),1}(1:N_min,4); %dd
-        A_out(:,2+3*(i-1)+2) = traces{index(i),2}(1:N_min,4); %dd
-        A_out(:,2+3*(i-1)+3) = traces{index(i),3}(1:N_min,4); %dd
+        A_out(:,4+4*(i-1)+1) = traces{index(i),1}(1:N_min,4); %dd
+        A_out(:,4+4*(i-1)+2) = traces{index(i),2}(1:N_min,4); %da
+        A_out(:,4+4*(i-1)+3) = traces{index(i),3}(1:N_min,4); %aa
+        tmp_da = traces{index(i),2}(1:N_min,4)-min(traces{index(i),2}(1:N_min,4));
+        tmp_dd = traces{index(i),1}(1:N_min,4)-min(traces{index(i),1}(1:N_min,4));
+        A_out(:,4+4*(i-1)+4) = tmp_da./(tmp_da+tmp_dd); %FRET 
     end
 
     % write output file
@@ -264,11 +273,14 @@ for m=1:N_movie
     hdr = cell(1, 2+N_tmp*3);
     hdr{1} = 'frame_dd';
     hdr{2} = 'frame_aa';
-
+    hdr{3} = 'time_dd';
+    hdr{4} = 'time_aa';
+    
      for i=1:N_tmp
-         hdr{2+3*(i-1)+1} = ['dd_' num2str(index(i))];
-         hdr{2+3*(i-1)+2} = ['da_' num2str(index(i))];
-         hdr{2+3*(i-1)+3} = ['aa_' num2str(index(i))];
+         hdr{4+4*(i-1)+1} = ['dd_' num2str(index(i))];
+         hdr{4+4*(i-1)+2} = ['da_' num2str(index(i))];
+         hdr{4+4*(i-1)+3} = ['aa_' num2str(index(i))];
+         hdr{4+4*(i-1)+4} = ['FRET_' num2str(index(i))];
      end
 
     % write header file
@@ -364,13 +376,13 @@ d = sqrt(  (peaks(:,1)-peaks(:,3)).^2 + (peaks(:,2)-peaks(:,4)).^2  );
 
 path_fig = [path_out filesep 'traces_fig'];
 mkdir(path_fig)
-%%
+%
 w_plot = 6;
 close all
 cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 1200 400], 'Position', [250 500 1200 400 ]);
 
 %231
-for i=1:size(traces,1)
+for i=382:382%size(traces,1)
     %Idd = traces{i,1}(:,4)-traces{i,1}(end,4);
     %Ida = traces{i,2}(:,4)-traces{i,2}(end,4);
     
@@ -406,7 +418,7 @@ for i=1:size(traces,1)
 
    % print(cur_fig, '-dtiff', '-r300', [path_fig filesep 'trace_' sprintf('%.03i',i) '.tif'])
 
-    pause
+  pause
    
 end
 %%
@@ -414,12 +426,12 @@ close all
 cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 1200 400], 'Position', [250 500 1200 400 ]);
 
 %231
-for i=130:130 %size(traces,1)
+for i=546:546 %size(traces,1)
     %Idd = traces{i,1}(:,4)-traces{i,1}(end,4);
     %Ida = traces{i,2}(:,4)-traces{i,2}(end,4);
     
-    Idd = traces{i,1}(:,4)-traces{i,2}(end,4);%-traces{i,1}(end,4);
-    Ida = traces{i,2}(:,4)-traces{i,2}(end,4);
+    Idd = traces{i,1}(:,4)-min(traces{i,2}(:,4));%-traces{i,1}(end,4);
+    Ida = traces{i,2}(:,4)-min(traces{i,2}(:,4));
     E = Ida./(Ida+Idd);
     
     x_dd = traces{i,1}(1,2)+1;
@@ -451,12 +463,14 @@ legend({'D->D', 'D->A'})
    ylabel('FRET')
    % print(cur_fig, '-dtiff', '-r300', [path_fig filesep 'trace_' sprintf('%.03i',i) '.tif'])
 
-   % pause
+  %  pause
    
    figure(2)
-   hist(E(1:590), 20)
+   [n, ~ , x_hist] = uniform_kernel_density(E, 0.005, -0.1, 1.1, 0.001);
+   plot(x_hist, n)
    xlabel('FRET')
    ylabel('Number of frames')
+   
    figure(3)
      plot(traces{i,1}(:,1), E , 'k-',  'Linewidth', 0.5)     
    set(gca, 'YLim', [0 1])
@@ -479,16 +493,16 @@ for i=1:N_movie
     %
     title('D -> D'),
   
-    print(cur_fig, '-dtiff', '-r300', [path_out filesep 'image_' sprintf('%.02i',i) '_dd.tif'])
+    print(cur_fig, '-dtiff', '-r500', [path_out filesep 'image_' sprintf('%.02i',i) '_dd.tif'])
     
         
-    %%
+    
      %D_ex A_em
     imagesc(avg_img{i,2}, [0 1000]),colormap gray, colorbar, axis image, hold on
     plot(positions{i}(:,3) , positions{i}(:,4)  , 'bo'), hold on
     title('D -> A'),
-  %%
-    print(cur_fig, '-dtiff', '-r300', [path_out filesep 'image_' sprintf('%.02i',i) '_da.tif'])
+  
+    print(cur_fig, '-dtiff', '-r500', [path_out filesep 'image_' sprintf('%.02i',i) '_da.tif'])
     
         
     %
@@ -499,7 +513,7 @@ for i=1:N_movie
         set(gca, 'YDir', 'normal')
 
   %
-    print(cur_fig, '-dtiff', '-r300', [path_out filesep 'image_' sprintf('%.02i',i) '_aa.tif'])
+    print(cur_fig, '-dtiff', '-r500', [path_out filesep 'image_' sprintf('%.02i',i) '_aa.tif'])
 end
 %%
 close all

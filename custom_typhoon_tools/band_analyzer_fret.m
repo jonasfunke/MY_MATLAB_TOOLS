@@ -112,7 +112,7 @@ end
 % E_raw = 1./(1+DD_div_DA(:,1));
 % gamma_calc = (1-E_soll)./E_soll./DD_div_DA(i_gamma,1)
 % gamma_calc = gamma_calc(2);
-gamma_calc = 8;
+gamma_calc = 1;
 
 E = 1./(1+gamma_calc.*DD_div_DA(:,1));
 
@@ -197,7 +197,7 @@ bar(  1:n_bands, E)
 xlabel('Lane'), ylabel('FRET efficiency')
 
 title({['gamma=' num2str(gamma_calc) ]})
-set(gca, 'XLim', [0 n_bands+1], 'YLim', [0.35 0.65]);
+set(gca, 'XLim', [0 n_bands+1], 'YLim', [0.35 1]);
 
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized_barplot.tif']); %save figure
 
