@@ -1,10 +1,10 @@
-function [  ] = compute_FRET_image(scale, normalization, size)
+function [  ] = compute_FRET_image(floc, scale, normalization, size, path_out )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
 
-    [fname, pname] = uigetfile('*.mat', 'Select mat file');
-
-    load([pname fname])
+   % [fname, pname] = uigetfile('*.mat', 'Select mat file');
+    %floc = [pname fname];
+    load(floc, 'gelData', 'gamma_calc');
     
     DD = gelData.images{1};
     DA = gelData.images{3};
@@ -18,7 +18,7 @@ function [  ] = compute_FRET_image(scale, normalization, size)
    % area = [1600, 1900, 1700, 3100];
 
     cf = figure;
-    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    set(gcf,'Visible','off', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
         'PaperPosition', [0 0 size(1) size(2)]);
 
 
@@ -29,7 +29,18 @@ function [  ] = compute_FRET_image(scale, normalization, size)
     %set(gca, 'Ylim', [area(1) area(2)],  'Xlim', [area(3) area(4)], ...
     %    'Xtick', [], 'YTick', [])
 
-    print(cf, [pname filesep  gelData.filenames{1}(1:end-10) '_FRET_image_' num2str(normalization) '_' num2str(scale(1)) '-' num2str(scale(2)) '.png'], '-dpng','-r1000' )
+    print(cf, [path_out  gelData.filenames{1}(1:end-4) '_FRET_image_' num2str(round(normalization)) '_' num2str(scale(1)) '-' num2str(scale(2)) '.png'], '-dpng','-r1000' )
+
+    
+    
+     cf = figure;
+    set(gcf,'Visible','off', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+        'PaperPosition', [0 0 size(1) size(2)]);
+
+    imagesc(opa,  [0 1]); colorbar, axis image
+    colormap(flipud(parula))
+
+    print(cf, [path_out  gelData.filenames{1}(1:end-4) '_FRET_image_' num2str(round(normalization)) '_' num2str(scale(1)) '-' num2str(scale(2)) '_opacityMask.png'], '-dpng','-r300' )
 
     disp('done')
 
