@@ -49,11 +49,11 @@ cur_fig = figure;
 
 myleg = {};
 for i=1:length(profileData.profiles)
-    plot(profileData.lanePositions(i,3):profileData.lanePositions(i,4), profileData.profiles{i}), hold on
+    plot(profileData.lanePositions(i,3):profileData.lanePositions(i,4), scale(i).*profileData.profiles{i}), hold on
     myleg = [myleg, {['Lane ' num2str(i)]}];
 end
 legend(myleg)
-
+ylabel('Raw Intensity')
 print(cur_fig, '-dtiff', '-r 300' , [path_out filesep 'Intensity.tif']); %save figure
 
 %% Plot 
@@ -65,6 +65,7 @@ for i=1:length(profileData.profiles)
     myleg = [myleg, {['Lane ' num2str(i)]}];
 end
 legend(myleg)
+ylabel('Normalized Intensity')
 
 print(cur_fig, '-dtiff', '-r 300' , [path_out filesep 'Normalized_intensity.tif']); %save figure
 

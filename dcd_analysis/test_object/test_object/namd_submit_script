@@ -1,0 +1,9 @@
+#!/bin/bash
+#SBATCH --get-user-env
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=32
+#SBATCH --mem-per-cpu=1000
+#SBATCH --nodes=1
+#SBATCH --job-name=JF_TO
+##SBATCH --partition=SMALL_MEMORY
+/share/apps/NAMD_2.11_Linux-x86_64-multicore/charmrun +p32 /share/apps/NAMD_2.11_Linux-x86_64-multicore/namd2 +netpoll /nfs/xmippuser/jonasfunke/NAMD_PREDICTIONS/2017-03-23/test_object/test_object.namd 2>&1 | tee /nfs/xmippuser/jonasfunke/NAMD_PREDICTIONS/2017-03-23/test_object/output/log.log

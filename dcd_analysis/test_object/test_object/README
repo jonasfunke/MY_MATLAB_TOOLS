@@ -1,0 +1,38 @@
+Thanks for using the elastic-network guided DNA origami method from
+the Aksimentiev group.
+
+
+## GENERAL 
+Download and install NAMD from
+http://www.ks.uiuc.edu/Development/Download/download.cgi?PackageName=NAMD
+
+Below we assume the default project name 'origami'; substitute with
+the custom name you supplied.
+
+
+## UNIX
+Open a terminal in this directory and type:
+
+/path/to/namd/charmrun ++local +p8 /path/to/namd/namd2 +netpoll origami.namd 2>&1 | tee output/origami-1.log
+
+where '/path/to/namd' is substituted with the path under which NAMD
+was installed and the +p8 option indicates that NAMD should utilize 8
+cpu cores. Usually best performance is achieved by using exactly the
+number of available cores or one fewer, but you may wish to
+experiment.
+
+Depending on your hardware, the size of your DNA, and the degree to
+which it is initially out of equilibrium, it may take several days for
+the simulation to finish. We recommend monitoring your simulation
+using VMD (http://www.ks.uiuc.edu/Research/vmd/).
+
+
+## WINDOWS 
+You will need to install Cygwin (http://www.cygwin.com/), with openssh
+installed and configured. You can then start a bash session and follow
+the instructions for Unix. 
+
+Please visit http://www.ks.uiuc.edu/Research/namd/wiki/index.cgi?NamdOnWindows 
+for more instructions.
+
+

@@ -1,0 +1,91 @@
+#############################################################
+## CONFIGURATION FILE FOR ORIGAMI STRUCTURE PREDICTION     ##
+#############################################################
+
+#############################################################
+## ADJUSTABLE PARAMETERS                                   ##
+#############################################################
+set prefix small_test
+set nLast 0;			# increment when continueing a simulation
+set n [expr $nLast+1]
+set out output/$prefix-$n
+set temperature    300
+
+structure          $prefix.psf
+coordinates        $prefix.pdb
+
+outputName         $out
+XSTfile            $out.xst
+DCDfile            $out.dcd
+
+#############################################################
+## SIMULATION PARAMETERS                                   ##
+#############################################################
+
+# Input
+paraTypeCharmm	    on
+parameters          charmm36.nbfix/par_all36_na.prm
+parameters	    charmm36.nbfix/par_water_ions_na.prm
+
+wrapAll             off
+
+# Force-Field Parameters
+exclude             scaled1-4
+1-4scaling          1.0
+switching           on
+switchdist           8
+cutoff              10
+pairlistdist        12
+margin              30
+
+# Integrator Parameters
+timestep            2.0  ;# 2fs/step
+rigidBonds          all  ;# needed for 2fs steps
+nonbondedFreq       1
+fullElectFrequency  3  
+stepspercycle       12
+
+# PME (for full-system periodic electrostatics)
+PME                 no
+PMEGridSpacing      1.2
+
+# Constant Temperature Control
+langevin            on    ;# do langevin dynamics
+# langevinDamping     1   ;# damping coefficient (gamma); used in original study
+langevinDamping     0.1   ;# less friction for faster relaxation
+langevinTemp        $temperature
+langevinHydrogen    off    ;# don't couple langevin bath to hydrogens
+
+# output
+useGroupPressure    yes
+xstFreq             4800 
+outputEnergies      4800
+dcdfreq             4800 
+restartfreq         48000
+
+#############################################################
+## EXTRA FORCES                                            ##
+#############################################################
+
+# ENM and intrahelical extrabonds
+extraBonds on
+extraBondsFile $prefix.exb
+
+#############################################################
+## RUN                                                     ##
+#############################################################
+
+# Continuing a job from the restart files
+cellBasisVector1 1000 0 0
+cellBasisVector2 0 1000 0
+cellBasisVector3 0 0 1000
+
+if {$nLast == 0} {
+    temperature 300
+    minimize 4800
+} else {   
+    bincoordinates  output/$prefix-$nLast.restart.coor
+    binvelocities   output/$prefix-$nLast.restart.vel
+}
+
+run	 48000
