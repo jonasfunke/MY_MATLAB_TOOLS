@@ -69,35 +69,84 @@ ylabel('Normalized Intensity')
 
 print(cur_fig, '-dtiff', '-r 300' , [path_out filesep 'Normalized_intensity.tif']); %save figure
 
-%% Plot 
+%%
+
+close all
+max_values = zeros(length(profileData.profiles),2);
+
+
 cur_fig = figure;
-
-
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 20 20]);
 myleg = {};
+
 for i=1:length(profileData.profiles)
-    myleg = [myleg, {['Lane ' num2str(i)]}];
+    subplot(4,4,i)
+    plot(profileData.lanePositions(i,3):profileData.lanePositions(i,4), profileData.profiles{1,i}, 'r', ...
+        profileData.lanePositions(i,3):profileData.lanePositions(i,4), profileData.profiles{2,i}, 'g'), hold on    
+    max_values(i,1) = max(profileData.profiles{1,i});
+    max_values(i,2) = max(profileData.profiles{2,i});
+    title(['Lane ' num2str(i)])
+    ylabel('Raw Intensity')
+xlabel('Migration distance [px]')
 end
 
-for i=[ 3, 8:11]
-    [max_intensity, max_index] = max(profileData.profiles{i}/sum(profileData.profiles{i}));
-    plot([profileData.lanePositions(i,3):profileData.lanePositions(i,4)]-max_index, profileData.profiles{i}/sum(profileData.profiles{i})/max_intensity), hold on
-end
-legend(myleg([ 3, 8:11]))
-ylabel('Normalized Intensity')
+print(cur_fig, '-dpdf', [path_out filesep 'De-bruijn_analysis_profiles.pdf']); %save figure
 
-print(cur_fig, '-dtiff', '-r 300' , [path_out filesep 'Normalized_intensity_to_max_shifted.tif']); %save figure
+
+
+%%
+close all
+
+cur_fig = figure;
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 20 5]);
+
+plot(1:size(max_values, 1), max_values(:,1), '.-r', 1:size(max_values, 1), max_values(:,2), 'g.-')
+set(gca, 'Xlim',[0.5 11.5], 'Xtick', [1:11], 'XtickLabel', myleg)
+ylabel('Maximum intensity')
+%xlabel('Lane')
+legend({'de-bruijn', 'object'})
+
+
+
+print(cur_fig, '-dpdf', [path_out filesep 'De-bruijn_analysis_intensities.pdf']); %save figure
 
 
 
 %%
 
-cur_fig = figure;
+defect_rate = zeros(size(max_values, 1),2);
+w_band = 15;
+for i=1:length(profileData.profiles)
+    [I_max, i_max] = max(profileData.profiles{2, i}); % Find maximum of lane based on 2nd channel (object)
 
-for i=[ 3, 8:11]
-    plot(profileData.lanePositions(i,3):profileData.lanePositions(i,4), profileData.profiles{i}/sum(profileData.profiles{i})), hold on
+    pos = profileData.lanePositions(i,:); 
+    areas(i,:) = [pos(1), pos(3)+i_max-w_band, pos(2)-pos(1), 2*w_band];
+
+    sub_debruijn = gelData.images{1}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
+    sub_object = gelData.images{2}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
+    
+    defect_rate(i,:) = calculate_ration_of_areas(sub_debruijn, sub_object, 'display', 'off');
+   
+
 end
-legend(myleg([ 3, 8:11]))
-ylabel('Normalized Intensity')
 
+%%
+cur_fig = figure;
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 20 10]);
+plot( 1:size(max_values, 1), max_values(:,1)./max_values(:,2), 'k.-', 1:size(max_values, 1), defect_rate(:,1), 'k.--')
+N_lanes = size(max_values, 1);
+ylabel('Defect rate (de-bruijin/object) [a.u.]')
+xlabel('Lane')
+set(gca, 'Xlim',[0.5 N_lanes+0.5], 'Xtick', [1:N_lanes])
+legend({'From maximum intenstiy', 'From scatter plot'}, 'location', 'northwest')
+
+print(cur_fig, '-dpdf', [path_out filesep 'De-bruijn_analysis.pdf']); %save figure
+
+
+
+%%
 
 disp('done')
