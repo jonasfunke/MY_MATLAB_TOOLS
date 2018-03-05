@@ -3,7 +3,7 @@ function [  ] = filter_mrc_stack()
     cur_dir = cd;
     [fname, pname] =uigetfile({'*.mrc'; '*.mrcs'}, 'Select a mrc stack.', cur_dir);
     
-    path_out = [pname fname(1:end-4) '_filtered'];
+    path_out = [pname fname(1:end-4) '_jpg'];
     
     mkdir(path_out)
     
