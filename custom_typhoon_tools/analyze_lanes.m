@@ -2,7 +2,7 @@
 close all, clear all, clc
 
 %% load gel data
-gelData_raw = load_gel_image('data_dir', data_directory, 'n_images', 2);
+gelData_raw = load_gel_image('data_dir', data_directory, 'n_images', 1);
 
 %% check for saturation
 gelData_raw = check_gel_saturation(gelData_raw);
@@ -81,11 +81,12 @@ for i=1:length(profileData.profiles)
     myleg = [myleg, {['Lane ' num2str(i)]}];
 end
 
-for i=[ 3, 8:11]
+for i=1:length(profileData.profiles)
     [max_intensity, max_index] = max(profileData.profiles{i}/sum(profileData.profiles{i}));
     plot([profileData.lanePositions(i,3):profileData.lanePositions(i,4)]-max_index, profileData.profiles{i}/sum(profileData.profiles{i})/max_intensity), hold on
+    pause
 end
-legend(myleg([ 3, 8:11]))
+legend(myleg)
 ylabel('Normalized Intensity')
 
 print(cur_fig, '-dtiff', '-r 300' , [path_out filesep 'Normalized_intensity_to_max_shifted.tif']); %save figure
@@ -96,7 +97,7 @@ print(cur_fig, '-dtiff', '-r 300' , [path_out filesep 'Normalized_intensity_to_m
 
 cur_fig = figure;
 
-for i=[ 3, 8:11]
+for i=1:length(profileData.profiles)
     plot(profileData.lanePositions(i,3):profileData.lanePositions(i,4), profileData.profiles{i}/sum(profileData.profiles{i})), hold on
 end
 legend(myleg([ 3, 8:11]))

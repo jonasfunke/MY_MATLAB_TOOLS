@@ -26,6 +26,7 @@ function [  ] = filter_mrc_stack()
         tmp =  double(images(:,:,i))-double(imfilter(images(:,:,i), f_filter, 'same', 'replicate'));
         tmp = tmp-min(tmp(:));
         imwrite(uint8( tmp*(2^bit_depth-1)./max(tmp(:)) ), file_out, format_out,'BitDepth',bit_depth);
+        disp([num2str(i) ' of ' num2str(size(images,3)) ' filtered.' ]);
     end
    
     disp(['Micrographs filtered and written to ' path_out])
