@@ -10,7 +10,8 @@ function [ dalpha ] = get_relative_angle(varargin)
         r_slice = varargin{2};
     end
     [fname, pname] =uigetfile('*.*', 'Select output file of imageJ.');
-    data = dlmread([pname fname], '\t', 1); % load data
+
+    data = dlmread([pname fname], ',', 1); % load data
 
     % convert absolute angles to relative angles
 
