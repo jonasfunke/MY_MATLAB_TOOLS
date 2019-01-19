@@ -7,7 +7,7 @@ function HdArray=ReadImagicHeader(basename)
 % We don't care if the name has an extension or not.
 %
 
-maxheaders=1e5;  % maximum number of images we can read (100 MB of data)
+maxheaders=1e6;  % maximum number of images we can read (100 MB of data)
 
 % Ignore the extension, and construct the filename *.hed
 [n1 slen]=size(basename);
@@ -39,10 +39,11 @@ end;
 fseek(hdr,0,'bof');  % move back to the beginning
 
 [IH,count]=fread(hdr,[256 maxheaders+1],'int32');
+fclose(hdr);
+
 if count >= 256*(maxheaders+1)
     error('File too long, maxheaders exceeded');
 end;
-fclose(hdr);
 
 [n nim]=size(IH);
 

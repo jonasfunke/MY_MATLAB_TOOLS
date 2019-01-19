@@ -16,6 +16,9 @@ if (slen>4) && (basename(slen-3)=='.') % has an extension
 end;
 hdrname=strcat(basename,'.hed');
 hdr=fopen(hdrname,'wb','ieee-le');  % little-endian
+if hdr<0
+    error(['File could not be opened for writing: ' hdrname]);
+end;
 
 % Fill in the 'minimal' header information
 t=clock;
@@ -29,7 +32,7 @@ idat(7)=t(1);  % year
 idat(8)=t(4);  % hour
 idat(9)=t(5);  % minute
 idat(10)=round(t(6)); % second
-idat(12)=n1*n2;
+% idat(12)=n1*n2;  % should be left at zero.
 idat(13)=n1;  % x pixels
 idat(14)=n2;  % y pixels
 typeString='REAL';
