@@ -37,7 +37,7 @@ da_cor = gelData.images{3} - leak_dir(1,1).*gelData.images{1} - leak_dir(2,1).*g
 gelData.images{3} = da_cor; % append to images
 
 %% deterime profiles
-profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.05, 'selection_type', 'automatic');
+profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.4, 'selection_type', 'automatic');
 %profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.2, 'selection_type', 'manual');
 
 %% Calculate FRET efficiency for leading band
@@ -131,7 +131,7 @@ save([path_out prefix_out '_data.mat'])
 disp('data saved...')
 
 
-% write corrected images
+%% write corrected images
 disp('Writing images')
 
 t = Tiff([path_out filesep 'da_cor.tif'],'w');
