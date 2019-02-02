@@ -8,10 +8,10 @@ gelData_raw = load_gel_image('data_dir', data_directory, 'n_images', 1);
 gelData_raw = check_gel_saturation(gelData_raw);
 
 %% background correct data
-%gelData = background_correct_gel_image(gelData_raw, 'histogram_background', 'on');
-%gelData.background
-gelData = background_correct_gel_image(gelData_raw, 'numberOfAreas', 4);
-gelData.images_raw = gelData.images;
+gelData = background_correct_gel_image(gelData_raw, 'histogram_background', 'on');
+gelData.background
+%gelData = background_correct_gel_image(gelData_raw, 'numberOfAreas', 4);
+%gelData.images_raw = gelData.images;
 
 
 %% create output dir
@@ -84,9 +84,12 @@ end
 for i=1:length(profileData.profiles)
     [max_intensity, max_index] = max(profileData.profiles{i}/sum(profileData.profiles{i}));
     plot([profileData.lanePositions(i,3):profileData.lanePositions(i,4)]-max_index, profileData.profiles{i}/sum(profileData.profiles{i})/max_intensity), hold on
-    pause
+    %pause
 end
 legend(myleg)
+    
+
+legend(myleg(1:length(profileData.profiles)))
 ylabel('Normalized Intensity')
 
 print(cur_fig, '-dtiff', '-r 300' , [path_out filesep 'Normalized_intensity_to_max_shifted.tif']); %save figure

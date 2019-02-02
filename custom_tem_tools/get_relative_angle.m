@@ -14,7 +14,10 @@ function [ dalpha ] = get_relative_angle(varargin)
     data = dlmread([pname fname], ',', 1); % load data
 
     % convert absolute angles to relative angles
+    
 
+    
+    %%
     dalpha = zeros(size(data,1)/2,2);
     for i=1:2:size(data,1)-1
         if data(i,r_slice) == data(i+1,r_slice)
@@ -27,7 +30,7 @@ function [ dalpha ] = get_relative_angle(varargin)
             disp(['Warning: Out of slice sync at ' num2str(i) ])
         end
     end
-
+%%
 
     if sum(diff(dalpha(:,2)==0)) > 0
         disp('Warning: some particles in wrong order')
@@ -49,8 +52,8 @@ function [ dalpha ] = get_relative_angle(varargin)
         'Yes','No','No');
 
     if strcmp(export_mat_file, 'Yes')
-        [fname_img, pname_img] = uigetfile('*.img', 'Select corresponding img file');
-        img = ReadImagic([pname_img filesep fname_img]); % read imagic file
+        [fname_img, pname_img] = uigetfile('*.mrcs', 'Select corresponding mrcs file');
+        img = ReadMRC([pname_img filesep fname_img]); % read imagic file
         particles = img(:,:,dalpha(:,2));
         tmp = inputdlg({'Name of stack:'}, 'Name', 1, {fname});
         name = tmp{1};
@@ -58,7 +61,7 @@ function [ dalpha ] = get_relative_angle(varargin)
         history = [{['Created on ' datestr(now, 'yyyy-mm-dd:')]}; ...
             {['from ' pname_img fname_img]}];
         save([pname fname(1:end-4) '_angles.mat'], 'angles', 'history', 'name', 'particles')
-
+        WriteMRC(single(particles*(2^15-1)./max(particles(:))), 1, [pname fname(1:end-4) '_particles.mrcs'])
     end
 
 
