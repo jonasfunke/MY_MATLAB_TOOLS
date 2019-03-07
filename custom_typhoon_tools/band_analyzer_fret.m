@@ -173,24 +173,36 @@ print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'bands.tif']); %save figur
 %% Plot 
 n_bands = size(bandData.intensities,1);
 cur_fig = figure;
-subplot(4, 1, 1)
+cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 20 25]);
+
+
+subplot(5, 1, 1)
 %plot(1:n_bands, bandData.intensities(:,2), 'r.-', 1:n_bands, bandData.intensities(:,1), 'g.-', 1:n_bands, bandData.intensities(:,4), 'b.-')
 plot( 1:n_bands, gamma_calc.*bandData.intensities(:,1)./bandData.intensities(:,2), 'g.--', 1:n_bands, bandData.intensities(:,3)./bandData.intensities(:,2), 'b.--', ...
      1:n_bands, gamma_calc.*DD_div_AA(:,1), 'g.-', 1:n_bands, DA_div_AA(:,1), 'b.-')
 xlabel('Lane'), ylabel('Relative band intensity')
-legend({'gamma * D->D / A->A', 'D->A / A->A'}, 'location', 'best')
+legend({'int D->D/A->A', 'int D->A/A->A', 'scat D->D/A->A', 'scat D->A/A->A'}, 'location', 'best')
 set(gca, 'XLim', [1 n_bands]);
 
-subplot(4, 1, 2)
+subplot(5, 1, 2)
 plot(1:n_bands, bandData.intensities(:,1)/max(bandData.intensities(:,1)), 'g.-', ...
     1:n_bands, bandData.intensities(:,2)/max(bandData.intensities(:,2)), 'r.-', ...+
     1:n_bands, bandData.intensities(:,3)/max(bandData.intensities(:,3)), 'b.-')
 xlabel('Lane'), ylabel('Normalized band intensity')
-legend({'D->D', 'A->A',  'D->A'}, 'location', 'best')
+legend({'D->D', 'A->A',  'D->A'}, 'location', 'west')
+set(gca, 'XLim', [1 n_bands]);
+
+subplot(5, 1, 3)
+plot(1:n_bands, (bandData.intensities(:,1)./bandData.intensities(:,2))/max(bandData.intensities(:,1)./bandData.intensities(:,2)), 'g.-', ...
+    1:n_bands, (bandData.intensities(:,2))/max(bandData.intensities(:,2)), 'r.-', ...+
+    1:n_bands, (bandData.intensities(:,3)./bandData.intensities(:,2))/max(bandData.intensities(:,3)./bandData.intensities(:,2)), 'b.-')
+xlabel('Lane'), ylabel('Normalized rel. band intensity')
+legend({'D->D/A->A', 'A->A',  'D->A/A->A'}, 'location', 'west')
 set(gca, 'XLim', [1 n_bands]);
 
 
-subplot(4, 1, 3:4)
+
+subplot(5, 1, 4:5)
 bar(1:n_bands, E), hold on
 plot( 1:n_bands, E_integrate, 'k.--')
 %plot( 1:n_bands, E_integrate, 'k.--', 1:n_bands, E, 'k.-')
@@ -200,7 +212,7 @@ title({['gamma=' num2str(gamma_calc) ]})
 legend({  'FRET from scatterplot', 'FRET from intgration'})
 set(gca, 'XLim', [1 n_bands]);
 
-print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized.tif']); %save figure
+print(cur_fig, '-dpdf', [path_out filesep 'FRET_normalized2.pdf']); %save figure
 
 %% Plot 
 close all
