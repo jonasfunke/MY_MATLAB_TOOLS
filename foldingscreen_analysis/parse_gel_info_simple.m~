@@ -21,8 +21,6 @@ for i=1:length(lines)
         % user
         if strcmpi(strrep(seg{1}, ' ', ''), 'user')
             out.user = strtrim(seg{2});
-        else
-            disp('User')
         end
         % project
         if strcmpi(strrep(seg{1}, ' ', ''), 'project')
@@ -36,16 +34,85 @@ for i=1:length(lines)
         if strcmpi(strrep(seg{1}, ' ', ''), 'date')
             out.date = strtrim(seg{2});
         end
-        % Date
-        if strcmpi(strrep(seg{1}, ' ', ''), 'date')
-            out.date = strtrim(seg{2});
+        % Scaffold_type
+        if strcmpi(strrep(seg{1}, ' ', ''), 'scaffold_type')
+            out.scaffold_type = strtrim(seg{2});
         end
+        if strcmpi(strrep(seg{1}, ' ', ''), 'lattice_type')
+            out.lattice_type = strtrim(seg{2});
+        end
+        if strcmpi(strrep(seg{1}, ' ', ''), 'scaffold_concentration')
+            out.scaffold_concentration = str2num(strtrim(seg{2}));
+        end
+        if strcmpi(strrep(seg{1}, ' ', ''), 'staple_concentration')
+            out.staple_concentration = str2num(strtrim(seg{2}));
+        end
+        if strcmpi(strrep(seg{1}, ' ', ''), 'comment')
+            out.comment = strtrim(seg{2});
+        end
+        
+        % Lanes
+        for l=1:20
+            if strcmpi(strrep(seg{1}, ' ', ''), ['Lane_' sprintf('%02i', l)])
+                out.lanes{l} = strtrim(seg{2});
+            end
+        end
+        
+        % Gel parameters
+        if strcmpi(strrep(seg{1}, ' ', ''), 'Gelsize')
+            out.gelsize = strtrim(seg{2});
+        end
+        if strcmpi(strrep(seg{1}, ' ', ''), 'Agarose_concentration')
+            out.agarose_concentration = strtrim(seg{2});
+        end
+        if strcmpi(strrep(seg{1}, ' ', ''), 'Staining')
+            out.staining = strtrim(seg{2});
+        end
+        if strcmpi(strrep(seg{1}, ' ', ''), 'Mg_concentration')
+            out.mg_concentration = strtrim(seg{2});
+        end
+        if strcmpi(strrep(seg{1}, ' ', ''), 'Voltage')
+            out.voltage = strtrim(seg{2});
+        end
+        if strcmpi(strrep(seg{1}, ' ', ''), 'Running_time')
+            out.running_time = strtrim(seg{2});
+        end
+        if strcmpi(strrep(seg{1}, ' ', ''), 'Cooling')
+            out.cooling = strtrim(seg{2});
+        end
+    end
+end
+
+parsed_data = out;
+
+%% check if all important objects are there
+fields_required = {'user', 'project', 'design_name', 'date', 'scaffold_type', ...
+    'scaffold_concentration', 'staple_concentration', 'comment', ...
+    'lanes', 'gelsize', 'agarose_concentration', 'staining', 'mg_concentration', ...
+    'voltage', 'running_time', 'cooling'};
+
+missing_fields = {};
+
+for i=1:length(fields_required)
+    if ~isfield(parsed_data, fields_required{i})
+        disp(['Warning: ' fields_required{i} ' not found. Check the gel_info.txt file.'])
+        missing_fields = [missing_fields fields_required{i}];
         
     end
 end
 
+if isempty(missing_fields)
+    disp('Parsed data ok.')
+else
+    tmp = join(missing_fields(:), ', ');
+    disp(['Warning: Parsed data has missing fields: ' tmp{1}] )
+end
 
-out
+if isfield(parsed_data, 'lanes')
+    if length(parsed_data.lanes)<
+
+
+
 
 
 
