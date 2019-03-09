@@ -1,19 +1,29 @@
-function parsed_data = parse_gel_info_simple(filepath)
+function [parsed_data, warnings] = parse_gel_info_simple(filepath)
 
     %% read line by line
+    warnings = false;
     fileID = fopen(filepath);
     tmp = textscan(fileID,'%s','CommentStyle','#', 'Delimiter', '\n');
     fclose(fileID);
     lines = tmp{1};
     parsed_data.filename = filepath;
+     disp(['Parsing file: ' filepath])
+
     for i=1:length(lines)
         if ~isempty(lines{i}) % if line containes text, e.i. is not empty
             seg = split(lines{i}, {'=', ':'}); % split at = or :
-            index_comment = strfind(seg{2}, '#');
-            if ~isempty(index_comment)
-                seg{2} = seg{2}(1:index_comment(1)-1); % remove all characters afer comment 
+            if length(seg)==1 % there was no = or : in the line
+                disp(['Warning. Random line detected. It will be ignored. Check gel_info. Line: ' lines{i}])
+                warnings = true;
+            else
+                index_comment = strfind(seg{2}, '#');
+                if ~isempty(index_comment)
+                    seg{2} = seg{2}(1:index_comment(1)-1); % remove all characters afer comment 
+                end
+                seg{2} = strtrim(seg{2});
             end
-            seg{2} = strtrim(seg{2});
+            
+            
             %disp(seg{2})
             % user
             if strcmpi(strrep(seg{1}, ' ', ''), 'user')
@@ -54,6 +64,11 @@ function parsed_data = parse_gel_info_simple(filepath)
                     parsed_data.lanes{l} = strtrim(seg{2});
                 end
             end
+            for l=1:9 % also include text where people worte Lane_1 instead of Lane_01
+                if strcmpi(strrep(seg{1}, ' ', ''), ['Lane_' sprintf('%i', l)])
+                    parsed_data.lanes{l} = strtrim(seg{2});
+                end
+            end
 
             % Gel parameters
             if strcmpi(strrep(seg{1}, ' ', ''), 'Gelsize')
@@ -79,7 +94,7 @@ function parsed_data = parse_gel_info_simple(filepath)
             end
         end
     end
-    disp(['File ' filepath ' parsed.'])
+    %disp(['File ' filepath ' parsed.'])
 end
 
 
