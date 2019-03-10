@@ -1,4 +1,4 @@
-function compute_profiles(root_path,dir_name, gel_info_name, image_name)
+function [gelData, gelInfo, profileData] = compute_profiles(root_path,dir_name, gel_info_name, image_name)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -8,7 +8,7 @@ function compute_profiles(root_path,dir_name, gel_info_name, image_name)
     path_out = [root_path filesep dir_name ];
 
     % load gel_info and check for errors
-    [gelInfo, warnings] = parse_gel_info_simple([root_path filesep dir_name filesep gel_info_name]);
+    [gelInfo, warnings] = parse_gel_info([root_path filesep dir_name filesep gel_info_name], [root_path filesep dir_name filesep gel_info_name(1:end-4) '_log.log']);
     check_parsed_gel_info(gelInfo);
 
     %% load gel data
@@ -25,12 +25,10 @@ function compute_profiles(root_path,dir_name, gel_info_name, image_name)
     %gelData.images_raw = gelData.images;
 
 
-
-
     %% deterime profiles
     %profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.05, 'selection_type', 'automatic');
     profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.05, ...
-        'selection_type', 'manual', 'number_of_lanes', length(gelInfo.lanes), 'display', 'off', 'move_min_zero', 'Yes');
+        'number_of_lanes', length(gelInfo.lanes), 'display', 'off', 'move_min_zero', 'Yes');
 
     %%
 
@@ -48,16 +46,19 @@ function compute_profiles(root_path,dir_name, gel_info_name, image_name)
         print(cur_fig, '-dpng', '-r 300' , [path_out filesep prefix_out '_lanes.png']); %save figure
 
         % plot profiles
+    
         cur_fig = figure;
         set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-            'PaperPosition', [0 0 20 10]);
-
-        myleg = {};
+            'PaperPosition', [0 0 20 3*length(profileData.profiles)], ...
+            'PaperSize', [ 20 3*length(profileData.profiles)]);
+        
         for i=1:length(profileData.profiles)
+            subplot(length(profileData.profiles), 1, i)
             plot(profileData.lanePositions(i,3):profileData.lanePositions(i,4), profileData.profiles{i}), hold on
-            myleg = [myleg, {gelInfo.lanes{i}}];
+            legend(gelInfo.lanes{i})
+            %myleg = [myleg, {gelInfo.lanes{i}}];
         end
-        legend(myleg)
+        %legend(myleg)
         ylabel('Raw Intensity')
         xlabel('Migration distance [px]')
         print(cur_fig, '-dpdf', [path_out filesep prefix_out '_profiles.pdf']); %save figure
@@ -67,7 +68,6 @@ function compute_profiles(root_path,dir_name, gel_info_name, image_name)
     end
 
     %% save data
-    close all
     disp('Saving data... please wait')
     save([path_out filesep prefix_out  '_data.mat'], 'gelData', 'gelInfo', 'profileData' )
     disp(['Data written to: ' path_out filesep prefix_out  '_data.mat'])

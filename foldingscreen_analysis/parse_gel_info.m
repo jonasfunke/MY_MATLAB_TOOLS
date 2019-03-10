@@ -1,4 +1,4 @@
-function [parsed_data, warnings] = parse_gel_info_simple(filepath)
+function [parsed_data, warnings] = parse_gel_info(filepath, log_file)
 
     %% read line by line
     warnings = false;
@@ -7,13 +7,19 @@ function [parsed_data, warnings] = parse_gel_info_simple(filepath)
     fclose(fileID);
     lines = tmp{1};
     parsed_data.filename = filepath;
-     disp(['Parsing file: ' filepath])
+    parsed_data.log_file = log_file;
+    
+    logfile_ID = fopen(log_file,'w');
+    fprintf(logfile_ID,'%s\n', ['Parsing file: ' filepath]);
+    disp(['Parsing file: ' filepath])
 
     for i=1:length(lines)
         if ~isempty(lines{i}) % if line containes text, e.i. is not empty
             seg = split(lines{i}, {'=', ':'}); % split at = or :
             if length(seg)==1 % there was no = or : in the line
                 disp(['Warning. Random line detected. It will be ignored. Check gel_info. Line: ' lines{i}])
+                fprintf(logfile_ID,'%s\n', ['Warning. Random line detected. It will be ignored. Check gel_info. Line: ' lines{i}]);
+
                 warnings = true;
             else
                 index_comment = strfind(seg{2}, '#');
@@ -69,7 +75,7 @@ function [parsed_data, warnings] = parse_gel_info_simple(filepath)
                     parsed_data.lanes{l} = strtrim(seg{2});
                 end
             end
-
+            
             % Gel parameters
             if strcmpi(strrep(seg{1}, ' ', ''), 'Gelsize')
                 parsed_data.gelsize = strtrim(seg{2});
@@ -95,6 +101,30 @@ function [parsed_data, warnings] = parse_gel_info_simple(filepath)
         end
     end
     %disp(['File ' filepath ' parsed.'])
+    
+    %% go through lanes
+    
+    advanced = false;
+    for i=1:length(parsed_data.lanes)
+            %disp(parsed_data.lanes{i})
+            if strcmp(parsed_data.lanes{i}(1), '{')
+                advanced = true;
+            end
+    end
+    
+    if advanced
+        parsed_data.lanes_unparsed = parsed_data.lanes; % save un-parsed data
+        for i=1:length(parsed_data.lanes)
+            %disp(parsed_data.lanes{i})
+            if strcmp(parsed_data.lanes{i}(1), '{')
+                tmp = strsplit(parsed_data.lanes{i}(2:end-1), ',');
+                parsed_data.lanes{i} = tmp{1};
+            end
+        end
+    end
+    
+   fclose(logfile_ID);
+
 end
 
 
