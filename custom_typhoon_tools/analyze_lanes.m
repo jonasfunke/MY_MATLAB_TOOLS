@@ -8,10 +8,10 @@ gelData_raw = load_gel_image('data_dir', data_directory, 'n_images', 1);
 gelData_raw = check_gel_saturation(gelData_raw);
 
 %% background correct data
-gelData = background_correct_gel_image(gelData_raw, 'histogram_background', 'on');
-gelData.background
-%gelData = background_correct_gel_image(gelData_raw, 'numberOfAreas', 4);
-%gelData.images_raw = gelData.images;
+%gelData = background_correct_gel_image(gelData_raw, 'histogram_background', 'on');
+%gelData.background
+gelData = background_correct_gel_image(gelData_raw, 'numberOfAreas', 4);
+gelData.images_raw = gelData.images;
 
 
 %% create output dir
@@ -22,8 +22,8 @@ path_out = [gelData.pathnames{1} prefix_out filesep];
 mkdir(path_out);
 
 %% deterime profiles
-profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.05, 'selection_type', 'automatic');
-%profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.2, 'selection_type', 'manual');
+%profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.05, 'selection_type', 'automatic');
+profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.1, 'selection_type', 'manual');
 
 
 %% save data

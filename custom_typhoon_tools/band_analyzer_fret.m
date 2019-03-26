@@ -179,7 +179,7 @@ plot( 1:n_bands, gamma_calc.*bandData.intensities(:,1)./bandData.intensities(:,2
      1:n_bands, gamma_calc.*DD_div_AA(:,1), 'g.-', 1:n_bands, DA_div_AA(:,1), 'b.-')
 xlabel('Lane'), ylabel('Relative band intensity')
 legend({'gamma * D->D / A->A', 'D->A / A->A'}, 'location', 'best')
-set(gca, 'XLim', [1 n_bands]);
+set(gca, 'XLim', [0.5 n_bands+0.5]);
 
 subplot(4, 1, 2)
 plot(1:n_bands, bandData.intensities(:,1)/max(bandData.intensities(:,1)), 'g.-', ...
@@ -187,7 +187,7 @@ plot(1:n_bands, bandData.intensities(:,1)/max(bandData.intensities(:,1)), 'g.-',
     1:n_bands, bandData.intensities(:,3)/max(bandData.intensities(:,3)), 'b.-')
 xlabel('Lane'), ylabel('Normalized band intensity')
 legend({'D->D', 'A->A',  'D->A'}, 'location', 'best')
-set(gca, 'XLim', [1 n_bands]);
+set(gca, 'XLim', [0.5 n_bands+0.5]);
 
 
 subplot(4, 1, 3:4)
@@ -198,7 +198,7 @@ xlabel('Lane'), ylabel('FRET efficiency')
 
 title({['gamma=' num2str(gamma_calc) ]})
 legend({  'FRET from scatterplot', 'FRET from intgration'})
-set(gca, 'XLim', [1 n_bands]);
+set(gca, 'XLim', [0.5 n_bands+0.5]);
 
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized.tif']); %save figure
 
@@ -211,7 +211,7 @@ bar(  1:n_bands, E)
 xlabel('Lane'), ylabel('FRET efficiency')
 
 title({['gamma=' num2str(gamma_calc) ]})
-set(gca, 'XLim', [0 n_bands+1], 'YLim', [0.35 1]);
+set(gca, 'XLim', [0 n_bands+1], 'YLim', [0 1]);
 
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized_barplot.tif']); %save figure
 
