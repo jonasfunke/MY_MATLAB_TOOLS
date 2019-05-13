@@ -8,14 +8,16 @@ gelData_raw = load_gel_image('data_dir', data_directory, 'n_images', 3);
 gelData_raw = check_gel_saturation(gelData_raw);
 
 %% background correct data
-gelData = background_correct_gel_image(gelData_raw, 'histogram_background', 'on');
-gelData.background
+%gelData = background_correct_gel_image(gelData_raw, 'histogram_background', 'on');
+%gelData.background
 %gelData = background_correct_gel_image(gelData_raw, 'numberOfAreas', 4);
+%gelData.background
+gelData = background_correct_gel_image(gelData_raw, 'numberOfAreas', 4);
 gelData.images_raw = gelData.images;
 
 %% overlay images 
-[dd_shift, dd_dx, dd_dy] = overlay_image(gelData.images_raw{2}, gelData.images_raw{1}, 'display', 'off');
-[da_shift, da_dx, da_dy] = overlay_image(gelData.images_raw{2}, gelData.images_raw{3}, 'display', 'off');
+[dd_shift, dd_dx, dd_dy] = overlay_image(gelData.images_raw{2}, gelData.images_raw{1}, 'display', 'off', 'search_range', 20);
+[da_shift, da_dx, da_dy] = overlay_image(gelData.images_raw{2}, gelData.images_raw{3}, 'display', 'off', 'search_range', 30);
 
 gelData.images = {dd_shift, gelData.images{2}, da_shift };
 
@@ -41,7 +43,7 @@ profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.2, 'selection_
 %profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.2, 'selection_type', 'manual');
 
 %% Calculate FRET efficiency for leading band
-w_band = 30;
+w_band = 30;%10;
 n_bands = size(profileData.lanePositions, 1);
 I_mean = zeros(n_bands, gelData.nrImages);
 
@@ -62,7 +64,7 @@ for i=1:n_bands
    % subplot(3,1,1)
    % rectangle('Position', [pos(1), pos(3)+i_max-w_band, pos(2)-pos(1), 2*w_band], 'EdgeColor', 'r');
     
-    areas(i,:) = [pos(1), pos(3)+i_max-w_band, pos(2)-pos(1), 2*w_band];
+    areas(i,:) = [pos(1)-(pos(2)-pos(1))/2, pos(3)+i_max-w_band, 2*(pos(2)-pos(1)), 2*w_band];
     %subplot(3,1,2:3)
 %     hold off
 %     plot(1:length( profileData.profiles{1,i}), profileData.profiles{1,i}, 'g'), hold on
@@ -76,7 +78,8 @@ for i=1:n_bands
     subDD = gelData.images{1}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
     subAA = gelData.images{2}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
     subDA = gelData.images{3}(pos(3)+i_max-w_band:pos(3)+i_max+w_band , pos(1):pos(2));
-    DD_div_DA(i,:) = calculate_ration_of_areas(subDD, subDA, 'display', 'off');
+    DD_div_DA(i,:) = calculate_ration_of_areas(subDD, subDA, 'display', 'on');
+    %pause
   %  title(num2str(i))
     
 
@@ -100,12 +103,13 @@ close all
 
 %%
 close all
-imagesc(gelData.images{3}), colormap gray, axis image
+imagesc(gelData.images{1}, [0 std(gelData.images{3}(:))]), colormap gray, axis image
 
 for i=1:n_bands
     rectangle('Position', areas(i,:), 'EdgeColor', 'r', 'Linewidth', 1);
     text(areas(i,1)+areas(i,3)/2, areas(i,2) , num2str(i), 'Color', 'r', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 8)
 end
+
 
 %x = inputdlg('Enter space-separated index for reference samples:','Sample', [1 50]);
 %i_gamma = str2num(x{:})
@@ -113,12 +117,15 @@ end
 
 % %i_gamma = [9];
 % 
-% E_soll = 0.5;
+
+%E_soll = 0.5;
+
 % %gamma_calc =  bandData.intensities(i_gamma,4).*(1./0.5 - 1) ./  bandData.intensities(i_gamma,1) 
 %     
  E_raw = 1./(1+DD_div_DA(:,1));
 % gamma_calc = (1-E_soll)./E_soll./DD_div_DA(i_gamma,1)
 % gamma_calc = mean(gamma_calc)
+
 gamma_calc = 1;
 E = 1./(1+gamma_calc.*DD_div_DA(:,1));
 
@@ -170,24 +177,52 @@ print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'bands.tif']); %save figur
 
 
 %% Plot 
-cur_fig = figure;
-subplot(3, 1, 1)
-%plot(1:n_bands, bandData.intensities(:,2), 'r.-', 1:n_bands, bandData.intensities(:,1), 'g.-', 1:n_bands, bandData.intensities(:,4), 'b.-')
-plot( 1:n_bands, gamma_calc.*I_mean(:,1)./I_mean(:,2), 'g.--', 1:n_bands, I_mean(:,3)./I_mean(:,2), 'b.--', ...
-     1:n_bands, gamma_calc.*DD_div_AA(:,1), 'g.-', 1:n_bands, DA_div_AA(:,1), 'b.-')
-xlabel('Lane'), ylabel('Normalized bandintensity')
-legend({'gamma * D->D / A->A', 'D->A / A->A'}, 'location', 'best')
-set(gca, 'XLim', [1 n_bands]) %,  'YLim', [0.1 0.4]);
+% cur_fig = figure;
+% subplot(3, 1, 1)
+% %plot(1:n_bands, bandData.intensities(:,2), 'r.-', 1:n_bands, bandData.intensities(:,1), 'g.-', 1:n_bands, bandData.intensities(:,4), 'b.-')
+% plot( 1:n_bands, gamma_calc.*I_mean(:,1)./I_mean(:,2), 'g.--', 1:n_bands, I_mean(:,3)./I_mean(:,2), 'b.--', ...
+%      1:n_bands, gamma_calc.*DD_div_AA(:,1), 'g.-', 1:n_bands, DA_div_AA(:,1), 'b.-')
+% xlabel('Lane'), ylabel('Normalized bandintensity')
+% legend({'gamma * D->D / A->A', 'D->A / A->A'}, 'location', 'best')
+% set(gca, 'XLim', [1 n_bands]) %,  'YLim', [0.1 0.4]);
+% 
+% subplot(3, 1, 2:3)
+% plot( 1:n_bands, E_integrate, 'k.--', 1:n_bands, E, 'k.-')
+% xlabel('Lane'), ylabel('FRET efficiency')
+% 
+% title({['gamma=' num2str(gamma_calc) ]})
+% legend({ 'FRET from intgration', 'FRET from scatterplot'})
+% set(gca, 'XLim', [1 n_bands]) %, 'YLim', [0 1]);
 
-subplot(3, 1, 2:3)
-plot( 1:n_bands, E_integrate, 'k.--', 1:n_bands, E, 'k.-')
+
+
+
+cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 20 20]);
+subplot(4, 1, 1)
+plot( 1:n_bands, I_mean(:,1)/max(I_mean(:,1)), 'g.--', 1:n_bands, I_mean(:,2)/max(I_mean(:,2)), 'r.--',  1:n_bands, I_mean(:,3)/max(I_mean(:,3)), 'b.--')
+xlabel('Lane'), ylabel('Band intensity/max')
+%legend({'D->D', 'A->A', 'D->A'}, 'location', 'best')
+set(gca, 'XLim', [1 n_bands],  'YLim', [0.0 1.2]);
+
+
+subplot(4, 1, 2)
+plot( 1:n_bands, (I_mean(:,1)./I_mean(:,2))/max(I_mean(:,1)./I_mean(:,2)), 'g.--', ...
+    1:n_bands, (I_mean(:,3)./I_mean(:,2))/max(I_mean(:,3)./I_mean(:,2)), 'b.--', ...
+     1:n_bands, DD_div_AA(:,1)/max(DD_div_AA(:,1)), 'g.-', 1:n_bands, DA_div_AA(:,1)/max(DA_div_AA(:,1)), 'b.-')
+xlabel('Lane'), ylabel('Normalized band intensity /max')
+%legend({'D->D / A->A integration', 'D->A / A->A integration', 'D->D / A->A scatter', 'D->A / A->A scatter'}, 'location', 'best')
+set(gca, 'XLim', [1 n_bands],  'YLim', [0.0 1.2]);
+
+
+subplot(4, 1, 3:4)
+bar(1:n_bands, E), hold on
+plot( 1:n_bands, E_integrate, 'k.--')
 xlabel('Lane'), ylabel('FRET efficiency')
 
-title({['gamma=' num2str(gamma_calc) ]})
-legend({ 'FRET from intgration', 'FRET from scatterplot'})
-set(gca, 'XLim', [1 n_bands]) %, 'YLim', [0 1]);
+legend({ 'FRET from scatterplot', 'FRET from integration'})
+set(gca, 'XLim', [0.5 n_bands+0.5]);
 
-print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized.tif']); %save figure
+print(cur_fig, '-dpdf' , [path_out filesep 'FRET_normalized.pdf']); %save figure
 
 %% Plot 
 close all
@@ -205,3 +240,32 @@ print(cur_fig, '-depsc2' , [path_out filesep 'FRET_normalized_barplot.eps']); %s
 
 
 disp('done')
+
+
+%% Plot 
+cur_fig = figure;
+subplot(4, 1, 1)
+%plot(1:n_bands, bandData.intensities(:,2), 'r.-', 1:n_bands, bandData.intensities(:,1), 'g.-', 1:n_bands, bandData.intensities(:,4), 'b.-')
+plot( 1:n_bands, I_mean(:,1)./max(I_mean(:,1)), 'g.--', 1:n_bands, I_mean(:,2)./max(I_mean(:,2)), 'r.--', 1:n_bands, I_mean(:,3)./max(I_mean(:,3)), 'b.--')
+xlabel('Lane'), ylabel('band intensity')
+legend({'D->D', 'A->A', 'D->A'}, 'location', 'best')
+set(gca, 'XLim', [1 n_bands]) %,  'YLim', [0.0 0.4]);
+
+
+subplot(4, 1, 2)
+%plot(1:n_bands, bandData.intensities(:,2), 'r.-', 1:n_bands, bandData.intensities(:,1), 'g.-', 1:n_bands, bandData.intensities(:,4), 'b.-')
+plot( 1:n_bands, gamma_calc.*I_mean(:,1)./I_mean(:,2), 'g.--', 1:n_bands, I_mean(:,3)./I_mean(:,2), 'b.--', ...
+     1:n_bands, gamma_calc.*DD_div_AA(:,1), 'g.-', 1:n_bands, DA_div_AA(:,1), 'b.-')
+xlabel('Lane'), ylabel('Normalized bandintensity')
+legend({'gamma * D->D / A->A', 'D->A / A->A'}, 'location', 'best')
+set(gca, 'XLim', [1 n_bands],  'YLim', [0.0 0.4]);
+
+subplot(4, 1, 3:4)
+plot( 1:n_bands, E_integrate, 'k.--', 1:n_bands, E, 'k.-')
+xlabel('Lane'), ylabel('FRET efficiency')
+
+title({['gamma=' num2str(gamma_calc) ]})
+legend({ 'FRET from intgration', 'FRET from scatterplot'})
+set(gca, 'XLim', [1 n_bands], 'YLim', [0 1]);
+
+print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized.tif']); %save figure
