@@ -18,7 +18,7 @@ function [  ] = combine_mrcs_files( pixA )
     for i=1:length(files)
          tmp = ReadMRC([pname filesep files(i).name]);    
          img = cat(3, img, tmp);
-         disp(['Reading stack ' num2str(i) ' of ' length(files)])
+         disp(['Reading stack ' num2str(i) ' of ' num2str(length(files))])
     end
     disp([num2str(size(img,3)) ' particles read.'])
     

@@ -22,8 +22,8 @@ path_out = [gelData.pathnames{1} prefix_out filesep];
 mkdir(path_out);
 
 %% deterime profiles
-%profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.05, 'selection_type', 'automatic');
-profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.1, 'selection_type', 'manual');
+profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.2, 'selection_type', 'automatic');
+%profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.1, 'selection_type', 'manual');
 
 
 %% save data

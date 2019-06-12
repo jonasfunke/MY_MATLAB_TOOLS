@@ -161,7 +161,8 @@ disp('Done.')
 %% plot areas 
 n_bands = size(bandData.positions,1);
 areas =  bandData.positions;
-cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 1000 500], 'Position', [0 1000 1000 500]);imagesc(gelData.images{1}, [0 3.*std(gelData.images{1}(:))]), axis image, colormap gray, hold on
+cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 1000 500], 'Position', [0 1000 1000 500]);
+imagesc(gelData.images{1}, [0 3.*std(gelData.images{1}(:))]), axis image, colormap gray, hold on
 
 for i=1:n_bands
     rectangle('Position', areas(i,:), 'EdgeColor', 'r', 'Linewidth', 1);
@@ -199,7 +200,7 @@ plot(1:n_bands, (bandData.intensities(:,1)./bandData.intensities(:,2))/max(bandD
     1:n_bands, (bandData.intensities(:,2))/max(bandData.intensities(:,2)), 'r.-', ...+
     1:n_bands, (bandData.intensities(:,3)./bandData.intensities(:,2))/max(bandData.intensities(:,3)./bandData.intensities(:,2)), 'b.-')
 xlabel('Lane'), ylabel('Normalized rel. band intensity')
-legend({'D->D/A->A', 'A->A',  'D->A/A->A'}, 'location', 'west')
+legend({'D->D/A->A', 'A->A',  'D->A/A->A'}, 'location', 'best')
 set(gca, 'XLim', [1 n_bands]);
 
 
@@ -211,7 +212,7 @@ plot( 1:n_bands, E_integrate, 'k.--')
 xlabel('Lane'), ylabel('FRET efficiency')
 
 title({['gamma=' num2str(gamma_calc) ]})
-legend({  'FRET from scatterplot', 'FRET from intgration'})
+legend({  'FRET from scatterplot', 'FRET from intgration'}, 'location', 'best')
 set(gca, 'XLim', [0.5 n_bands+0.5]);
 
 print(cur_fig, '-dpdf', [path_out filesep 'FRET_normalized2.pdf']); %save figure
@@ -221,7 +222,9 @@ close all
 n_bands = size(bandData.intensities,1);
 cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 20 5], 'Position', [0 1000 2000 500]);
 
-bar(  1:n_bands, E)
+bar(  1:n_bands, E), hold on
+plot( 1:n_bands, E_integrate, 'k.--')
+
 xlabel('Lane'), ylabel('FRET efficiency')
 
 title({['gamma=' num2str(gamma_calc) ]})
@@ -230,4 +233,35 @@ set(gca, 'XLim', [0 n_bands+1], 'YLim', [0 1]);
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'FRET_normalized_barplot.tif']); %save figure
 
 print(cur_fig, '-depsc2' , [path_out filesep 'FRET_normalized_barplot.eps']); %save figure
+
+
+
+
+
+%% Nice plot
+
+%cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 1000 500], 'Position', [0 1000 1000 500]);
+n_bands = size(bandData.positions,1);
+areas =  bandData.positions;
+cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 20 10 ], 'PaperSize', [20 10]);
+
+
+
+subplot(2, 1, 1)
+imagesc(gelData.images{1}, [0 3.*std(gelData.images{1}(:))]), axis image, colormap gray, hold on
+for i=1:n_bands
+    rectangle('Position', areas(i,:), 'EdgeColor', 'r', 'Linewidth', 1);
+    text(areas(i,1)+areas(i,3)/2, areas(i,2) , num2str(i), 'Color', 'r', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 8)
+end
+set(gca, 'XTickLabel', [], 'YTickLabel', [])
+
+subplot(2, 1, 2)
+
+bar(  1:n_bands, E), hold on
+plot( 1:n_bands, E_integrate, 'k.--')
+set(gca, 'XLim', [0.5 n_bands+0.5], 'XTick', [1:n_bands]);
+
+xlabel('Band'), ylabel('FRET efficiency')
+
+print(cur_fig, '-dpdf' , [path_out filesep 'Image_FRET_figure.pdf']); %save figure
 
