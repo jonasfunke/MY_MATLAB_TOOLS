@@ -87,8 +87,8 @@ ylabel('Mean intensity')
 grid on
 
 % calculate ratios
-r1 = bands.intensities(:,2)./bands.intensities(:,1);
-r2 = zeros(size(r1));
+f1 = bands.intensities(:,2)./(bands.intensities(:,1)+bands.intensities(:,2));
+r2 = zeros(size(f1));
 for i=1:n_bands
     pos = bands.positions(i,:);
     band_ch1 = gelData.images{1}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
@@ -96,18 +96,20 @@ for i=1:n_bands
     [p_fit, ~, ~] = calculate_ration_of_areas(band_ch2, band_ch1, 'display', 'off');
     r2(i) = p_fit(1);
 end
+f2 = r2./(1+r2);
+
 
 subplot(5, 1, 4)
-plot(1:n_bands, r1, 'k.-', 1:n_bands, r2, 'k.--' )
+plot(1:n_bands, f1, 'k.-', 1:n_bands, f2, 'k.--' )
 legend({'integrated', 'scatter plot'})
-ylabel('Ratio ch2/ch1')
+ylabel('Fraction ch2/(ch1+ch2)')
 xlabel('Band')
 grid on
 
 subplot(5, 1, 5)
-plot(1:n_bands,r1/max(r1), 'k.-', 1:n_bands,r2/max(r2), 'k.--' )
+plot(1:n_bands,f1/max(f1), 'k.-', 1:n_bands,f2/max(f2), 'k.--' )
 legend({'integrated', 'scatter plot'})
-ylabel('Normalized ratio ch2/ch1 to max and min')
+ylabel('Normalized fraction ch2/ch1 to max and min')
 xlabel('Band')
 grid on
 
