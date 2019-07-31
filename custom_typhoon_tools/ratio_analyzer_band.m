@@ -109,8 +109,52 @@ grid on
 subplot(5, 1, 5)
 plot(1:n_bands,f1/max(f1), 'k.-', 1:n_bands,f2/max(f2), 'k.--' )
 legend({'integrated', 'scatter plot'})
-ylabel('Normalized fraction ch2/ch1 to max and min')
+ylabel('Normalized fraction ch2/(ch1+ch2) to max and min')
 xlabel('Band')
 grid on
 
 print(cur_fig, '-dpdf' , [path_out filesep 'band_ratios.pdf']); %save figure
+
+
+%%
+
+
+%%
+cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeter','PaperPosition', [0 0 15 30 ], 'PaperSize', [15 30]);
+
+subplot(3, 1, 1)
+plot(1:n_bands, bands.intensities(:,1), '.-', ...
+    1:n_bands, bands.intensities(:,2), '.-' )
+legend({'Channel 1', 'Channel 2'})
+xlabel('Band')
+ylabel('Mean intensity')
+grid on
+
+% calculate ratios
+f1 = bands.intensities(:,2)./(bands.intensities(:,1));
+r2 = zeros(size(f1));
+for i=1:n_bands
+    pos = bands.positions(i,:);
+    band_ch1 = gelData.images{1}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
+    band_ch2 = gelData.images{2}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
+    [p_fit, ~, ~] = calculate_ration_of_areas(band_ch2, band_ch1, 'display', 'off');
+    r2(i) = p_fit(1);
+end
+f2 = r2;
+
+
+subplot(3, 1, 2)
+plot(1:n_bands, f1, 'k.-', 1:n_bands, f2, 'k.--' )
+legend({'integrated', 'scatter plot'})
+ylabel('Fraction ch2/ch1')
+xlabel('Band')
+grid on
+
+subplot(3, 1, 3)
+plot(1:n_bands,f1/max(f1), 'k.-', 1:n_bands,f2/max(f2), 'k.--' )
+legend({'integrated', 'scatter plot'})
+ylabel('Normalized fraction ch2/ch1 to max and min')
+xlabel('Band')
+grid on
+
+print(cur_fig, '-dpdf' , [path_out filesep 'band_ratios_2.pdf']); %save figure

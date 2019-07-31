@@ -46,6 +46,32 @@ set(gca, 'XTickLabel', [], 'YTickLabel', [])
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'bands.tif']); %save figure
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%
+cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 15 10 ], 'PaperSize', [15 10]);
+
+tmp = bands.intensities(2:2:end)./(bands.intensities(2:2:end)+bands.intensities(1:2:end));
+bar(100*tmp)
+ylabel('Fraction (%)')
+set(gca, 'XTickLabel', {'1-F5', '2-F5', '1-F6', '2-F6', '1-F7', '2-F7'})
+grid on
+
+print(cur_fig, '-dpdf' , [path_out filesep 'Factions.pdf']); %save figure
+
+
+
 %%
 GFP_to_FS = zeros(size(bands.intensities,1), 2);
 %cd('/Users/jonasfunke/Documents/MATLAB/MATLAB_TOOLBOX/TYPHOON/private')
@@ -58,10 +84,12 @@ for i=1:size(bands.intensities,1)
     
 end
 %%
-subplot(2,1,1)
-plot(bands.intensities)
-legend({'GFP', 'FS'})
+%subplot(2,1,1)
+plot(bands.intensities, '.-')
 
+100*bands.intensities(2)/(bands.intensities(1)+bands.intensities(2))
+100*bands.intensities(4)/(bands.intensities(3)+bands.intensities(4))
+%%
 subplot(2,1,2)
 %plot(1:size(bands.intensities,1), bands.intensities(:,1)./bands.intensities(:,2), '.-')
 bar(bands.intensities(:,1)./bands.intensities(:,2)), hold on

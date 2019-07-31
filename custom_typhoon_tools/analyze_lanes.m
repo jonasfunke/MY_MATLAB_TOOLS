@@ -22,8 +22,8 @@ path_out = [gelData.pathnames{1} prefix_out filesep];
 mkdir(path_out);
 
 %% deterime profiles
-profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.2, 'selection_type', 'automatic');
-%profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.1, 'selection_type', 'manual');
+%profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.2, 'selection_type', 'automatic');
+profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.4, 'selection_type', 'manual');
 
 
 %% save data
@@ -84,9 +84,10 @@ end
 for i=1:length(profileData.profiles)
     [max_intensity, max_index] = max(profileData.profiles{i}/sum(profileData.profiles{i}));
     plot([profileData.lanePositions(i,3):profileData.lanePositions(i,4)]-max_index, profileData.profiles{i}/sum(profileData.profiles{i})/max_intensity), hold on
-    %pause
+    pause
+    legend(myleg)
+
 end
-legend(myleg)
     
 
 legend(myleg(1:length(profileData.profiles)))

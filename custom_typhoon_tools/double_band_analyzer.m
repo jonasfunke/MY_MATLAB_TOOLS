@@ -49,9 +49,9 @@ for i=1:size(bandData.positions,1)
     plot(bandData.migration_distance{i}, bandData.profiles{i}, ...
         bandData.migration_distance{i},  bandData.fits{i}(bandData.migration_distance{i}), ...
         bandData.migration_distance{i}(bandData.peaks{i}) , bandData.profiles{i}(bandData.peaks{i}), 'k.' )
-    legend({'profile', ...
-        ['fit w1=' num2str(round(bandData.fits{i}.c1)) ' w2=' num2str(round(bandData.fits{i}.c2)) ],...
-        'peaks' })
+  %  legend({'profile', ...
+  %      ['fit w1=' num2str(round(bandData.fits{i}.c1)) ' w2=' num2str(round(bandData.fits{i}.c2)) ],...
+  %      'peaks' })
     
 end
 print(cur_fig, '-dpdf' , [path_out filesep 'Profiles.pdf']); %save figure
@@ -73,6 +73,8 @@ imagesc(gelData.images{1}, [0 3.*std(gelData.images{1}(:))]), axis image, colorm
 for i=1:n_bands
     rectangle('Position', areas(i,:), 'EdgeColor', 'r', 'Linewidth', 1);
     text(areas(i,1)+areas(i,3)/2, areas(i,2) , num2str(i), 'Color', 'r', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 8)
+    
+    plot((areas(i,1)+areas(i,3)/2)*[1;1], bandData.migration_distance{i}(bandData.peaks{i}), 'g.')
 end
 set(gca, 'XTickLabel', [], 'YTickLabel', [])
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'bands.tif']); %save figure
@@ -90,14 +92,17 @@ for i=1:n_bands
 end
 subplot(2, 1, 1)
 plot(1:n_bands, heights, '.-')
+set(gca, 'XTick', 1:n_bands, 'Xlim', [0.5 n_bands+0.5])
 grid on
-legend({'slow', 'fast'})
+legend({'slow', 'fast'}, 'location', 'best')
 ylabel('Peak height')
 xlabel('Double-band')
 
 subplot(2, 1, 2)
 plot(1:n_bands, heights(:,1)./sum(heights,2), '.-', 1:n_bands, heights(:,2)./sum(heights,2), '.-')
-legend({'slow', 'fast'})
+set(gca, 'XTick', 1:n_bands, 'Xlim', [0.5 n_bands+0.5])
+legend({'slow', 'fast'}, 'location', 'best')
+
 grid on
 ylabel('Fraction')
 xlabel('Double-band')
