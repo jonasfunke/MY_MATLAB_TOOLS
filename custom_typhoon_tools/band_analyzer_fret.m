@@ -25,10 +25,6 @@ prefix_out = tmp{1};
 path_out = [gelData.pathnames{1} prefix_out filesep];
 mkdir(path_out);
 
-%% shift images
-%[dd_bg, da_x_min, da_y_min] = overlay_image(da_bg, dd_bg, 10);
-%[aa_bg, aa_x_min, aa_y_min]= overlay_image(da_bg, aa_bg, 10);
-
 %% leakage and direct-excitation correction factors
 [leak_dir, leakdir_fig]  = calculate_leakage_directexcitation(gelData.images{1}, gelData.images{3}, gelData.images{2}, 'display', 'on');
 print(leakdir_fig, '-dtiff', '-r 500' , [path_out filesep 'Leakage_DirEx_correction.tif']); %save figure
@@ -98,8 +94,8 @@ for i=1:size(bandData.intensities,1)
     subAA = gelData.images{2}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
     %subDA = gelData.images{4}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
     subDA = gelData.images{3}( pos(2):pos(2)+pos(4),pos(1):pos(1)+pos(3) );
-    DD_div_DA(i,:) = calculate_ration_of_areas(subDD, subDA, 'display', 'on');
-    pause
+    DD_div_DA(i,:) = calculate_ration_of_areas(subDD, subDA, 'display', 'off');
+    %pause
     close all
     DD_div_AA(i,:) = calculate_ration_of_areas(subDD, subAA, 'display', 'off');
     DA_div_AA(i,:) = calculate_ration_of_areas(subDA, subAA, 'display', 'off');

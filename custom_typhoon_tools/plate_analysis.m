@@ -14,7 +14,7 @@ prefix_out = tmp{1};
 path_out = [gelData_raw.pathnames{1} prefix_out filesep];
 mkdir(path_out);
 %%
-N_sample = 24;
+N_sample = 36;
 
 [tmp, bandPositions] = get_area_intensities(gelData_raw.images, N_sample, 'resizable', false); %cell of images, number of bands, 
 
@@ -58,18 +58,32 @@ end
 %
 
 % correct backgroud
-i_bg = [1 2 9 10 17 18];
-titles = { 'FoB6','FoB6','D 1nM','A 1nM','D 5nM','A 5nM','D 10nM','A 10nM', ...
+i_bg = [1 2 9 10 17 18 19 20];
+titles ={ 'FoB6','FoB6','D 1nM','A 1nM','D 5nM','A 5nM','D 10nM','A 10nM', ...
     'FoB6','FoB6','LF 1nM','HF 1nM','LF 5nM','HF 5nM','LF 10nM','HF 10nM', ...
-    'FoB6','FoB6','LF 1nM','HF 1nM','LF 5nM','HF 5nM','LF 10nM','HF 10nM'}
+    'PBS5', 'PBS5', 'PBS5', 'PBS5', 'C', 'C', 'C', 'C', ...
+    'D 1nM+C','A 1nM+C','D 5nM+C','A 5nM+C','D 10nM+C','A 10nM+C', 'LF 1nM+C','HF 1nM+C','LF 5nM+C','HF 5nM+C','LF 10nM+C','HF 10nM+C'}
 
-i_donly = [3 5 7];
-i_aonly = [4 6 8];
+% i_donly = [25 27 29];
+% i_aonly = [26 28 30 ];
+i_donly = [3 5 7 ];
+i_aonly = [4 6 8 ];
 
+i_remove = [25 27 29 26 28 30 ];
 
 dd = dd-mean(dd(i_bg));
 aa = aa-mean(aa(i_bg));
 da = da-mean(da(i_bg));
+
+i_cells_only = [21 22 23 24];
+i_cells = 20:36;
+
+dd(i_cells) = dd(i_cells)-mean(dd(i_cells_only));
+aa(i_cells) = aa(i_cells)-mean(aa(i_cells_only));
+da(i_cells) = da(i_cells)-mean(da(i_cells_only));
+
+
+
 
 leak = mean(da(i_donly)./dd(i_donly));
 dir = mean(da(i_aonly)./aa(i_aonly));
@@ -89,7 +103,7 @@ xtickangle(45)
 ylabel('Median intensity')
 
 subplot(2, 1, 2)
-i_plot = setdiff(1:N_sample, [i_bg i_donly i_aonly])
+i_plot = setdiff(1:N_sample, [i_bg i_donly i_aonly i_cells_only i_remove])
 plot(i_plot, da(i_plot)./(da(i_plot)+dd(i_plot)), 'k.')
 grid on
 set(gca, 'XTick', 1:N_sample, 'XTickLabel', titles)
