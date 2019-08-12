@@ -8,8 +8,8 @@ N_channel = 4;
 path_out = pathname;
 prefix_out = filename(1:end-5);
 
-
-tmp = xlsread([pathname filename]);
+%%
+tmp = xlsread([pathname filename]); % read the data only
 data = tmp(:,3:end);
 
 N_dp = size(data,2)/N_channel;
@@ -24,9 +24,24 @@ N_wells = size(dd,1);
 
 %% define control wells
 well_names = cell(N_wells,1);
+
+[~, txt, ~]  = xlsread([pathname filename], 'A:A'); % read first column
+[tmp, ~, ~]  = xlsread([pathname filename], 'B:B'); % read second column
+[~, content, ~]  = xlsread([pathname filename], 'C:C'); % read first column
+
+answer = questdlg( ['Also use content fields or well positions as well names? E.g. ' content{3} ' or ' txt{3} num2str(tmp(1)) ', ...'], ...
+	'Select sample names', ...
+	'Well positions','Content field', 'Well positions');
+
 for i=1:N_wells
-    well_names{i} = num2str(i);
+    if strcmp(answer, 'Content field')
+        well_names{i} = [content{i+2}];
+    else
+        well_names{i} = [txt{i+2} num2str(tmp(i))];
+    end
 end
+%%
+
 
 cur_fig = figure(1); clf
 for i=1:N_wells
@@ -135,7 +150,7 @@ if correct_bg
         da1(i_cells,:) = da1(i_cells,:)- da1_bg;
 
         % da2
-        da2_bg = mean(mean(da2(i_cells,:)));
+        da2_bg = mean(mean(da2(i_cells_only,:)));
         da2(i_cells,:) = da2(i_cells,:)- da2_bg;
     end
     
