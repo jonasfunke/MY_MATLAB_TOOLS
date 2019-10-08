@@ -18,18 +18,21 @@ cur_fig = figure(1); clf
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 20 10 ], 'PaperSize', [20 10] );
 
-h=50;
-x_start=-1e3;
-x_stop = 1e4;
-dx=5;
+h=0.1;
+x_start=-1;
+x_stop = 5;
+dx=0.1;
 
 legend_tmp = {};
 for j=1:4 %length(filenames)
-    [n, p, x_points] = uniform_kernel_density(data(j).fcsdat(data(j).i_gated,i), h, x_start, x_stop, dx);
-    %histogram(data(j).fcsdat(data(j).i_gated,i), 'Normalization', 'pdf'), hold on
+    tmp = data(j).fcsdat(data(j).i_gated,i);
+    
+   % histogram(log(tmp(tmp>0)), 'Normalization', 'pdf'), hold on
+    
+    [n, p, x_points] = uniform_kernel_density( log10(tmp(tmp>0)), h, x_start, x_stop, dx);
     plot(x_points, p), hold on
     legend_tmp = [legend_tmp; {[ filenames{j} '-' data(j).fcshdr.par(i).name]}];
-    
+    disp([filenames{j} ', ' num2str(median(tmp))])
     %xlabel(data(j).fcshdr.par(i).name), ylabel('Counts')
 %set(gca, 'XLim', xlim)
 end
