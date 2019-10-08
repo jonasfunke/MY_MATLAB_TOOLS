@@ -27,10 +27,12 @@ legend_tmp = {};
 for j=1:4 %length(filenames)
     tmp = data(j).fcsdat(data(j).i_gated,i);
     
-   % histogram(log(tmp(tmp>0)), 'Normalization', 'pdf'), hold on
+   
+    x=logspace(-1,5,100); % create bin edges with logarithmic scale
+    histogram(tmp, x), hold on %, 'Normalization', 'pdf'
     
-    [n, p, x_points] = uniform_kernel_density( log10(tmp(tmp>0)), h, x_start, x_stop, dx);
-    plot(x_points, p), hold on
+    %[n, p, x_points] = uniform_kernel_density( log10(tmp(tmp>0)), h, x_start, x_stop, dx);
+    %plot(x_points, p), hold on
     legend_tmp = [legend_tmp; {[ filenames{j} '-' data(j).fcshdr.par(i).name]}];
     disp([filenames{j} ', ' num2str(median(tmp))])
     %xlabel(data(j).fcshdr.par(i).name), ylabel('Counts')
@@ -38,7 +40,7 @@ for j=1:4 %length(filenames)
 end
 %print(cur_fig, '-dpdf', [path_out filesep prefix_out '_' fcshdr.par(i).name '_gated.pdf']); %save figure
 legend(legend_tmp)
-%set(gca, 'xscale','log')
+set(gca, 'xscale','log')
 
 %% OLD STUFF
 [fcsdat, fcshdr, fcsdatscaled, fcsdat_comp]  = fca_readfcs(fname);
