@@ -188,10 +188,11 @@ elseif  strcmp(fcsheader_type,'FCS2.0') || strcmp(fcsheader_type,'FCS3.0')  || s
     fcshdr.Creator = get_mnemonic_value('CREATOR',fcsheader_main, mnemonic_separator);
     
     % comp matrix reader
-    comp = get_mnemonic_value('SPILL',fcsheader_main,mnemonic_separator); 
+    comp = get_mnemonic_value('SPILLOVER',fcsheader_main,mnemonic_separator); 
     if ~isempty(comp)
-        compcell=regexp(comp,',','split');
-        nc=str2double(compcell{1});        
+        comp
+        compcell=regexp(comp,',','split')
+        nc=str2double(compcell{1})        
         fcshdr.CompLabels=compcell(2:nc+1);
         fcshdr.CompMat=reshape(str2double(compcell(nc+2:end)'),[nc nc])';       
     else
