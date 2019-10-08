@@ -17,17 +17,22 @@ scatter(fcsdat(:,i), fcsdat(:,j), 1, '.'), hold on
 xlabel(fcshdr.par(i).name), ylabel(fcshdr.par(j).name)
 set(gca,'xscale','log','yscale','log')
 grid on
-title('Select Region of Interest')
 
-if  length(varargin)==0
+if  isempty(varargin)
+    title('Select Region of Interest')
     roi = drawpolygon;
     i_gated = inROI(roi,fcsdat(:,i), fcsdat(:,j)) ;
-    scatter(fcsdat(i_gated,i), fcsdat(i_gated,j), 'r.') 
-    out.roi = roi;
+    scatter(fcsdat(i_gated,i), fcsdat(i_gated,j),1, 'r.') 
+    out.roi_position = roi.Position;
+
+    disp('done')
 else
-    i_gated = inROI(roi,fcsdat(:,i), fcsdat(:,j)) ;
-    scatter(fcsdat(i_gated,i), fcsdat(i_gated,j), 'r.') 
-    out.roi = varargin{1};
+    title('Gated cells')
+    cur_roi = drawpolygon('Position', varargin{1});
+    
+    i_gated = inROI(cur_roi,fcsdat(:,i), fcsdat(:,j)) ;
+    scatter(fcsdat(i_gated,i), fcsdat(i_gated,j),1, 'r.') 
+    out.roi_position = varargin{1};
 end
 
 pause

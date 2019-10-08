@@ -4,26 +4,38 @@ close all, clear all, clc
 [filenames, pathname]=uigetfile('*.fcs','Select the fcs files','MultiSelect','on');
 
 %%
-for i=1:length(filenames)
-    data(i) = load_fcs_data(pathname, filenames{i});
 
-    
+data(1) = load_fcs_data(pathname, filenames{1});
+
+for i=2:length(filenames)
+    data(i) = load_fcs_data(pathname, filenames{i},data(1).roi_position);
 end
 
-%%
-fname = '2019-10-07-LGv7-2h-11.fcs';
-pname = '/Users/jonasfunke/Dropbox (Personal)/Plectonic_Experiments/data_FACS/2019-10-07-LGv5 and LGv7/';
-path_out = '/Users/jonasfunke/Dropbox (Personal)/Plectonic_Experiments/data_FACS/2019-10-07-LGv5 and LGv7';
-prefix_out = '2019-10-07-LGv7-2h-11';
 
-data = load_fcs_data(pname, fname);
+%% PLot FL5-A channel histogram
+i = 14; % FL5-A
+cur_fig = figure(1); clf
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 20 10 ], 'PaperSize', [20 10] );
 
+h=50;
+x_start=-1e3;
+x_stop = 1e4;
+dx=5;
 
-
-
-%%
-
-
+legend_tmp = {};
+for j=1:4 %length(filenames)
+    [n, p, x_points] = uniform_kernel_density(data(j).fcsdat(data(j).i_gated,i), h, x_start, x_stop, dx);
+    %histogram(data(j).fcsdat(data(j).i_gated,i), 'Normalization', 'pdf'), hold on
+    plot(x_points, p), hold on
+    legend_tmp = [legend_tmp; {[ filenames{j} '-' data(j).fcshdr.par(i).name]}];
+    
+    %xlabel(data(j).fcshdr.par(i).name), ylabel('Counts')
+%set(gca, 'XLim', xlim)
+end
+%print(cur_fig, '-dpdf', [path_out filesep prefix_out '_' fcshdr.par(i).name '_gated.pdf']); %save figure
+legend(legend_tmp)
+%set(gca, 'xscale','log')
 
 %% OLD STUFF
 [fcsdat, fcshdr, fcsdatscaled, fcsdat_comp]  = fca_readfcs(fname);
