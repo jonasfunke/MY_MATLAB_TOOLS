@@ -34,7 +34,7 @@ for j=1:length(filenames)
 end
 xlim = [min(tmp) max(tmp)];
 xlim2 = [min(tmp)  median(tmp)+3*std(tmp)];
-xlim3 = [min(tmp) prctile(tmp, 90)];
+xlim3 = [min(tmp) prctile(tmp, 98)];
 
 %% PLot FL5-A channel histogram, log scale
 
@@ -55,7 +55,7 @@ for j=1:length(filenames)
 end
 legend(legend_tmp, 'Location', 'best')
 set(gca, 'xscale','log', 'xlim', [0 xlim(2)])
-xlabel(data(1).fcshdr.par(i).name), ylabel('Counts')
+xlabel(data(1).fcshdr.par(i).name), ylabel('Number of cells')
 
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_histogram_log.pdf']); %save figure
 
