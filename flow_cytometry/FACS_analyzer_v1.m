@@ -10,6 +10,11 @@ mkdir(path_out);
 
 %%
 
+if ~iscell(filenames)
+    filenames = {filenames};
+end
+   
+%%
 data(1) = load_fcs_data(pathname, filenames{1}, path_out);
 
 for i=2:length(filenames)
@@ -91,7 +96,7 @@ print(cur_fig, '-dpdf', [path_out filesep prefix_out '_histogram_lin.pdf']); %sa
 
 %% plot bar graph
 
-
+i = 14;
 cur_fig = figure(3); clf
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 10 10 ], 'PaperSize', [10 10] );
@@ -139,9 +144,110 @@ for j=1:length(filenames)
 end
 fclose(fileID);
 
+%% save data
+save([path_out prefix_out '_data.mat'])
+
+%%
+t= [1 3]; %h
+
+
+
+cur_fig = figure(4); clf
+
+
+subplot(1, 2, 1)
+myleg = cell(0,1);
+for i=1:4:length(val_median)
+    plot(t, val_median(i:i+1), '.-'), hold on
+    myleg = [myleg, filenames{i}(12:end-7) ]
+end
+grid on
+set(gca, 'YLim', [0 1.1*max(val_median)], 'XLim', [0 t(end)+1])
+legend(myleg, 'location', 'best')
+xlabel('Time (h)'), ylabel('Median Fluorescence')
+    
+
+subplot(1, 2, 2)
+myleg = cell(0,1);
+for i=3:4:length(val_median)
+    plot(t, val_median(i:i+1), '.-'), hold on
+    myleg = [myleg, filenames{i}(12:end-7) ]
+end
+grid on
+set(gca, 'YLim', [0 1.1*max(val_median)], 'XLim', [0 t(end)+1])
+legend(myleg, 'location', 'best')
+xlabel('Time (h)'), ylabel('Median Fluorescence')
+
+
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 30 20 ], 'PaperSize', [30 20] );
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_LGv5.pdf']); %save figure
+
+
+%% Plot histogram for all channels
+
+
+cur_fig = figure(5); clf
+N_channel = size(data(j).fcsdat,2)/2-1;
+
+legend_tmp = {};
+
+for j=1:length(filenames)
+    
+    for i=2:2:size(data(j).fcsdat,2)-2
+        
+        subplot(N_channel, 1, i/2)
+        tmp = data(j).fcsdat(data(j).i_gated,i);
+   
+        x=logspace(0,7,100); % create bin edges with logarithmic scale
+        histogram(tmp, x), hold on %, 'Normalization', 'pdf'
+        title([ filenames{j}(12:end-4) ' ' data(j).fcshdr.par(i).name])
+        %disp([filenames{j} ', ' num2str(median(tmp))])
+        set(gca, 'xscale','log')
+        grid on
+
+    end
+    legend_tmp = [legend_tmp; {filenames{j}(12:end-4) }];
+
+    legend(legend_tmp, 'location', 'best')
+
+end
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 20 10*N_channel ], 'PaperSize', [20 10*N_channel] );
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_histogram_log.pdf']); %save figure
+
+%% 3D scatter
+i=2; j=4; k=14; %FSC-A vs SSC-A vs. FL5-A
+
+cur_fig = figure(6); clf
+
+for l=1:2:length(filenames)
+    scatter3(data(l).fcsdat(:,i), data(l).fcsdat(:,j), data(l).fcsdat(:,k), 1, '.'), hold on
+    scatter3(data(l+1).fcsdat(:,i), data(l+1).fcsdat(:,j), data(l+1).fcsdat(:,k), 1, '.')
+    set(gca, 'xscale','log', 'yscale','log')
+    set(gca, 'zscale','log')
+    xlabel(data(l).fcshdr.par(i).name)
+    ylabel(data(l).fcshdr.par(j).name)
+    zlabel(data(l).fcshdr.par(k).name)
+    %legend({filenames{l}(12:end-4)  filenames{l+1}(12:end-4) })
+    pause
+    hold off
+end
 
 %%
 
 
+cur_fig = figure(6); clf
 
-
+for l=1:2:length(filenames)
+    scatter3(data(l).fcsdat(data(l).i_gated,i), data(l).fcsdat(data(l).i_gated,j), data(l).fcsdat(data(l).i_gated,k), 1, '.'), hold on
+    scatter3(data(l+1).fcsdat(data(l+1).i_gated,i), data(l+1).fcsdat(data(l+1).i_gated,j), data(l+1).fcsdat(data(l+1).i_gated,k), 1, '.')
+    set(gca, 'xscale','log', 'yscale','log')
+    set(gca, 'zscale','log')
+    xlabel(data(l).fcshdr.par(i).name)
+    ylabel(data(l).fcshdr.par(j).name)
+    zlabel(data(l).fcshdr.par(k).name)
+    legend({filenames{l}(12:end-4)  filenames{l+1}(12:end-4) })
+    pause
+    hold off
+end
