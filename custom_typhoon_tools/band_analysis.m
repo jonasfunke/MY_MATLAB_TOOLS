@@ -50,26 +50,29 @@ print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'bands.tif']); %save figur
 
 
 
+%%
+cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 15 10 ], 'PaperSize', [15 10]);
 
+bar(1:size(bands.intensities,1), bands.intensities(:))
+ylabel('Fluorescence')
+set(gca, 'XTick', [1:20] )
+grid on
+xtickangle(45)
 
-
-
-
-
-
+print(cur_fig, '-dpdf' , [path_out filesep 'Fluorescence.pdf']); %save figure
 
 
 %%
 cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 15 10 ], 'PaperSize', [15 10]);
-
-tmp = bands.intensities(2:2:end)./(bands.intensities(2:2:end)+bands.intensities(1:2:end));
-bar(100*tmp)
-ylabel('Fraction (%)')
-set(gca, 'XTickLabel', {'1-F5', '2-F5', '1-F6', '2-F6', '1-F7', '2-F7'})
+clf
+c = [0 1 2 4 8 10];
+plot(c, bands.intensities([11:16]), '.'), hold on
+hline(bands.intensities(1:10))
+ylabel('Fluorescence'), xlabel('IgG concentration (nM)')
+legend({'References', 'sample'}, 'location', 'Northwest')
 grid on
 
-print(cur_fig, '-dpdf' , [path_out filesep 'Factions.pdf']); %save figure
-
+print(cur_fig, '-dpdf' , [path_out filesep 'Normalized.pdf']); %save figure
 
 
 %%

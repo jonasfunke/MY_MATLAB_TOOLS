@@ -190,9 +190,8 @@ elseif  strcmp(fcsheader_type,'FCS2.0') || strcmp(fcsheader_type,'FCS3.0')  || s
     % comp matrix reader
     comp = get_mnemonic_value('SPILLOVER',fcsheader_main,mnemonic_separator); 
     if ~isempty(comp)
-        comp
-        compcell=regexp(comp,',','split')
-        nc=str2double(compcell{1})        
+        compcell=regexp(comp,',','split');
+        nc=str2double(compcell{1});        
         fcshdr.CompLabels=compcell(2:nc+1);
         fcshdr.CompMat=reshape(str2double(compcell(nc+2:end)'),[nc nc])';       
     else
