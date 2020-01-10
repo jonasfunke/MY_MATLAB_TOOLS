@@ -2,7 +2,6 @@
 close all, clear all, clc
 
 %% select csv file and read it
-
 data = read_profire_csv();
 
 %% set manually
@@ -10,7 +9,7 @@ data = read_profire_csv();
 data_rate = 10*60; % data points/min
 e = 363294; % IgG-DNA
 %e = 136700 + 11710; % IL2 short modifier + extinction at 280
-e = 225800+ 11710; % IL2 long modifier + extinction at 280
+%e = 225800+ 11710; % IL2 long modifier + extinction at 280
 
 data_rate_valve = 0.5*60; %data points / min
 %%
@@ -28,16 +27,16 @@ data_rate_valve = 0.5*60; %data points / min
 % fraction = [1:12];
 
 % custom-IL2-longv2
-fraction_times = [8.4:0.6:15.6];
-fraction = [1:12];
+% fraction_times = [8.4:0.6:15.6];
+% fraction = [1:12];
 
 % custom_49_IgG-collect
 %fraction_times = [2.55 3.2 3.8 4.4 9.72:0.66:15.66];
 %fraction = [1 2 3 13 4 5 6 7 8 9 10 11 12 ];
 
 % custom-BK-IgG-26
-% fraction_times = [6.8 7.4 8.0 8.6 9.2 9.8 10.4 11 11.6 12.2 12.8 13.4 14];
-% fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
+fraction_times = [6.8 7.4 8.0 8.6 9.2 9.8 10.4 11 11.6 12.2 12.8 13.4 14];
+fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
 
 %proFIRE19_32-41bases
 % fraction_times = [7.2:0.65:15];
@@ -62,7 +61,7 @@ fraction = [1:12];
 % % 
 % % plot( data.Position_numbers)
 % plot(tmp/data_rate_valve, data.Position_numbers)
-% 
+% %%
 % fraction = unique(data.Position_numbers);
 % fraction = fraction(1:end-1); %remove fraction 13
 % fraction_times = zeros(1, length(fraction)+1);
@@ -73,7 +72,7 @@ fraction = [1:12];
 %     fraction_times(j) = (index(1)-1)/data_rate_valve;
 % end
 % fraction_times(end) = (index(end))/data_rate_valve
-% fraction
+% %fraction
 %%
 
 cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 3000 600], 'Position', [0 1000 1000 500]);

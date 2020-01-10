@@ -22,8 +22,8 @@ path_out = [gelData.pathnames{1} prefix_out filesep];
 mkdir(path_out);
 
 %% deterime profiles
-%profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.2, 'selection_type', 'automatic');
-profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.4, 'selection_type', 'manual');
+profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.2, 'selection_type', 'automatic');
+%profileData = get_gel_lanes(gelData, 'display', 'on', 'cutoff', 0.4, 'selection_type', 'manual');
 
 
 %% save data
@@ -57,6 +57,7 @@ end
 legend(myleg)
 ylabel('Raw Intensity')
 xlabel('Migration distance [px]')
+grid on
 print(cur_fig, '-dpdf', [path_out filesep 'Intensity.pdf']); %save figure
 
 %% Plot 
@@ -64,12 +65,13 @@ cur_fig = figure;
 
 myleg = {};
 for i=1:length(profileData.profiles)
-    plot(profileData.lanePositions(i,3):profileData.lanePositions(i,4), profileData.profiles{i}/sum(profileData.profiles{i})), hold on
+    plot(profileData.lanePositions(i,3):profileData.lanePositions(i,4),100*profileData.profiles{i}/sum(profileData.profiles{i})), hold on
     myleg = [myleg, {['Lane ' num2str(i)]}];
 end
 legend(myleg)
 ylabel('Normalized Intensity')
 xlabel('Migration distance [px]')
+grid on
 print(cur_fig, '-dtiff', '-r 300' , [path_out filesep 'Normalized_intensity.tif']); %save figure
 
 %% Plot 
@@ -92,7 +94,7 @@ end
 
 legend(myleg(1:length(profileData.profiles)))
 ylabel('Normalized Intensity')
-
+grid on
 print(cur_fig, '-dtiff', '-r 300' , [path_out filesep 'Normalized_intensity_to_max_shifted.tif']); %save figure
 
 
