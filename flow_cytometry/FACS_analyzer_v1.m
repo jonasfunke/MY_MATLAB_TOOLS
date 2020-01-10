@@ -1,4 +1,4 @@
-%%
+%% load fcs data
 close all, clear all, clc
 
 [filenames, pathname]=uigetfile('*.fcs','Select the fcs files','MultiSelect','on');
@@ -19,7 +19,7 @@ for i=2:length(filenames)
     %data(i) = load_fcs_data(pathname, filenames{i}, path_out, 0.1);
 end
 
-%%
+%% create sample names
 i_fl_ch=14; % FL5-A
 sample_names = cell(length(filenames),1);
 
@@ -27,8 +27,7 @@ for j=1:length(filenames)
         sample_names{j} = [ filenames{j}(12:end-4) ' ' data(j).fcshdr.par(i_fl_ch).name];
 end
 
-%% Get limits
-
+%% Get limits for plots
 tmp = [];
 for j=1:length(filenames)
     tmp = [tmp; data(j).fcsdat(data(j).i_gated,i_fl_ch)];
@@ -64,7 +63,6 @@ xlabel(data(1).fcshdr.par(i_fl_ch).name), ylabel('Fraction of cells')
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_histogram_log_FL.pdf']); %save figure
 
 %% PLot FL5-A channel histogram
-
 cur_fig = figure(2); clf
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 20 10 ], 'PaperSize', [20 10] );
@@ -77,8 +75,6 @@ dx=20;
 legend_tmp = {};
 for j=1:length(filenames)
     tmp = data(j).fcsdat(data(j).i_gated,i_fl_ch);
-    
-   
     %x=logspace(-1,5,100); % create bin edges with logarithmic scale
     %histogram(tmp, 'Normalization', 'pdf'); hold on %, 'Normalization', 'pdf'
     [n, p, x_points] = uniform_kernel_density( tmp, h, x_start, x_stop, dx);
@@ -94,9 +90,7 @@ xlabel(data(1).fcshdr.par(i_fl_ch).name), ylabel('Probability density')
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_histogram_lin.pdf']); %save figure
 
 %% plot bar graph
-
 cur_fig = figure(3); clf
-
 N_sample = length(filenames);
 val_median = zeros(N_sample,1);
 val_median_nongated = zeros(N_sample,1);
@@ -118,7 +112,7 @@ xtickangle(45)
 ylabel('Median Fluorescence')
 %set(gca,  'ylim', [0 1.5e4 ])%1.1*max(val_median)])
 set(gca,  'ylim', [0 1.1*max(val_median)])
-legend({'gated', 'non-gated'})
+legend({'gated', 'non-gated'}, 'Location', 'best')
 grid on
 
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
@@ -221,81 +215,3 @@ end
 disp('done')
 
 
-
-%% ---------------------------------- custom --------------------
-
-for i=1:length(filenames)
-    disp([num2str(i) ' - ' filenames{i}(12:end-7) ] )
-end
-  
-
-t= [0.5 1 3]; %h
-
-tmp = parula();
-cc = tmp(32:64:end,:);%varycolor(3);
-
-cur_fig = figure(4); clf
-
-j_color = 1;
-myleg = cell(0,1);
-for i=[1 4 7 10]
-    plot(t, val_median(i:i+2), '.-', 'Color', cc(j_color,:)), hold on
-    j_color = j_color +1;
-    myleg = [myleg, filenames{i}(12:end-7) ]
-end
-
-j_color = 1;
-for i=[13 16 19 22]
-    plot(t, val_median(i:i+2), '.--', 'Color', cc(j_color,:)), hold on
-    j_color = j_color +1;
-    myleg = [myleg, filenames{i}(12:end-7) ]
-end
-grid on
-set(gca, 'YLim', [0 1.1*max(val_median)], 'XLim', [0 t(end)+1])
-legend(myleg, 'location', 'best')
-xlabel('Time (h)'), ylabel('Median Fluorescence')
-    
-
-set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-    'PaperPosition', [0 0 30 20 ], 'PaperSize', [30 20] );
-print(cur_fig, '-dpdf', [path_out filesep prefix_out '_vs_t.pdf']); %save figure
-
-
-
-
-%% 3D scatter
-i=2; j=4; k=14; %FSC-A vs SSC-A vs. FL5-A
-
-cur_fig = figure(6); clf
-
-for l=1:1:length(filenames)
-    scatter3(data(l).fcsdat(:,i), data(l).fcsdat(:,j), data(l).fcsdat(:,k), 1, '.'), hold on
-    %scatter3(data(l+1).fcsdat(:,i), data(l+1).fcsdat(:,j), data(l+1).fcsdat(:,k), 1, '.')
-    %scatter3(data(l+2).fcsdat(:,i), data(l+2).fcsdat(:,j), data(l+2).fcsdat(:,k), 1, '.')
-    set(gca, 'xscale','log', 'yscale','log')
-    set(gca, 'zscale','log')
-    xlabel(data(l).fcshdr.par(i).name)
-    ylabel(data(l).fcshdr.par(j).name)
-    zlabel(data(l).fcshdr.par(k).name)
-    %legend({filenames{l}(12:end-4)  filenames{l+1}(12:end-4) })
-    pause
-    hold off
-end
-
-%%
-
-
-cur_fig = figure(6); clf
-
-for l=1:2:length(filenames)
-    scatter3(data(l).fcsdat(data(l).i_gated,i), data(l).fcsdat(data(l).i_gated,j), data(l).fcsdat(data(l).i_gated,k), 1, '.'), hold on
-    scatter3(data(l+1).fcsdat(data(l+1).i_gated,i), data(l+1).fcsdat(data(l+1).i_gated,j), data(l+1).fcsdat(data(l+1).i_gated,k), 1, '.')
-    set(gca, 'xscale','log', 'yscale','log')
-    set(gca, 'zscale','log')
-    xlabel(data(l).fcshdr.par(i).name)
-    ylabel(data(l).fcshdr.par(j).name)
-    zlabel(data(l).fcshdr.par(k).name)
-    legend({filenames{l}(12:end-4)  filenames{l+1}(12:end-4) })
-    pause
-    hold off
-end
