@@ -37,22 +37,33 @@ cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','cen
     'PaperPosition', [0 0 15 size(bandData.positions,1)*5 ], 'PaperSize', [15 size(bandData.positions,1)*5]);
 
 bandData.fits = cell(1, size(bandData.positions,1));
+bandData.fits_2 = cell(1, size(bandData.positions,1));
 bandData.peaks = cell(2, size(bandData.positions,1));
 
 
 for i=1:size(bandData.positions,1)
+
     subplot(size(bandData.positions,1), 1, i)
-    bandData.fits{i} = fit(bandData.migration_distance{i}, bandData.profiles{i}, 'gauss2');
     [~, index] = findpeaks(bandData.profiles{i}, 'SortStr','descend');
-    bandData.peaks{i} = sort(index(1:2));
+    if length(index)>1
+        bandData.peaks{i} = sort(index(1:2));
+    else
+        bandData.peaks{i} = [index index];
+    end
     
+    bandData.fits2{i} = fit(bandData.migration_distance{i}, bandData.profiles{i}, 'gauss2');
+    bandData.fits{i} = fit(bandData.migration_distance{i}, bandData.profiles{i}, 'gauss2', ...
+        'StartPoint', [bandData.profiles{i}(bandData.peaks{i}(1)), bandData.migration_distance{i}(bandData.peaks{i}(1)) , 10, ...
+        bandData.profiles{i}(bandData.peaks{i}(2)), bandData.migration_distance{i}(bandData.peaks{i}(2)) , 10 ]);
+    %bandData.fits{i}
     plot(bandData.migration_distance{i}, bandData.profiles{i}, ...
-        bandData.migration_distance{i},  bandData.fits{i}(bandData.migration_distance{i}), ...
+        bandData.migration_distance{i},  bandData.fits{i}(bandData.migration_distance{i}), '--', ...
+        bandData.migration_distance{i},  bandData.fits2{i}(bandData.migration_distance{i}), '--',...
         bandData.migration_distance{i}(bandData.peaks{i}) , bandData.profiles{i}(bandData.peaks{i}), 'k.' )
   %  legend({'profile', ...
   %      ['fit w1=' num2str(round(bandData.fits{i}.c1)) ' w2=' num2str(round(bandData.fits{i}.c2)) ],...
   %      'peaks' })
-    
+
 end
 print(cur_fig, '-dpdf' , [path_out filesep 'Profiles.pdf']); %save figure
 
@@ -109,3 +120,17 @@ xlabel('Double-band')
 
 print(cur_fig, '-dpdf', [path_out filesep 'Double-band_ratios.pdf']); %save figure
 
+%%
+
+cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 20 7], 'PaperSize', [20 7]);
+
+
+
+plot(1:n_bands, sum(heights,2)/mean(sum(heights,2)), '.-')
+set(gca, 'XTick', 1:n_bands, 'Xlim', [0.5 n_bands+0.5], 'YLim', [0 1.5])
+
+grid on
+ylabel('Sum oh heights')
+xlabel('Double-band')
+
+print(cur_fig, '-dpdf', [path_out filesep 'Double-band_total.pdf']); %save figure
