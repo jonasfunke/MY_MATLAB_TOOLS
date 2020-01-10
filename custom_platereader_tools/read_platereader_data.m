@@ -35,7 +35,7 @@ answer = questdlg( ['Also use content fields or well positions as well names? E.
 
 for i=1:N_wells
     if strcmp(answer, 'Content field')
-        well_names{i} = [content{i+2}];
+        well_names{i} = [ content{i+2}]; % [num2str(i) ' ' content{i+2}];
     else
         well_names{i} = [txt{i+2} num2str(tmp(i))];
     end
@@ -119,30 +119,30 @@ end
 i = 1:N_wells;
 if correct_bg  
     %dd
-    dd_bg = mean(mean(dd(j_bg,:)));
+    dd_bg = median(mean(dd(j_bg,:)));
     dd(i,:) = dd(i,:)- dd_bg;
 
     % aa
-    aa_bg = mean(mean(aa(j_bg,:)));
+    aa_bg = median(mean(aa(j_bg,:)));
     aa(i,:) = aa(i,:)- aa_bg;
 
     % da1
-    da1_bg = mean(mean(da1(j_bg,:)));
+    da1_bg = median(mean(da1(j_bg,:)));
     da1(i,:) = da1(i,:)- da1_bg;
 
     % da2
-    da2_bg = mean(mean(da2(j_bg,:)));
+    da2_bg = median(mean(da2(j_bg,:)));
     da2(i,:) = da2(i,:)- da2_bg;
     
 
     if correct_cell_autofl
         %% determine cell fluorescence
         
-        dd_bg = mean(mean(dd(i_cells_only,:)));
+        dd_bg = median(mean(dd(i_cells_only,:)));
         dd(i_cells,:) = dd(i_cells,:)- dd_bg;
 
         % aa
-        aa_bg = mean(mean(aa(i_cells_only,:)));
+        aa_bg = median(mean(aa(i_cells_only,:)));
         aa(i_cells,:) = aa(i_cells,:)- aa_bg;
 
         % da1
@@ -209,8 +209,8 @@ i_plot = setdiff(1:N_wells, [j_bg i_donly i_aonly i_cells_only])
 for i=i_plot
     subplot(N_row, N_column, i)
     plot(t, da1(i, :)./(dd(i,:)+da1(i,:)), 'b.', t, da2(i, :)./(dd(i,:)+da2(i,:)), 'k.'), hold on
-    hline(mean(da1(i,:))/(mean(dd(i,:))+mean(da1(i,:))), 'b');
-    hline(mean(da2(i,:))/(mean(dd(i,:))+mean(da2(i,:))), 'k');
+    hline(median(da1(i,:))/(median(dd(i,:))+median(da1(i,:))), 'b');
+    hline(median(da2(i,:))/(median(dd(i,:))+median(da2(i,:))), 'k');
     set(gca, 'YLim', ylim_FRET)
     grid on
     title(well_names{i})
@@ -230,19 +230,19 @@ E1_mean = zeros(N_wells,3);
 E2_mean = zeros(N_wells,3);
 
 for i=1:N_wells
-   dd_mean(i,1) = mean(dd(i,:));
+   dd_mean(i,1) = median(dd(i,:));
    dd_mean(i,2) = std(dd(i,:));
    dd_mean(i,3) = std(dd(i,:))/sqrt(length(dd(i,:)));
    
-   aa_mean(i,1) = mean(aa(i,:));
+   aa_mean(i,1) = median(aa(i,:));
    aa_mean(i,2) = std(aa(i,:));
    aa_mean(i,3) = std(aa(i,:))/sqrt(length(aa(i,:)));
    
-   da1_mean(i,1) = mean(da1(i,:));
+   da1_mean(i,1) = median(da1(i,:));
    da1_mean(i,2) = std(da1(i,:));
    da1_mean(i,3) = std(da1(i,:))/sqrt(length(da1(i,:)));
    
-   da2_mean(i,1) = mean(da2(i,:));
+   da2_mean(i,1) = median(da2(i,:));
    da2_mean(i,2) = std(da2(i,:));
    da2_mean(i,3) = std(da2(i,:))/sqrt(length(da2(i,:)));
    
