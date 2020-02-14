@@ -51,15 +51,16 @@ print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'bands.tif']); %save figur
 
 
 %%
-cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 15 10 ], 'PaperSize', [15 10]);
-
-bar(1:size(bands.intensities,1), bands.intensities(:))
+cur_fig = figure(2); clf
+bar(1:size(bands.intensities,1), bands.intensities(:,1))
 ylabel('Fluorescence')
-set(gca, 'XTick', [1:20] )
+set(gca, 'XTick', [1:size(bands.intensities,1)] )
 grid on
 xtickangle(45)
 
-print(cur_fig, '-dpdf' , [path_out filesep 'Fluorescence.pdf']); %save figure
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 1*size(bands.intensities,1) 10 ], 'PaperSize', [1*size(bands.intensities,1) 10] );
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_Fluorescence.pdf']); %save figure
 
 
 %%
