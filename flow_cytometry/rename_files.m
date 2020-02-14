@@ -6,9 +6,23 @@ close all, clear all, clc
 %path_in = '/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_FACS/2019-12-03-Facs/Positioning/';
 %path_in = '/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_FACS/2019-12-04_LGv7_ConfigurationScreen/'
 
-path_in = '/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_FACS/2020-01-07-Concentration-Screen/NALM-CB-CD19/'
+%path_in = '/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_FACS/2020-01-07-Concentration-Screen/NALM-CB-CD19/'
 
+%path_in = '/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_FACS/2019-08-28_PositioningScreen/Data/'
+
+path_in = '/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_FACS/2020-01-02-Valency-Screen-JURKAT/'
 files = dir([path_in '*.fcs']);
+
+%%
+% make output dir
+tmp = split(path_in, filesep);
+dir_out = tmp{1};
+for i=2:length(tmp)-2 % use / at the end
+        dir_out = [dir_out filesep tmp{i}];
+end
+dir_out = [dir_out filesep [tmp{end-1} '_renamed']]
+mkdir(dir_out)
+
 
 %%
 
@@ -30,12 +44,14 @@ for i=1:length(files)-1
     end
     new_name = [new_name '-' parts{end} '-' parts{end-1} '.fcs'];
         
-    %name = index;
+    %name = indirdex;
     %new_name = [ name '-' files(i).name(12:end)];
     file_in = [files(i).folder filesep files(i).name];
-    mkdir([files(i).folder filesep 'renamed'])
-    file_out = [files(i).folder filesep 'renamed' filesep new_name];
+
+    file_out = [dir_out filesep new_name];
     copyfile(file_in, file_out)
+    %disp(files(i).name)
+    %disp(new_name)
     
 end
 
