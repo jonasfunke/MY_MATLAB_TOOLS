@@ -21,6 +21,10 @@ end
 
 %% create sample names
 i_fl_ch=14; % FL5-A
+i_fsc_ch=2; 
+i_ssc_ch=4; %FSC-A vs SSC-A
+
+
 sample_names = cell(length(filenames),1);
 
 for j=1:length(filenames)
@@ -96,18 +100,31 @@ val_median = zeros(N_sample,1);
 val_median_nongated = zeros(N_sample,1);
 val_mean = zeros(N_sample,1);
 val_err = zeros(N_sample,1);
+val_ssc = zeros(N_sample,1);
+val_fsc = zeros(N_sample,1);
 
 for j=1:length(filenames)
     val_median(j) = median(data(j).fcsdat(data(j).i_gated,i_fl_ch));    
     val_median_nongated(j) = median(data(j).fcsdat(:,i_fl_ch));    
     val_mean(j) = mean(data(j).fcsdat(data(j).i_gated,i_fl_ch));    
     val_err(j) = 3*std(data(j).fcsdat(data(j).i_gated,i_fl_ch))/sqrt(length(data(j).fcsdat(data(j).i_gated,i_fl_ch)));    
-    
+
+    ssc_median(j) = median(data(j).fcsdat(data(j).i_gated,i_ssc_ch));   
+    fsc_median(j) = median(data(j).fcsdat(data(j).i_gated,i_fsc_ch));   
 end
 
+subplot(3, 1, 1)
+plot(1:N_sample,ssc_median, '.'), hold on
+plot(1:N_sample,fsc_median, '.')
+legend({'Median SSC', 'Median FSC'}, 'location', 'best')
+grid on
+ylabel('Median SC')
+set(gca, 'Xtick', 1:N_sample, 'XTickLabel', [], 'Xlim', [0 N_sample+1])
+
+subplot(3, 1, 2:3)
 bar(1:N_sample,val_median), hold on
 plot(1:N_sample,val_median_nongated, '.')
-set(gca, 'Xtick', 1:N_sample, 'XTickLabel', sample_names)
+set(gca, 'Xtick', 1:N_sample, 'XTickLabel', sample_names, 'Xlim', [0 N_sample+1])
 xtickangle(45)
 ylabel('Median Fluorescence')
 %set(gca,  'ylim', [0 1.5e4 ])%1.1*max(val_median)])
@@ -116,7 +133,7 @@ legend({'gated', 'non-gated'}, 'Location', 'best')
 grid on
 
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-    'PaperPosition', [0 0 0.8*N_sample 10 ], 'PaperSize', [0.8*N_sample 10] );
+    'PaperPosition', [0 0 0.8*N_sample 8*N_sample*0.05 ], 'PaperSize', [0.8*N_sample 8*N_sample*0.05] );
 
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_median2.pdf']); %save figure
 
