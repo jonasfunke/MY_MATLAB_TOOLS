@@ -37,13 +37,13 @@ function [results] = read_proFire_csv(varargin)
     Valve1_strings = strsplit(data_text_lines{12},';');
     Valve1_numbers = str2double(Valve1_strings);
 
-    Signal_strings = strsplit(data_text_lines{18},';');
+    Signal_strings = strsplit(data_text_lines{30},';');
     Signal_numbers = str2double(Signal_strings);
 
-    Valve2_strings = strsplit(data_text_lines{24},';');
+    Valve2_strings = strsplit(data_text_lines{18},';');
     Valve2_numbers = str2double(Valve2_strings);
 
-    Pressure_strings = strsplit(data_text_lines{30},';');
+    Pressure_strings = strsplit(data_text_lines{24},';');
     Pressure_numbers = str2double(Pressure_strings);
 
     % close file
