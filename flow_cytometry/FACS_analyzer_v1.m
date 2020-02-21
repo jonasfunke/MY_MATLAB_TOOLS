@@ -195,6 +195,8 @@ print(cur_fig, '-dpdf', [path_out filesep prefix_out '_histogram_log.pdf']); %sa
 cur_fig = figure(6); clf
 scatter_lim = [min(data(1).fcsdat(:,2)) max(data(j).fcsdat(:,2)) ...
     min(data(1).fcsdat(:,4)) max(data(j).fcsdat(:,4))];
+NN_lim = [min(data(1).NN) max(data(1).NN)];
+tmp = [prctile(data(j).fcsdat(:,i_fl_ch),10) prctile(data(j).fcsdat(:,i_fl_ch),95)];
 % 4 = SSC-A, 2 = FSC-A
 for j=2:length(filenames)
     if scatter_lim(1) > min(data(j).fcsdat(:,2))
@@ -209,7 +211,19 @@ for j=2:length(filenames)
     if scatter_lim(4) < max(data(j).fcsdat(:,4))
         scatter_lim(4) = max(data(j).fcsdat(:,4));
     end
+    if NN_lim(2) < max(data(j).NN)
+        NN_lim(2) = max(data(j).NN);
+    end
+    if NN_lim(1) > min(data(j).NN)
+        NN_lim(1) = min(data(j).NN);
+    end
+    tmp(j,:) = [prctile(data(j).fcsdat(:,i_fl_ch),10) prctile(data(j).fcsdat(:,i_fl_ch),95)];
+    
+    
+    
+    
 end
+Fl_lim = [min(tmp(:,1)) min(tmp(:,2))];
 scatter_lim(scatter_lim(:)<0)=100;
 
 
@@ -231,4 +245,40 @@ for j=1:length(filenames)
 end
 disp('done')
 
+%%
+N_column = 5; % spalten
+N_row = ceil(length(filenames)/N_column); % zeilen
+cur_fig = figure(8); clf
+for j=1:length(filenames)
+    subplot(N_row, N_column, j)
+    scatter(data(j).fcsdat(:,2),data(j).fcsdat(:,4), 5, data(j).fcsdat(:,i_fl_ch), '.')
+    h = colorbar;
+    ylabel(h, data(j).fcshdr.par(i_fl_ch).name)
+    xlabel(data(j).fcshdr.par(2).name), ylabel(data(j).fcshdr.par(4).name)
+    grid on
+    caxis(Fl_lim)
+    set(gca,'xscale','log','yscale','log', 'XLim', scatter_lim(1:2) , 'YLim', scatter_lim(3:4) )
+    title(filenames{j}(12:end-4))
+end
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
+print(cur_fig, '-dpdf', [scatter_path 'Overview_SSC-FSC-' data(1).fcshdr.par(i_fl_ch).name  '.pdf']); %save figure
 
+
+%% scatter overview
+
+cur_fig = figure(7); clf
+for j=1:length(filenames)
+    subplot(N_row, N_column, j)
+    scatter(data(j).fcsdat(:,2),data(j).fcsdat(:,4), 5, (data(j).NN(:)), '.')
+    h = colorbar;
+    ylabel(h, 'Nearest Neighbors')
+    xlabel(data(j).fcshdr.par(2).name), ylabel(data(j).fcshdr.par(4).name)
+    grid on
+    caxis(NN_lim)
+    set(gca,'xscale','log','yscale','log', 'XLim', scatter_lim(1:2) , 'YLim', scatter_lim(3:4) )
+    title(filenames{j}(12:end-4))
+end
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
+print(cur_fig, '-dpdf', [scatter_path 'Overview_SSC-FSC-NN.pdf']); %save figure

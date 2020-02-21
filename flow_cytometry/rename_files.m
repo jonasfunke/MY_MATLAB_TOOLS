@@ -10,7 +10,9 @@ close all, clear all, clc
 
 %path_in = '/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_FACS/2019-08-28_PositioningScreen/Data/'
 
-path_in = '/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_FACS/2020-01-02-Valency-Screen-JURKAT/'
+path_in = '/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_FACS/2020-01-02-Valency-Screen-JURKAT/';
+path_in = '/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_FACS/2019-08-21_CB-cd3-cd19_adapter-time-scrn_competitor/CD3/FACS Daten/';
+
 files = dir([path_in '*.fcs']);
 
 %%
@@ -39,11 +41,12 @@ for i=1:length(files)-1
 %         name = index;
 %     end
     new_name = parts{1};
-    for j=2:length(parts)-2
+    for j=2:length(parts)-3
         new_name = [new_name matches{j-1} parts{j}];
     end
-    new_name = [new_name '-' parts{end} '-' parts{end-1} '.fcs'];
-        
+    %new_name = [new_name '-' parts{end} '-' parts{end-1} '.fcs'];
+    new_name = [new_name '-' parts{end} '-' parts{end-2} '-' parts{end-1} '.fcs'];
+    
     %name = indirdex;
     %new_name = [ name '-' files(i).name(12:end)];
     file_in = [files(i).folder filesep files(i).name];

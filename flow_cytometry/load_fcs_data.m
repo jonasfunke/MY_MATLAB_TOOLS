@@ -28,6 +28,8 @@ for k = 1:length(x)
 end
 disp('density computed')
 
+out.NN_radius = radius;
+out.NN = NN;
 scatter(fcsdat(:,i),fcsdat(:,j),10,NN, '.'), hold on
 colorbar
 %scatter(fcsdat(:,i), fcsdat(:,j), 1, '.'), hold on
