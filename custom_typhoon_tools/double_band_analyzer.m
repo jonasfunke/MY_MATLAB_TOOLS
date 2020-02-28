@@ -40,10 +40,11 @@ bandData.fits = cell(1, size(bandData.positions,1));
 bandData.fits_2 = cell(1, size(bandData.positions,1));
 bandData.peaks = cell(2, size(bandData.positions,1));
 
-
+ft_gauss1 = fittype('gauss1');
+ft_gauss2_same_width = fittype('a1*exp(-((x-b1)/c1)^2) + a2*exp(-((x-b2)/c1)^2)');
 for i=1:size(bandData.positions,1)
 
-    subplot(size(bandData.positions,1), 1, i)
+    subplot(size(bandData.positions,1), 1, i), cla
     [~, index] = findpeaks(bandData.profiles{i}, 'SortStr','descend');
     if length(index)>1
         bandData.peaks{i} = sort(index(1:2));
@@ -51,19 +52,32 @@ for i=1:size(bandData.positions,1)
         bandData.peaks{i} = [index index];
     end
     
-    bandData.fits2{i} = fit(bandData.migration_distance{i}, bandData.profiles{i}, 'gauss2');
-    bandData.fits{i} = fit(bandData.migration_distance{i}, bandData.profiles{i}, 'gauss2', ...
-        'StartPoint', [bandData.profiles{i}(bandData.peaks{i}(1)), bandData.migration_distance{i}(bandData.peaks{i}(1)) , 10, ...
-        bandData.profiles{i}(bandData.peaks{i}(2)), bandData.migration_distance{i}(bandData.peaks{i}(2)) , 10 ]);
+    
+%     bandData.fits2{i} = fit(bandData.migration_distance{i}, bandData.profiles{i}, 'gauss2');
+%     bandData.fits{i} = fit(bandData.migration_distance{i}, bandData.profiles{i}, 'gauss2', ...
+%         'StartPoint', [bandData.profiles{i}(bandData.peaks{i}(1)), bandData.migration_distance{i}(bandData.peaks{i}(1)) , 10, ...
+%         bandData.profiles{i}(bandData.peaks{i}(2)), bandData.migration_distance{i}(bandData.peaks{i}(2)) , 10 ]);
+    bandData.fits3{i} = fit(bandData.migration_distance{i}, bandData.profiles{i}, ft_gauss2_same_width, ...
+        'StartPoint', [bandData.profiles{i}(bandData.peaks{i}(1)), ...
+        bandData.profiles{i}(bandData.peaks{i}(2)), bandData.migration_distance{i}(bandData.peaks{i}(1)) , bandData.migration_distance{i}(bandData.peaks{i}(2)), 10   ]);
+
     %bandData.fits{i}
-    plot(bandData.migration_distance{i}, bandData.profiles{i}, ...
-        bandData.migration_distance{i},  bandData.fits{i}(bandData.migration_distance{i}), '--', ...
-        bandData.migration_distance{i},  bandData.fits2{i}(bandData.migration_distance{i}), '--',...
-        bandData.migration_distance{i}(bandData.peaks{i}) , bandData.profiles{i}(bandData.peaks{i}), 'k.' )
+    plot(bandData.migration_distance{i}, bandData.profiles{i}), hold on
+
+%     plot(bandData.migration_distance{i}, bandData.profiles{i}, ...
+%         bandData.migration_distance{i},  bandData.fits{i}(bandData.migration_distance{i}), '--', ...
+%         bandData.migration_distance{i},  bandData.fits2{i}(bandData.migration_distance{i}), '--')
+    plot(bandData.migration_distance{i}, bandData.fits3{i}(bandData.migration_distance{i}), ':', ...
+        bandData.migration_distance{i},  ft_gauss1(bandData.fits3{i}.a1, bandData.fits3{i}.b1, bandData.fits3{i}.c1,bandData.migration_distance{i}) , '-', ...
+        bandData.migration_distance{i},  ft_gauss1(bandData.fits3{i}.a2, bandData.fits3{i}.b2, bandData.fits3{i}.c1,bandData.migration_distance{i}) , '-')
+    plot(bandData.migration_distance{i}(bandData.peaks{i}) , bandData.profiles{i}(bandData.peaks{i}), 'k.'), hold on
+
   %  legend({'profile', ...
   %      ['fit w1=' num2str(round(bandData.fits{i}.c1)) ' w2=' num2str(round(bandData.fits{i}.c2)) ],...
   %      'peaks' })
-
+  
+  
+    
 end
 print(cur_fig, '-dpdf' , [path_out filesep 'Profiles.pdf']); %save figure
 
@@ -85,7 +99,12 @@ for i=1:n_bands
     rectangle('Position', areas(i,:), 'EdgeColor', 'r', 'Linewidth', 1);
     text(areas(i,1)+areas(i,3)/2, areas(i,2) , num2str(i), 'Color', 'r', 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'center', 'FontSize', 8)
     
-    plot((areas(i,1)+areas(i,3)/2)*[1;1], bandData.migration_distance{i}(bandData.peaks{i}), 'g.')
+    %plot((areas(i,1)+areas(i,3)/2)*[1;1], bandData.migration_distance{i}(bandData.peaks{i}), 'g.')
+    
+    % plot alos positions from fit3
+    plot((areas(i,1)+areas(i,3)/2)*[1;1], bandData.fits3{i}.b1, 'r.')
+    plot((areas(i,1)+areas(i,3)/2)*[1;1], bandData.fits3{i}.b2, 'r.')
+
 end
 set(gca, 'XTickLabel', [], 'YTickLabel', [])
 print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'bands.tif']); %save figure
@@ -93,13 +112,21 @@ print(cur_fig, '-dtiff', '-r 500' , [path_out filesep 'bands.tif']); %save figur
 %% Plot 
 n_bands = size(bandData.intensities,1);
 
+
+
 cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters','PaperPosition', [0 0 20 15], 'PaperSize', [20 15]);
 
 heights = zeros(n_bands, 2);
 for i=1:n_bands
     h1 = bandData.profiles{i}(bandData.peaks{i}(1));
+    h1 = bandData.fits3{i}.a1;
     h2 = bandData.profiles{i}(bandData.peaks{i}(2));
-    heights(i,:) = [h1 h2];
+    h2 = bandData.fits3{i}.a2;
+    if bandData.fits3{i}.b2 < bandData.fits3{i}.b1 % switch
+        heights(i,:) = [h2 h1];
+    else
+        heights(i,:) = [h1 h2];
+    end
 end
 subplot(2, 1, 1)
 plot(1:n_bands, heights, '.-')
