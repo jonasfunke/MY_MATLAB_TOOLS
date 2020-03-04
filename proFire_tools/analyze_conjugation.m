@@ -75,10 +75,13 @@ fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
 % %fraction
 %%
 
-cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 3000 600], 'Position', [0 1000 1000 500]);
+cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 80 12 ], 'PaperSize', [80 12] );
 clf
 plot([1:length(data.Signal_numbers)]/data_rate, data.Signal_numbers), hold on
-
+xlim = [0 max([1:length(data.Signal_numbers)]/data_rate)];
+ylim = [min(data.Signal_numbers) 1.1*max(data.Signal_numbers)];
+xtick = 0:2:ylim(2);
 for j=1:length(fraction_times)-1
     vline(fraction_times(j), 'k-');
     
@@ -94,13 +97,19 @@ for j=1:length(fraction_times)-1
     concentration = 1e9*avg_abs/e/dV;
     amount = 1e6*avg_abs/e; %pmol
 
-    text(fraction_times(j)+0.1*(fraction_times(j+1)-fraction_times(j)), 0.05, { ['F' num2str(fraction(j))],[num2str(round(concentration)) ' nM'], [num2str(round(amount)) ' pmol']})
+    text(fraction_times(j)+0.1*(fraction_times(j+1)-fraction_times(j)), (ylim(2)-ylim(1))/2, { ['F' num2str(fraction(j))],[num2str(round(concentration)) ' nM'], [num2str(round(amount)) ' pmol']})
 
 end
 vline(fraction_times(length(fraction_times)), 'k-');
-title(['Using ' num2str(e) ' /M/cm extinction coefficient'])
-%set(gca, 'XTick', 0:3:27, 'XLim', [0 30], 'YLim', [-1 20])
+title([ data.filename(1:end-4) ', extinction coefficient=' num2str(e) ' /M/cm'])
+set(gca, 'XLim', xlim, 'YLim', ylim, 'XTick', xtick)
 grid on
-print(cur_fig, '-dpng', [data.pathname data.filename(1:end-4) '_analysis.png']); %save figure
 
+%print(cur_fig, '-dpng', [data.pathname data.filename(1:end-4) '_analysis.png']); %save figure
+
+% set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+%     'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
+print(cur_fig, '-dpdf', [data.pathname data.filename(1:end-4) '_analysis.pdf']); %save figure
+
+disp('finished')
 

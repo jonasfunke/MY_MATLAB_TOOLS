@@ -14,11 +14,14 @@ data_rate = 10*60; % data points/min
 e = 363294; % IgG-DNA
 data_rate_valve = 0.5*60; %data points / min
 
-%fraction_times = [6.8 7.4 8.0 8.6 9.2 9.8 10.4 11 11.6 12.2 12.8 13.4 14];
-%fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
-
-fraction_times = [7.1:0.6:14.3];
+fraction_times = [6.8 7.4 8.0 8.6 9.2 9.8 10.4 11 11.6 12.2 12.8 13.4 14];
 fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
+
+% fraction_times = [7.1:0.6:14.3];
+% fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
+
+
+
 
 %%
 cur_fig = figure('Visible','on', 'PaperPositionMode', 'manual','PaperUnits','points','PaperPosition', [0 0 3000 600], 'Position', [0 1000 1000 500]);
