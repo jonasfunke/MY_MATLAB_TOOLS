@@ -3,7 +3,8 @@ close all, clear all, clc
 
 %path_in = '/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_CellCounter/2020-03-03_Recruiting_CellTrace_20h/';
 %path_in = '/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_CellCounter/2020-03-02_Recruiting_CellTrace_1.5h/';
-path_in = '/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_CellCounter/2020-03-02_Recruiting_CellTrace_4h/';
+%path_in = '/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_CellCounter/2020-03-02_Recruiting_CellTrace_4h/';
+path_in = '/Users/jonasfunke/Dropbox (Personal)/Plectonic_Experiments/data_CellCounter/2020-03-04_Recruiting_42h/';
 files_BF = dir([path_in '*_BF.tiff']);
 % 
 % path_in ='/Users/jonasfunke/Dropbox (Personal)/PlectonicBiotech/Experiments/data_CellCounter/2020-03-02_Recruiting_CellTrace_0h/';
@@ -35,6 +36,7 @@ for i= 1:length(files_BF) %[1:7 9:10] %
 
     tmp =  double(R_in)-double(imfilter(R_in, f_filter, 'same', 'replicate'));
     R = (tmp-min(tmp(:)))/(max(tmp(:))-min(tmp(:)));
+    R = min(R/0.6,1);
 
     tmp =  double(G_in)-double(imfilter(G_in, f_filter, 'same', 'replicate'));
     G = (tmp-min(tmp(:)))/(max(tmp(:))-min(tmp(:)));
@@ -55,48 +57,50 @@ for i= 1:length(files_BF) %[1:7 9:10] %
     %imwrite(RGB, [path_out filesep files_BF(i).name(1:end-7) '_RGB.png'], 'Alpha', alpha);
     imwrite(RGB, [path_out filesep files_BF(i).name(1:end-7) '_RGB.tiff']);
     
-    % find peaks
-    tmp=FastPeakFind(R);
-    xy_R = [tmp(1:2:end) tmp(2:2:end)];
-    
-    tmp=FastPeakFind(G);
-    xy_G = [tmp(1:2:end) tmp(2:2:end)];
-    
-    tmp=FastPeakFind(BF);
-    xy_BF = [tmp(1:2:end) tmp(2:2:end)];
-    
-    disp([num2str(size(xy_BF,1)) ' - ' num2str(size(xy_R,1)) ' - ' num2str(size(xy_G,1)) ' - ' num2str(size(xy_R,1)+size(xy_G,1))])
-
     
     
-    d_min = 40;
-    d = zeros(size(xy_R,1), size(xy_G,1));
-    pairs = [];
-    for k=1:size(xy_R,1)
-        for l=1:size(xy_G,1)
-            d(k,l)=sqrt((xy_R(k,1)-xy_G(l,1)).^2 + (xy_R(k,2)-xy_G(l,2)).^2);
-            if d(k,l) < d_min
-               pairs = [pairs; [xy_R(k,1) xy_R(k,2) xy_G(l,1) xy_G(l,2)]];
-            end
-        end
-    end
-    figure(1), clf
-    subplot(2,2,1)
-    imagesc(BF), colormap gray, axis image, hold on
-    plot(xy_BF(:,1),xy_BF(:,2),'bo')
-    subplot(2,2,2)
-    imagesc(R), colormap gray, axis image, hold on
-    plot(xy_R(:,1),xy_R(:,2),'ro')
-    subplot(2,2,3)
-    imagesc(G), colormap gray, axis image, hold on
-    plot(xy_G(:,1),xy_G(:,2),'go')
-    %
-    %
-    %
-    %pause
-    %plot(pairs(:,1),pairs(:,2),'r+')
-    %plot(pairs(:,3),pairs(:,4),'gx')
-    
+%     % find peaks
+%     tmp=FastPeakFind(R);
+%     xy_R = [tmp(1:2:end) tmp(2:2:end)];
+%     
+%     tmp=FastPeakFind(G);
+%     xy_G = [tmp(1:2:end) tmp(2:2:end)];
+%     
+%     tmp=FastPeakFind(BF);
+%     xy_BF = [tmp(1:2:end) tmp(2:2:end)];
+%     
+%     disp([num2str(size(xy_BF,1)) ' - ' num2str(size(xy_R,1)) ' - ' num2str(size(xy_G,1)) ' - ' num2str(size(xy_R,1)+size(xy_G,1))])
+% 
+%     
+%     
+%     d_min = 40;
+%     d = zeros(size(xy_R,1), size(xy_G,1));
+%     pairs = [];
+%     for k=1:size(xy_R,1)
+%         for l=1:size(xy_G,1)
+%             d(k,l)=sqrt((xy_R(k,1)-xy_G(l,1)).^2 + (xy_R(k,2)-xy_G(l,2)).^2);
+%             if d(k,l) < d_min
+%                pairs = [pairs; [xy_R(k,1) xy_R(k,2) xy_G(l,1) xy_G(l,2)]];
+%             end
+%         end
+%     end
+%     figure(1), clf
+%     subplot(2,2,1)
+%     imagesc(BF), colormap gray, axis image, hold on
+%     plot(xy_BF(:,1),xy_BF(:,2),'bo')
+%     subplot(2,2,2)
+%     imagesc(R), colormap gray, axis image, hold on
+%     plot(xy_R(:,1),xy_R(:,2),'ro')
+%     subplot(2,2,3)
+%     imagesc(G), colormap gray, axis image, hold on
+%     plot(xy_G(:,1),xy_G(:,2),'go')
+%     %
+%     %
+%     %
+%     %pause
+%     %plot(pairs(:,1),pairs(:,2),'r+')
+%     %plot(pairs(:,3),pairs(:,4),'gx')
+%     
     
 end
 
