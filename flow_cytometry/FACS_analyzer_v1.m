@@ -133,7 +133,8 @@ legend({'gated', 'non-gated'}, 'Location', 'best')
 grid on
 
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-    'PaperPosition', [0 0 0.8*N_sample 8*N_sample*0.05 ], 'PaperSize', [0.8*N_sample 8*N_sample*0.05] );
+    'PaperPosition', [0 0 max(0.8*N_sample,12) max(8*N_sample*0.05, 10) ], ...
+    'PaperSize', [max(0.8*N_sample,12) max(8*N_sample*0.05,10)] );
 
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_median2.pdf']); %save figure
 
@@ -196,7 +197,7 @@ cur_fig = figure(6); clf
 scatter_lim = [min(data(1).fcsdat(:,2)) max(data(j).fcsdat(:,2)) ...
     min(data(1).fcsdat(:,4)) max(data(j).fcsdat(:,4))];
 NN_lim = [min(data(1).NN) max(data(1).NN)];
-tmp = [prctile(data(j).fcsdat(:,i_fl_ch),10) prctile(data(j).fcsdat(:,i_fl_ch),95)];
+tmp1 = [prctile(data(j).fcsdat(:,i_fl_ch),10) prctile(data(j).fcsdat(:,i_fl_ch),95)];
 % 4 = SSC-A, 2 = FSC-A
 for j=2:length(filenames)
     if scatter_lim(1) > min(data(j).fcsdat(:,2))
@@ -217,33 +218,33 @@ for j=2:length(filenames)
     if NN_lim(1) > min(data(j).NN)
         NN_lim(1) = min(data(j).NN);
     end
-    tmp(j,:) = [prctile(data(j).fcsdat(:,i_fl_ch),10) prctile(data(j).fcsdat(:,i_fl_ch),95)];
+    tmp1(j,:) = [prctile(data(j).fcsdat(:,i_fl_ch),10) prctile(data(j).fcsdat(:,i_fl_ch),95)];
     
     
     
     
 end
-Fl_lim = [min(tmp(:,1)) min(tmp(:,2))];
+Fl_lim = [min(tmp1(:,1)) min(tmp1(:,2))];
 scatter_lim(scatter_lim(:)<0)=100;
 
 
-set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-    'PaperPosition', [0 0 15 10 ], 'PaperSize', [15 10] );
 scatter_path = [path_out 'scatter_plots' filesep];
 mkdir(scatter_path)
-for j=1:length(filenames)
-    scatter(data(j).fcsdat(:,2),data(j).fcsdat(:,4), 10, (data(j).fcsdat(:,i_fl_ch)), '.')
-    colorbar
-    xlabel(data(j).fcshdr.par(2).name), ylabel(data(j).fcshdr.par(4).name)
-    grid on
-    caxis([prctile(data(j).fcsdat(:,i_fl_ch),10) prctile(data(j).fcsdat(:,i_fl_ch),95)])
-    h = colorbar;
-    ylabel(h, data(j).fcshdr.par(i_fl_ch).name)
-    set(gca,'xscale','log','yscale','log', 'XLim', scatter_lim(1:2) , 'YLim', scatter_lim(3:4) )
-    title(sample_names{j})
-    print(cur_fig, '-dpdf', [scatter_path filenames{j}(1:end-4) '_SSC-FSC-FL5.pdf']); %save figure
-end
-disp('done')
+% set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+%     'PaperPosition', [0 0 15 10 ], 'PaperSize', [15 10] );
+% for j=1:length(filenames)
+%     scatter(data(j).fcsdat(:,2),data(j).fcsdat(:,4), 10, (data(j).fcsdat(:,i_fl_ch)), '.')
+%     colorbar
+%     xlabel(data(j).fcshdr.par(2).name), ylabel(data(j).fcshdr.par(4).name)
+%     grid on
+%     caxis([prctile(data(j).fcsdat(:,i_fl_ch),10) prctile(data(j).fcsdat(:,i_fl_ch),95)])
+%     h = colorbar;
+%     ylabel(h, data(j).fcshdr.par(i_fl_ch).name)
+%     set(gca,'xscale','log','yscale','log', 'XLim', scatter_lim(1:2) , 'YLim', scatter_lim(3:4) )
+%     title(sample_names{j})
+%     print(cur_fig, '-dpdf', [scatter_path filenames{j}(1:end-4) '_SSC-FSC-FL5.pdf']); %save figure
+% end
+% disp('done')
 
 %%
 N_column = 5; % spalten
