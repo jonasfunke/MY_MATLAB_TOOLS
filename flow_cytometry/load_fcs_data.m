@@ -18,19 +18,21 @@ cur_fig = figure(); clf
 
 %N = hist3(real([log(fcsdat(:,i)), log(fcsdat(:,j))]), [20 20]);
 xy = real([log(fcsdat(:,i)), log(fcsdat(:,j))]);
-x = xy(:,1);
-y = xy(:,2);
-NN = zeros(size(x));
-disp('computing density... please wait')
-for k = 1:length(x)
-    v = (x-x(k)).^2 + (y-y(k)).^2 < radius^2;        % or sphere
-    NN(k) = sum(v)-1;                           % number of points except x(i)
-end
-disp('density computed')
+
+NN = get_NN_density_fast(xy, radius);
+% x = xy(:,1);
+% y = xy(:,2);
+% NN = zeros(size(x));
+% disp('computing density... please wait')
+% for k = 1:length(x)
+%     v = (x-x(k)).^2 + (y-y(k)).^2 < radius^2;        % or sphere
+%     NN(k) = sum(v)-1;                           % number of points except x(i)
+% end
+% disp('density computed')
 
 out.NN_radius = radius;
 out.NN = NN;
-scatter(fcsdat(:,i),fcsdat(:,j),10,NN, '.'), hold on
+scatter(fcsdat(:,i), fcsdat(:,j),10,NN, '.'), hold on
 colorbar
 %scatter(fcsdat(:,i), fcsdat(:,j), 1, '.'), hold on
 xlabel(fcshdr.par(i).name), ylabel(fcshdr.par(j).name)
