@@ -1,13 +1,13 @@
 function [out] = load_fcs_data(pname, fname, path_out, radius ,varargin)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
-
+plot_scatterplot = false; 
 [fcsdat, fcshdr, fcsdatscaled, fcsdat_comp]  = fca_readfcs([pname fname]);
 
 out.fcsdat = fcsdat;
 out.fcshdr = fcshdr;
-out.fcsdatscaled = fcsdatscaled;
-out.fcsdat_comp = fcsdat_comp;
+%out.fcsdatscaled = fcsdatscaled;
+%out.fcsdat_comp = fcsdat_comp;
 
 
 %% Select region of interest (ROI)
@@ -56,17 +56,19 @@ else
 end
 out.i_gated = i_gated;
 
-title(fname(1:end-4))
+if plot_scatterplot
 
-xlabel(fcshdr.par(i).name), ylabel(fcshdr.par(j).name)
-%legend({'Raw', 'Gated'}, 'location', 'best')
-set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-    'PaperPosition', [0 0 15 15 ], 'PaperSize', [15 15] );
+    title(fname(1:end-4))
 
-print(cur_fig, '-dpdf', [path_out fname(1:end-4) '_gated.pdf']); %save figure
+    xlabel(fcshdr.par(i).name), ylabel(fcshdr.par(j).name)
+    %legend({'Raw', 'Gated'}, 'location', 'best')
+    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+        'PaperPosition', [0 0 15 15 ], 'PaperSize', [15 15] );
 
+    print(cur_fig, '-dpdf', [path_out fname(1:end-4) '_gated.pdf']); %save figure
+
+end
 pause(0.1)
-
 close(cur_fig)
 
 
