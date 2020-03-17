@@ -15,7 +15,6 @@ xy = xy(i_use,:);
 
 Nx = ceil((max(xy(:,1))-min(xy(:,1)))/resolution);
 Ny = ceil((max(xy(:,2))-min(xy(:,2)))/resolution);
-xygrid = zeros(Nx, Ny);
 
 % put data into grid
 i = max(ceil( (xy(:,1)-min(xy(:,1)))/resolution),1); % this sets the min to 1

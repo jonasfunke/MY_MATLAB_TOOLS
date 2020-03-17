@@ -49,7 +49,6 @@ if  isempty(varargin)
 
 else
     cur_roi = drawpolygon('Position', varargin{1},'Color','r');
-    
     i_gated = inROI(cur_roi,fcsdat(:,i), fcsdat(:,j)) ;
     %scatter(fcsdat(i_gated,i), fcsdat(i_gated,j),1, 'r.') 
     out.roi_position = varargin{1};
