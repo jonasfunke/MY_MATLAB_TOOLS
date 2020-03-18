@@ -15,12 +15,11 @@ xy = xy(i_use,:);
 
 Nx = ceil((max(xy(:,1))-min(xy(:,1)))/resolution);
 Ny = ceil((max(xy(:,2))-min(xy(:,2)))/resolution);
-xygrid = zeros(Nx, Ny);
 
 % put data into grid
 i = max(ceil( (xy(:,1)-min(xy(:,1)))/resolution),1); % this sets the min to 1
 j = max(ceil( (xy(:,2)-min(xy(:,2)))/resolution),1);
-xygrid = zeros(Nx, Ny);
+xygrid = zeros(Nx, Ny, 'int16');
 for k=1:size(xy,1)
     xygrid(i(k), j(k)) = xygrid(i(k), j(k)) +1;
 end
