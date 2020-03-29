@@ -1,4 +1,4 @@
-function [roi, i_gated] = manual_select_population(xy)
+function [roi1_pos, roi2_pos, i_gated1, i_gated2] = manual_select_population(xy)
 %UNTITLED3 Summary of this function goes here
 %   Detailed explanation goes here
 %% Select region of interest (ROI)
@@ -15,9 +15,25 @@ xlabel('X'), ylabel('Y')
 set(gca,'xscale','log','yscale','log')
 grid on
 
-title('Select Region of Interest')
-roi = drawpolygon;
-i_gated = inROI(roi, xy(:,1), xy(:,2) ) ;
+title('Select Region 1')
+roi1 = drawpolygon;
+i_gated1 = inROI(roi1, xy(:,1), xy(:,2) ) ;
+roi1_pos =  roi1.Position;
+
+clf
+
+scatter(xy(:,1), xy(:,2) ,5, i_gated1, '.'), hold on
+colorbar
+xlabel('X'), ylabel('Y')
+set(gca,'xscale','log','yscale','log')
+grid on
+
+title('Select Region 2')
+roi2 = drawpolygon;
+i_gated2 = inROI(roi2, xy(:,1), xy(:,2) ) ;
+roi2_pos =  roi2.Position;
+
+
 pause(0.1)
 close(cur_fig)
 
