@@ -35,7 +35,11 @@ data_rate_valve = 0.5*60; %data points / min
 %fraction = [1 2 3 13 4 5 6 7 8 9 10 11 12 ];
 
 % custom-BK-IgG-26
-fraction_times = [6.8 7.4 8.0 8.6 9.2 9.8 10.4 11 11.6 12.2 12.8 13.4 14];
+% fraction_times = [6.8 7.4 8.0 8.6 9.2 9.8 10.4 11 11.6 12.2 12.8 13.4 14];
+% fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
+
+% custom-BK-IgG-26-all-peaks
+fraction_times = [9.8 10.4 11 11.6 12.2 12.8 13.4 14:0.6:17];
 fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
 
 %proFIRE19_32-41bases
