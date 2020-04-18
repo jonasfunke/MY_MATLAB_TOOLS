@@ -3,7 +3,10 @@ close all, clear all, clc
 
 [filenames, pathname]=uigetfile('*.fcs','Select the fcs files','MultiSelect','on');
 
+%% create output dir
 prefix_out = [ datestr(now, 'yyyy-mm-dd_HH-MM') '_analysis'];
+tmp = inputdlg({'Name of analysis (prefix):'}, 'Name of analysis (prefix):' , 1, {prefix_out} );
+prefix_out = tmp{1};
 path_out = [pathname prefix_out filesep];
 mkdir(path_out);
 
@@ -16,7 +19,7 @@ data(1) = load_fcs_data(pathname, filenames{1}, path_out, 0.05);
 
 for i=2:length(filenames)
     data(i) = load_fcs_data(pathname, filenames{i}, path_out, 0.05, data(1).roi_position);
-    %data(i) = load_fcs_data(pathname, filenames{i}, path_out, 0.1);
+    %data(i) = load_fcs_data(pathname, filenames{i}, path_out, 0.05);
 end
 
 %% create sample names
@@ -102,6 +105,7 @@ val_mean = zeros(N_sample,1);
 val_err = zeros(N_sample,1);
 val_ssc = zeros(N_sample,1);
 val_fsc = zeros(N_sample,1);
+N_counts = zeros(N_sample,2);
 
 for j=1:length(filenames)
     val_median(j) = median(data(j).fcsdat(data(j).i_gated,i_fl_ch));    
@@ -111,21 +115,33 @@ for j=1:length(filenames)
 
     ssc_median(j) = median(data(j).fcsdat(data(j).i_gated,i_ssc_ch));   
     fsc_median(j) = median(data(j).fcsdat(data(j).i_gated,i_fsc_ch));   
+    
+    N_counts(j,1) = length(data(j).fcsdat(data(j).i_gated,i_fl_ch));
+    N_counts(j,2) = length(data(j).fcsdat(:,i_fl_ch));
 end
 
-subplot(3, 1, 1)
+subplot(4, 1, 1)
+plot(1:N_sample,N_counts(:,1), '.'), hold on
+plot(1:N_sample,N_counts(:,2), '.')
+legend({'Events (gated)', 'Events (total)'}, 'location', 'best')
+grid on
+ylabel('Events')
+set(gca, 'Xtick', 1:N_sample, 'XTickLabel', [], 'Xlim', [0 N_sample+1])
+
+subplot(4, 1, 2)
 plot(1:N_sample,ssc_median, '.'), hold on
-plot(1:N_sample,fsc_median, '.')
+plot(1:N_sample,fsc_median, '.'), hold on
 legend({'Median SSC', 'Median FSC'}, 'location', 'best')
 grid on
 ylabel('Median SC')
 set(gca, 'Xtick', 1:N_sample, 'XTickLabel', [], 'Xlim', [0 N_sample+1])
 
-subplot(3, 1, 2:3)
+
+subplot(4, 1, 3:4)
 bar(1:N_sample,val_median), hold on
 plot(1:N_sample,val_median_nongated, '.')
 set(gca, 'Xtick', 1:N_sample, 'XTickLabel', sample_names, 'Xlim', [0 N_sample+1])
-xtickangle(45)
+xtickangle(30)
 ylabel('Median Fluorescence')
 %set(gca,  'ylim', [0 1.5e4 ])%1.1*max(val_median)])
 set(gca,  'ylim', [0 1.1*max(val_median)])
@@ -133,8 +149,8 @@ legend({'gated', 'non-gated'}, 'Location', 'best')
 grid on
 
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-    'PaperPosition', [0 0 max(0.8*N_sample,12) max(8*N_sample*0.05, 10) ], ...
-    'PaperSize', [max(0.8*N_sample,12) max(8*N_sample*0.05,10)] );
+    'PaperPosition', [0 0 max(0.8*N_sample,12) max(8*N_sample*0.05, 20) ], ...
+    'PaperSize', [max(0.8*N_sample,12) max(8*N_sample*0.05,20)] );
 
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_median2.pdf']); %save figure
 
@@ -252,7 +268,7 @@ N_row = ceil(length(filenames)/N_column); % zeilen
 cur_fig = figure(8); clf
 for j=1:length(filenames)
     subplot(N_row, N_column, j)
-    scatter(data(j).fcsdat(:,2),data(j).fcsdat(:,4), 5, data(j).fcsdat(:,i_fl_ch), '.')
+    scatter(data(j).fcsdat(:,2),data(j).fcsdat(:,4), 5, data(j).fcsdat(:,i_fl_ch), '.'), hold on
     h = colorbar;
     ylabel(h, data(j).fcshdr.par(i_fl_ch).name)
     xlabel(data(j).fcshdr.par(2).name), ylabel(data(j).fcshdr.par(4).name)
@@ -260,6 +276,8 @@ for j=1:length(filenames)
     caxis(Fl_lim)
     set(gca,'xscale','log','yscale','log', 'XLim', scatter_lim(1:2) , 'YLim', scatter_lim(3:4) )
     title(filenames{j}(12:end-4))
+    cur_pgon = polyshape(data(j).roi_position);
+    plot(cur_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
 end
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
@@ -271,7 +289,7 @@ print(cur_fig, '-dpdf', [scatter_path 'Overview_SSC-FSC-' data(1).fcshdr.par(i_f
 cur_fig = figure(7); clf
 for j=1:length(filenames)
     subplot(N_row, N_column, j)
-    scatter(data(j).fcsdat(:,2),data(j).fcsdat(:,4), 5, (data(j).NN(:)), '.')
+    scatter(data(j).fcsdat(:,2),data(j).fcsdat(:,4), 5, (data(j).NN(:)), '.'), hold on
     h = colorbar;
     ylabel(h, 'Nearest Neighbors')
     xlabel(data(j).fcshdr.par(2).name), ylabel(data(j).fcshdr.par(4).name)
@@ -279,6 +297,9 @@ for j=1:length(filenames)
     caxis(NN_lim)
     set(gca,'xscale','log','yscale','log', 'XLim', scatter_lim(1:2) , 'YLim', scatter_lim(3:4) )
     title(filenames{j}(12:end-4))
+
+    cur_pgon = polyshape(data(j).roi_position);
+    plot(cur_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
 end
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
