@@ -115,5 +115,6 @@ grid on
 %     'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
 print(cur_fig, '-dpdf', [data.pathname data.filename(1:end-4) '_analysis.pdf']); %save figure
 
+print(cur_fig, '-dpng', [data.pathname data.filename(1:end-4) '_analysis.png']); %save figure
 disp('finished')
 
