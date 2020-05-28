@@ -34,13 +34,13 @@ data_rate_valve = 0.5*60; %data points / min
 %fraction_times = [2.55 3.2 3.8 4.4 9.72:0.66:15.66];
 %fraction = [1 2 3 13 4 5 6 7 8 9 10 11 12 ];
 
-% custom-BK-IgG-26
-% fraction_times = [6.8 7.4 8.0 8.6 9.2 9.8 10.4 11 11.6 12.2 12.8 13.4 14];
-% fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
-
-% custom-BK-IgG-26-all-peaks
-fraction_times = [9.8 10.4 11 11.6 12.2 12.8 13.4 14:0.6:17];
+%custom-BK-IgG-26
+fraction_times = [6.8 7.4 8.0 8.6 9.2 9.8 10.4 11 11.6 12.2 12.8 13.4 14];
 fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
+
+% % custom-BK-IgG-26-all-peaks
+% fraction_times = [9.8 10.4 11 11.6 12.2 12.8 13.4 14:0.6:17];
+% fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
 
 %proFIRE19_32-41bases
 % fraction_times = [7.2:0.65:15];
