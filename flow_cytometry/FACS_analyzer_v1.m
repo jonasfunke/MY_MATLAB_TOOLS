@@ -74,7 +74,7 @@ cur_fig = figure(2); clf
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 20 10 ], 'PaperSize', [20 10] );
 
-x_start= xlim3(1);
+x_start= max(xlim3(1),0);
 x_stop = xlim3(2);
 h=100;
 dx=20;
@@ -97,7 +97,6 @@ xlabel(data(1).fcshdr.par(i_fl_ch).name), ylabel('Probability density')
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_histogram_lin.pdf']); %save figure
 
 %% plot bar graph
-cur_fig = figure(3); clf
 N_sample = length(filenames);
 val_median = zeros(N_sample,1);
 val_median_nongated = zeros(N_sample,1);
@@ -120,6 +119,7 @@ for j=1:length(filenames)
     N_counts(j,2) = length(data(j).fcsdat(:,i_fl_ch));
 end
 
+cur_fig = figure(3); clf
 subplot(4, 1, 1)
 plot(1:N_sample,N_counts(:,1), '.'), hold on
 plot(1:N_sample,N_counts(:,2), '.')
@@ -152,7 +152,7 @@ set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters'
     'PaperPosition', [0 0 max(0.8*N_sample,12) max(8*N_sample*0.05, 20) ], ...
     'PaperSize', [max(0.8*N_sample,12) max(8*N_sample*0.05,20)] );
 
-print(cur_fig, '-dpdf', [path_out filesep prefix_out '_median2.pdf']); %save figure
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_median.pdf']); %save figure
 
 
 %% export csv
@@ -190,7 +190,7 @@ for j=1:length(filenames)
         subplot(N_channel, 1, i/2)
         tmp = data(j).fcsdat(data(j).i_gated,i);
    
-        x=logspace(0,7,100); % create bin edges with logarithmic scale
+        x=logspace(0,9,100); % create bin edges with logarithmic scale
         histogram(tmp, x), hold on %, 'Normalization', 'pdf'
         title([ filenames{j}(12:end-4) ' ' data(j).fcshdr.par(i).name ' (' num2str(i) ')'])
         %disp([filenames{j} ', ' num2str(median(tmp))])
@@ -263,6 +263,7 @@ mkdir(scatter_path)
 % disp('done')
 
 %%
+scatter_lim = [1e3 1e7 1e3 1e7]
 N_column = 5; % spalten
 N_row = ceil(length(filenames)/N_column); % zeilen
 cur_fig = figure(8); clf
@@ -300,7 +301,11 @@ for j=1:length(filenames)
 
     cur_pgon = polyshape(data(j).roi_position);
     plot(cur_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
+    legend([num2str(round(100*sum(data(j).i_gated)/length(data(j).i_gated))) '% gated (' num2str(sum(data(j).i_gated)) ' of ' num2str(length(data(j).i_gated)) ')'],'Location', 'SouthEast')
 end
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
 print(cur_fig, '-dpdf', [scatter_path 'Overview_SSC-FSC-NN.pdf']); %save figure
+
+%%
+disp('Done')
