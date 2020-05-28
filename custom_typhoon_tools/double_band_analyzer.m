@@ -137,15 +137,36 @@ ylabel('Peak height')
 xlabel('Double-band')
 
 subplot(2, 1, 2)
-plot(1:n_bands, heights(:,1)./sum(heights,2), '.-', 1:n_bands, heights(:,2)./sum(heights,2), '.-')
-set(gca, 'XTick', 1:n_bands, 'Xlim', [0.5 n_bands+0.5])
-legend({'slow', 'fast'}, 'location', 'best')
+%plot(1:n_bands, heights(:,1)./sum(heights,2), '.-', 1:n_bands, heights(:,2)./sum(heights,2), '.-')
+bar(1:n_bands, heights(:,1)./sum(heights,2))
+set(gca, 'XTick', 1:n_bands, 'Xlim', [0.5 n_bands+0.5], 'YLim', [-0.1 1.1])
+%legend({'slow', 'fast'}, 'location', 'best')
 
 grid on
 ylabel('Fraction')
 xlabel('Double-band')
 
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 30 20 ], 'PaperSize', [30 20 ] );
 print(cur_fig, '-dpdf', [path_out filesep 'Double-band_ratios.pdf']); %save figure
+
+%%
+
+
+subplot(2, 1, 2)
+%plot(1:n_bands, heights(:,1)./sum(heights,2), '.-', 1:n_bands, heights(:,2)./sum(heights,2), '.-')
+bar(1:n_bands, heights(:,1)./sum(heights,2))
+set(gca, 'XTick', 1:n_bands, 'Xlim', [0.5 n_bands+0.5], 'YLim', [-0.1 1.1])
+%legend({'slow', 'fast'}, 'location', 'best')
+
+grid on
+ylabel('Fraction')
+xlabel('Double-band')
+
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 30 20 ], 'PaperSize', [30 20 ] );
+print(cur_fig, '-dpdf', [path_out filesep 'Double-band_ratios.pdf']); %save figure
+
 
 %%
 
