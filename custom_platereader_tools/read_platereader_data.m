@@ -1,7 +1,7 @@
 %% Script to analyze plate reader data
 close all, clear all, clc
 
-N_channel = 4;
+N_channel = 3;
 
 %% load data
 [filename, pathname]=uigetfile('*.xlsx','Select data file');
@@ -10,15 +10,14 @@ prefix_out = filename(1:end-5);
 
 %%
 tmp = xlsread([pathname filename]); % read the data only
-data = tmp(:,3:end);
+data = tmp; %(:,3:end);
 
 N_dp = size(data,2)/N_channel;
 
 t = data(1, 1:N_dp)/60;
 dd = data(2:end,1:N_dp);
 aa = data(2:end,N_dp+1:2*N_dp);
-da1 = data(2:end,2*N_dp+1:3*N_dp);
-da2 = data(2:end,3*N_dp+1:4*N_dp);
+da = data(2:end,2*N_dp+1:3*N_dp);
 
 N_wells = size(dd,1);
 
@@ -26,35 +25,38 @@ N_wells = size(dd,1);
 well_names = cell(N_wells,1);
 
 [~, txt, ~]  = xlsread([pathname filename], 'A:A'); % read first column
-[tmp, ~, ~]  = xlsread([pathname filename], 'B:B'); % read second column
-[~, content, ~]  = xlsread([pathname filename], 'C:C'); % read first column
-
-answer = questdlg( ['Also use content fields or well positions as well names? E.g. ' content{3} ' or ' txt{3} num2str(tmp(1)) ', ...'], ...
-	'Select sample names', ...
-	'Well positions','Content field', 'Well positions');
+[~, content, ~]  = xlsread([pathname filename], 'B:B'); % read second column
 
 for i=1:N_wells
-    if strcmp(answer, 'Content field')
-        well_names{i} = [ content{i+2}]; % [num2str(i) ' ' content{i+2}];
-    else
-        well_names{i} = [txt{i+2} num2str(tmp(i))];
-    end
+        well_names{i} = [num2str(i) ' ' content{i+2}];
+        %well_names{i} = [txt{i+2} num2str(tmp(i))];
 end
 %%
 
 
+N_column = 11;
+N_row = ceil(N_wells/N_column);
+ylim = [min([min(dd(:)) min(aa(:)) min(da(:))]) ...
+    max([max(dd(:)) max(aa(:)) max(da(:)) ])];
+
+
 cur_fig = figure(1); clf
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 40 10*N_row ], 'PaperSize', [40 10*N_row] );
 for i=1:N_wells
-    subplot(ceil(N_wells/8), 8, i)
-    plot(t, dd(i, :), 'g.', t, aa(i, :), 'r.', t, da1(i, :), 'b.',  t, da2(i, :), 'k.'), hold on
-    hline(mean(dd(i,:)), 'g');
-    hline(mean(aa(i,:)), 'r');
-    hline(mean(da1(i,:)), 'b');
-    hline(mean(da2(i,:)), 'k');
+    subplot(N_row, N_column, i)
+    plot(t, dd(i, :), 'g.', t, aa(i, :), 'r.', t, da(i, :), 'b.'), hold on
+    hline(median(dd(i,:)), 'g');
+    hline(median(aa(i,:)), 'r');
+    hline(median(da(i,:)), 'b');
     set(gca, 'YLim', ylim)
     grid on
     title(well_names{i})
 end
+
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_raw.pdf']); %save figure
+
+%%
 
 
 
@@ -127,12 +129,10 @@ if correct_bg
     aa(i,:) = aa(i,:)- aa_bg;
 
     % da1
-    da1_bg = median(mean(da1(j_bg,:)));
-    da1(i,:) = da1(i,:)- da1_bg;
+    da_bg = median(mean(da(j_bg,:)));
+    da(i,:) = da(i,:)- da_bg;
 
-    % da2
-    da2_bg = median(mean(da2(j_bg,:)));
-    da2(i,:) = da2(i,:)- da2_bg;
+
     
 
     if correct_cell_autofl
@@ -146,12 +146,9 @@ if correct_bg
         aa(i_cells,:) = aa(i_cells,:)- aa_bg;
 
         % da1
-        da1_bg = mean(mean(da1(i_cells_only,:)));
-        da1(i_cells,:) = da1(i_cells,:)- da1_bg;
+        da_bg = mean(mean(da(i_cells_only,:)));
+        da(i_cells,:) = da(i_cells,:)- da_bg;
 
-        % da2
-        da2_bg = mean(mean(da2(i_cells_only,:)));
-        da2(i_cells,:) = da2(i_cells,:)- da2_bg;
     end
     
     
@@ -159,14 +156,10 @@ if correct_bg
         
         % crosstalk
 
-        leak1 = max(mean(mean(da1(i_donly,:)))/mean(mean(dd(i_donly,:))),0)
-        leak2 = max(mean(mean(da2(i_donly,:)))/mean(mean(dd(i_donly,:))),0)
+        leak1 = max(mean(mean(da(i_donly,:)))/mean(mean(dd(i_donly,:))),0);
+        dir1 = max(mean(mean(da(i_aonly,:)))/mean(mean(aa(i_aonly,:))),0);
 
-        dir1 = max(mean(mean(da1(i_aonly,:)))/mean(mean(aa(i_aonly,:))),0)
-        dir2 = max(mean(mean(da2(i_aonly,:)))/mean(mean(aa(i_aonly,:))),0)
-
-        da1(i,:) = da1(i,:)- leak1*dd(i,:)-dir1*aa(i,:); % da1
-        da2(i,:) = da2(i,:)- leak2*dd(i,:)-dir2*aa(i,:); % da2
+        da(i,:) = da(i,:)- leak1*dd(i,:)-dir1*aa(i,:); % da1
     end
 end
  
@@ -175,8 +168,8 @@ end
 %%
 N_column = 8;
 N_row = ceil(N_wells/N_column);
-ylim = [min([min(dd(:)) min(aa(:)) min(da1(:)) min(da2(:))]) ...
-    max([max(dd(:)) max(aa(:)) max(da1(:)) max(da2(:))])];
+ylim = [min([min(dd(:)) min(aa(:)) min(da(:)) ]) ...
+    max([max(dd(:)) max(aa(:)) max(da(:)) ])];
 
 
 cur_fig = figure(1); clf
@@ -184,11 +177,10 @@ set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters'
     'PaperPosition', [0 0 40 10*N_row ], 'PaperSize', [40 10*N_row] );
 for i=1:N_wells
     subplot(N_row, N_column, i)
-    plot(t, dd(i, :), 'g.', t, aa(i, :), 'r.', t, da1(i, :), 'b.',  t, da2(i, :), 'k.'), hold on
+    plot(t, dd(i, :), 'g.', t, aa(i, :), 'r.', t, da(i, :), 'b.'), hold on
     hline(mean(dd(i,:)), 'g');
     hline(mean(aa(i,:)), 'r');
-    hline(mean(da1(i,:)), 'b');
-    hline(mean(da2(i,:)), 'k');
+    hline(mean(da(i,:)), 'b');
     set(gca, 'YLim', ylim)
     grid on
     title(well_names{i})
@@ -205,12 +197,11 @@ cur_fig = figure(2); clf
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 40 40 ], 'PaperSize', [40 40] );
 
-i_plot = setdiff(1:N_wells, [j_bg i_donly i_aonly i_cells_only])
+i_plot = setdiff(1:N_wells, [j_bg i_donly i_aonly i_cells_only]);
 for i=i_plot
     subplot(N_row, N_column, i)
-    plot(t, da1(i, :)./(dd(i,:)+da1(i,:)), 'b.', t, da2(i, :)./(dd(i,:)+da2(i,:)), 'k.'), hold on
-    hline(median(da1(i,:))/(median(dd(i,:))+median(da1(i,:))), 'b');
-    hline(median(da2(i,:))/(median(dd(i,:))+median(da2(i,:))), 'k');
+    plot(t, da(i, :)./(dd(i,:)+da(i,:)), 'b.'), hold on
+    hline(median(da(i,:))/(median(dd(i,:))+median(da(i,:))), 'b');
     set(gca, 'YLim', ylim_FRET)
     grid on
     title(well_names{i})
@@ -224,10 +215,8 @@ print(cur_fig, '-dpdf', [path_out filesep prefix_out '_FRET.pdf']); %save figure
 
 dd_mean = zeros(N_wells,3);
 aa_mean = zeros(N_wells,3);
-da1_mean = zeros(N_wells,3);
-da2_mean = zeros(N_wells,3);
-E1_mean = zeros(N_wells,3);
-E2_mean = zeros(N_wells,3);
+da_mean = zeros(N_wells,3);
+E_mean = zeros(N_wells,3);
 
 for i=1:N_wells
    dd_mean(i,1) = median(dd(i,:));
@@ -238,20 +227,15 @@ for i=1:N_wells
    aa_mean(i,2) = std(aa(i,:));
    aa_mean(i,3) = std(aa(i,:))/sqrt(length(aa(i,:)));
    
-   da1_mean(i,1) = median(da1(i,:));
-   da1_mean(i,2) = std(da1(i,:));
-   da1_mean(i,3) = std(da1(i,:))/sqrt(length(da1(i,:)));
+   da_mean(i,1) = median(da(i,:));
+   da_mean(i,2) = std(da(i,:));
+   da_mean(i,3) = std(da(i,:))/sqrt(length(da(i,:)));
+
    
-   da2_mean(i,1) = median(da2(i,:));
-   da2_mean(i,2) = std(da2(i,:));
-   da2_mean(i,3) = std(da2(i,:))/sqrt(length(da2(i,:)));
+   E_mean(i,1) = da_mean(i,1)/(dd_mean(i,1)+da_mean(i,1));
+   E_mean(i,2) = sqrt(dd_mean(i,1).^2*da_mean(i,2).^2+da_mean(i,1).^2*dd_mean(i,2).^2)/(dd_mean(i,1)+da_mean(i,1)).^2;
+   E_mean(i,3) = sqrt(dd_mean(i,1).^2*da_mean(i,3).^2+da_mean(i,1).^2*dd_mean(i,3).^2)/(dd_mean(i,1)+da_mean(i,1)).^2;
    
-   E1_mean(i,1) = da1_mean(i,1)/(dd_mean(i,1)+da1_mean(i,1));
-   E1_mean(i,2) = sqrt(dd_mean(i,1).^2*da1_mean(i,2).^2+da1_mean(i,1).^2*dd_mean(i,2).^2)/(dd_mean(i,1)+da1_mean(i,1)).^2;
-   E1_mean(i,3) = sqrt(dd_mean(i,1).^2*da1_mean(i,3).^2+da1_mean(i,1).^2*dd_mean(i,3).^2)/(dd_mean(i,1)+da1_mean(i,1)).^2;
-   E2_mean(i,1) = da2_mean(i,1)/(dd_mean(i,1)+da1_mean(i,1));
-   E1_mean(i,2) = sqrt(dd_mean(i,1).^2*da2_mean(i,2).^2+da2_mean(i,1).^2*dd_mean(i,2).^2)/(dd_mean(i,1)+da2_mean(i,1)).^2;
-   E1_mean(i,3) = sqrt(dd_mean(i,1).^2*da2_mean(i,3).^2+da2_mean(i,1).^2*dd_mean(i,3).^2)/(dd_mean(i,1)+da2_mean(i,1)).^2;
 end
 
 %
@@ -261,8 +245,7 @@ set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters'
 
 errorbar(1:N_wells, dd_mean(:,1), dd_mean(:,2), 'g.-'), hold on
 errorbar(1:N_wells, aa_mean(:,1), aa_mean(:,2), 'r.-'), hold on
-errorbar(1:N_wells, da1_mean(:,1), da1_mean(:,2), 'b.-'), hold on
-errorbar(1:N_wells, da2_mean(:,1), da2_mean(:,2), 'k.-'), hold on
+errorbar(1:N_wells, da_mean(:,1), da_mean(:,2), 'b.-'), hold on
 set(gca, 'YLim', ylim, 'XLim', [0.5 N_wells+0.5], 'XTick', [1:N_wells], 'XTickLabel', well_names)
 grid on
 xtickangle(45)
@@ -270,13 +253,12 @@ xtickangle(45)
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_mean_std.pdf']); %save figure
 
 
-
+%%
 cur_fig = figure(4); clf
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 40 10 ], 'PaperSize', [40 10] );
 
-errorbar(i_plot, E1_mean(i_plot,1), E1_mean(i_plot,2), 'b.'), hold on
-errorbar(i_plot, E2_mean(i_plot,1), E2_mean(i_plot,2), 'k.'), hold on
+errorbar(i_plot, E_mean(i_plot,1), E_mean(i_plot,2), 'b.'), hold on
 set(gca, 'YLim', ylim_FRET, 'XLim', [0.5 N_wells+0.5], 'XTick', [1:N_wells], 'XTickLabel', well_names)
 grid on
 xtickangle(45)
