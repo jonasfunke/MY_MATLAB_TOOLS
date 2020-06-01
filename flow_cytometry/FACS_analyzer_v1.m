@@ -97,28 +97,31 @@ xlabel(data(1).fcshdr.par(i_fl_ch).name), ylabel('Probability density')
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_histogram_lin.pdf']); %save figure
 
 %% plot bar graph
+N_channel = size(data(j).fcsdat,2);
 N_sample = length(filenames);
-val_median = zeros(N_sample,1);
-val_median_nongated = zeros(N_sample,1);
-val_mean = zeros(N_sample,1);
-val_err = zeros(N_sample,1);
-val_ssc = zeros(N_sample,1);
-val_fsc = zeros(N_sample,1);
+
+val_median = zeros(N_sample,N_channel);
+val_median_nongated = zeros(N_sample,N_channel);
+val_mean = zeros(N_sample,N_channel);
+val_err = zeros(N_sample,N_channel);
 N_counts = zeros(N_sample,2);
 
 for j=1:length(filenames)
-    val_median(j) = median(data(j).fcsdat(data(j).i_gated,i_fl_ch));    
-    val_median_nongated(j) = median(data(j).fcsdat(:,i_fl_ch));    
-    val_mean(j) = mean(data(j).fcsdat(data(j).i_gated,i_fl_ch));    
-    val_err(j) = 3*std(data(j).fcsdat(data(j).i_gated,i_fl_ch))/sqrt(length(data(j).fcsdat(data(j).i_gated,i_fl_ch)));    
+    for k=1:size(data(j).fcsdat,2)
 
-    ssc_median(j) = median(data(j).fcsdat(data(j).i_gated,i_ssc_ch));   
-    fsc_median(j) = median(data(j).fcsdat(data(j).i_gated,i_fsc_ch));   
+        val_median(j,k) = median(data(j).fcsdat(data(j).i_gated,k));    
+        val_median_nongated(j,k) = median(data(j).fcsdat(:,k));    
+        val_mean(j,k) = mean(data(j).fcsdat(data(j).i_gated,k));    
+        val_err(j,k) = 3*std(data(j).fcsdat(data(j).i_gated,k))/sqrt(length(data(j).fcsdat(data(j).i_gated,k)));    
+    end
+    %ssc_median(j) = median(data(j).fcsdat(data(j).i_gated,i_ssc_ch));   
+    %fsc_median(j) = median(data(j).fcsdat(data(j).i_gated,i_fsc_ch));   
     
     N_counts(j,1) = length(data(j).fcsdat(data(j).i_gated,i_fl_ch));
     N_counts(j,2) = length(data(j).fcsdat(:,i_fl_ch));
 end
 
+%%
 cur_fig = figure(3); clf
 subplot(4, 1, 1)
 plot(1:N_sample,N_counts(:,1), '.'), hold on
@@ -129,8 +132,8 @@ ylabel('Events')
 set(gca, 'Xtick', 1:N_sample, 'XTickLabel', [], 'Xlim', [0 N_sample+1])
 
 subplot(4, 1, 2)
-plot(1:N_sample,ssc_median, '.'), hold on
-plot(1:N_sample,fsc_median, '.'), hold on
+plot(1:N_sample,val_median(:,i_ssc_ch), '.'), hold on
+plot(1:N_sample,val_median(:,i_fsc_ch), '.'), hold on
 legend({'Median SSC', 'Median FSC'}, 'location', 'best')
 grid on
 ylabel('Median SC')
@@ -138,13 +141,13 @@ set(gca, 'Xtick', 1:N_sample, 'XTickLabel', [], 'Xlim', [0 N_sample+1])
 
 
 subplot(4, 1, 3:4)
-bar(1:N_sample,val_median), hold on
-plot(1:N_sample,val_median_nongated, '.')
+bar(1:N_sample,val_median(:,i_fl_ch)), hold on
+plot(1:N_sample,val_median_nongated(:,i_fl_ch), '.')
 set(gca, 'Xtick', 1:N_sample, 'XTickLabel', sample_names, 'Xlim', [0 N_sample+1])
 xtickangle(30)
 ylabel('Median Fluorescence')
 %set(gca,  'ylim', [0 1.5e4 ])%1.1*max(val_median)])
-set(gca,  'ylim', [0 1.1*max(val_median)])
+set(gca,  'ylim', [0 1.1*max(val_median(:,i_fl_ch))])
 legend({'gated', 'non-gated'}, 'Location', 'best')
 grid on
 
@@ -264,7 +267,7 @@ mkdir(scatter_path)
 
 %%
 scatter_lim = [1e3 1e7 1e3 1e7]
-N_column = 5; % spalten
+N_column = 6; % spalten
 N_row = ceil(length(filenames)/N_column); % zeilen
 cur_fig = figure(8); clf
 for j=1:length(filenames)
