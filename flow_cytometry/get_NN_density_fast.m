@@ -1,10 +1,18 @@
-function [NN, NN_tmp, xy] = get_NN_density_fast(xy,resolution)
+function [NN, NN_tmp, xy] = get_NN_density_fast(xy,resolution, varargin)
 % calculate local density based on a grid
 %   Detailed explanation goes here
 
 % remove data with NaN or Inf
 i_discard = isnan(xy(:,1)) | isnan(xy(:,2)) | isinf(xy(:,1)) | isinf(xy(:,2));
 i_use = ~i_discard;
+
+if ~isempty(varargin)
+    
+    limits = varargin{1};
+    i_use2 = xy(:,1)>limits(1) & xy(:,1)<limits(2) & xy(:,2)>limits(1) & xy(:,2)<limits(2) ;
+    i_use = i_use & i_use2;
+end
+
 xy = xy(i_use,:);
 
 % 
