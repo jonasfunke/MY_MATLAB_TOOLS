@@ -69,32 +69,32 @@ xlabel(data(1).fcshdr.par(i_fl_ch).name), ylabel('Fraction of cells')
 
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_histogram_log_FL.pdf']); %save figure
 
-%% PLot FL5-A channel histogram
-cur_fig = figure(2); clf
-set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-    'PaperPosition', [0 0 20 10 ], 'PaperSize', [20 10] );
-
-x_start= max(xlim3(1),0);
-x_stop = xlim3(2);
-h=100;
-dx=20;
-
-legend_tmp = {};
-for j=1:length(filenames)
-    tmp = data(j).fcsdat(data(j).i_gated,i_fl_ch);
-    %x=logspace(-1,5,100); % create bin edges with logarithmic scale
-    %histogram(tmp, 'Normalization', 'pdf'); hold on %, 'Normalization', 'pdf'
-    [n, p, x_points] = uniform_kernel_density( tmp, h, x_start, x_stop, dx);
-    plot(x_points, p, 'Color', cc(j,:)), hold on
-    
-    legend_tmp = [legend_tmp; {[ filenames{j}(12:end-4) ' ' data(j).fcshdr.par(i_fl_ch).name]}];
-    %disp([filenames{j} ', ' num2str(median(tmp))])
-    set(gca,  'xlim', xlim3)
- end
-legend(legend_tmp, 'Location', 'best')
-xlabel(data(1).fcshdr.par(i_fl_ch).name), ylabel('Probability density')
-
-print(cur_fig, '-dpdf', [path_out filesep prefix_out '_histogram_lin.pdf']); %save figure
+% %% PLot FL5-A channel histogram
+% cur_fig = figure(2); clf
+% set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+%     'PaperPosition', [0 0 20 10 ], 'PaperSize', [20 10] );
+% 
+% x_start= max(xlim3(1),0);
+% x_stop = xlim3(2);
+% h=100;
+% dx=20;
+% 
+% legend_tmp = {};
+% for j=1:length(filenames)
+%     tmp = data(j).fcsdat(data(j).i_gated,i_fl_ch);
+%     %x=logspace(-1,5,100); % create bin edges with logarithmic scale
+%     %histogram(tmp, 'Normalization', 'pdf'); hold on %, 'Normalization', 'pdf'
+%     [n, p, x_points] = uniform_kernel_density( tmp, h, x_start, x_stop, dx);
+%     plot(x_points, p, 'Color', cc(j,:)), hold on
+%     
+%     legend_tmp = [legend_tmp; {[ filenames{j}(12:end-4) ' ' data(j).fcshdr.par(i_fl_ch).name]}];
+%     %disp([filenames{j} ', ' num2str(median(tmp))])
+%     set(gca,  'xlim', xlim3)
+%  end
+% legend(legend_tmp, 'Location', 'best')
+% xlabel(data(1).fcshdr.par(i_fl_ch).name), ylabel('Probability density')
+% 
+% print(cur_fig, '-dpdf', [path_out filesep prefix_out '_histogram_lin.pdf']); %save figure
 
 %% plot bar graph
 N_channel = size(data(j).fcsdat,2);
