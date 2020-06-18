@@ -6,8 +6,7 @@ function [NN, NN_tmp, xy] = get_NN_density_fast(xy,resolution, varargin)
 i_discard = isnan(xy(:,1)) | isnan(xy(:,2)) | isinf(xy(:,1)) | isinf(xy(:,2));
 i_use = ~i_discard;
 
-if ~isempty(varargin)
-    
+if ~isempty(varargin)    
     limits = varargin{1};
     i_use2 = xy(:,1)>limits(1) & xy(:,1)<limits(2) & xy(:,2)>limits(1) & xy(:,2)<limits(2) ;
     i_use = i_use & i_use2;
@@ -23,6 +22,13 @@ xy = xy(i_use,:);
 
 Nx = ceil((max(xy(:,1))-min(xy(:,1)))/resolution);
 Ny = ceil((max(xy(:,2))-min(xy(:,2)))/resolution);
+if Nx==0
+    Nx=1;
+end
+if Ny==0
+    Ny=1;
+end
+
 
 % put data into grid
 i = max(ceil( (xy(:,1)-min(xy(:,1)))/resolution),1); % this sets the min to 1
