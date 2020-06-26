@@ -267,7 +267,7 @@ mkdir(scatter_path)
 
 %%
 scatter_lim = [1e3 1e7 1e3 1e7]
-N_column = 6; % spalten
+N_column = 4; % spalten
 N_row = ceil(length(filenames)/N_column); % zeilen
 cur_fig = figure(8); clf
 for j=1:length(filenames)
