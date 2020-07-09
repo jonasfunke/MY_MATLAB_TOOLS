@@ -20,13 +20,8 @@ roi1 = drawpolygon;
 i_gated1 = inROI(roi1, xy(:,1), xy(:,2) ) ;
 roi1_pos =  roi1.Position;
 
-clf
-
-scatter(xy(:,1), xy(:,2) ,5, i_gated1, '.'), hold on
-colorbar
-xlabel('X'), ylabel('Y')
-set(gca,'xscale','log','yscale','log')
-grid on
+% dead_pgon = polyshape(roi1_pos);
+% plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
 
 title('Select Region 2')
 roi2 = drawpolygon;

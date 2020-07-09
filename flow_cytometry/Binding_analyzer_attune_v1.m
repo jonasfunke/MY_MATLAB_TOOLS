@@ -3,14 +3,9 @@ close all, clear all, clc
 % set fluorescence channels
 i_fsc_ch=2; 
 i_ssc_ch=3; %FSC-A , for Cytoflex 4
-ch_R1 = 4 %11; % FL5-A
-%ch_R2 = 12; % FL5-A
-%ch_R3 = 13; % FL5-A
-i_fl_ch = ch_R1;
 
 % load fcs data
 [filenames, pathname]=uigetfile('*.fcs','Select the fcs files','MultiSelect','on');
-
 
 
 %% create output dir
@@ -36,7 +31,9 @@ end
 sample_names = cell(length(filenames),1);
 
 for j=1:length(filenames)
+        %sample_names{j} = filenames{j}(12:end-4);
         sample_names{j} = filenames{j}(12:end-4);
+        disp(sample_names{j})
 end
 
 
@@ -104,13 +101,38 @@ for j=1:length(filenames)
     %ssc_median(j) = median(data(j).fcsdat(data(j).i_gated,i_ssc_ch));   
     %fsc_median(j) = median(data(j).fcsdat(data(j).i_gated,i_fsc_ch));   
     
-    N_counts(j,1) = length(data(j).fcsdat(data(j).i_gated,i_fl_ch));
-    N_counts(j,2) = length(data(j).fcsdat(:,i_fl_ch));
+    N_counts(j,1) = length(data(j).fcsdat(data(j).i_gated,1));
+    N_counts(j,2) = length(data(j).fcsdat(:,1));
 end
 
+%% export csv
+file_out = [path_out prefix_out '_data.txt'];
+fileID = fopen(file_out,'w');
+
+fprintf(fileID,'Name\t');
+fprintf(fileID,'N_gated\t');
+fprintf(fileID,'N_all\t');
+
+for i_channel=1:size(data(1).fcsdat,2)
+    fprintf(fileID, [data(1).fcshdr.par(i_channel).name ' median\t']);
+end
+fprintf(fileID,'\n');
+
+for j=1:length(filenames)
+    fprintf(fileID,'%s\t', sample_names{j});
+    fprintf(fileID,'%i\t', N_counts(j,1));
+    fprintf(fileID,'%i\t', N_counts(j,2));
+    for k=1:size(data(j).fcsdat,2)
+        fprintf(fileID,'%f\t', val_median(j,k));
+    end
+    fprintf(fileID,'\n');
+end
+fclose(fileID);
+disp('txt file written.')
+
+
+
 %%  and make histogram for each channel
-
-
 
 cur_fig = figure(2); clf
 subplot(2, 1, 1)
@@ -161,70 +183,6 @@ end
 close all
 save([path_out prefix_out '_data.mat'])
 disp('Data saved.')
-
-%%
-k = 1
-l = i_fsc_ch
-
-cur_fig = figure(4); clf
-for j=1:length(filenames)
-    subplot(N_row, N_column, j)
-    
-    scatter(data(j).fcsdat(:,k),data(j).fcsdat(:,l), 5, '.'), hold on
-    
-    xlabel(data(j).fcshdr.par(k).name), ylabel(data(j).fcshdr.par(l).name)
-    
-    
-    
-    grid on
-    %caxis(NN_lim)
-    %set(gca,'xscale','log','yscale','log', 'XLim', scatter_lim(1:2) , 'YLim', scatter_lim(3:4) )
-    set(gca,'yscale','log',  'YLim', scatter_lim(1:2) )
-    title(sample_names{j})
-
-end
-
-%%
-k = 3
-l = 6
-
-cur_fig = figure(4); clf
-for j=1:length(filenames)
-    subplot(N_row, N_column, j)
-    
-    scatter(data(j).fcsdat(:,k),data(j).fcsdat(:,l), 5, '.'), hold on
-    scatter(data(j).fcsdat(data(j).i_gated,k),data(j).fcsdat(data(j).i_gated,l), 5, '.'), hold on
-    
-    xlabel(data(j).fcshdr.par(k).name), ylabel(data(j).fcshdr.par(l).name)
-    
-    
-    
-    grid on
-    %caxis(NN_lim)
-    %set(gca,'xscale','log','yscale','log', 'XLim', scatter_lim(1:2) , 'YLim', scatter_lim(3:4) )
-    %set(gca,'xscale','log','yscale','log', 'XLim', scatter_lim(1:2) )
-    set(gca,'XLim', scatter_lim(1:2) , 'YLim', scatter_lim(3:4) )
-    title(sample_names{j})
-
-end
-
-
-
-%%
-k = 2
-l = 3
-m = 6
-
-j=1
-cur_fig = figure(5); clf
-
-scatter3(data(j).fcsdat(:,k),data(j).fcsdat(:,l), data(j).fcsdat(:,m), 4, '.'), hold on
-scatter3(data(j).fcsdat(data(j).i_gated,k),data(j).fcsdat(data(j).i_gated,l), data(j).fcsdat(data(j).i_gated,m), 5, '.'), hold on
-%set(gca,'xscale','log','yscale','log' )
-
-xlabel(data(j).fcshdr.par(k).name)
-ylabel(data(j).fcshdr.par(l).name)
-zlabel(data(j).fcshdr.par(m).name)
 
 %%
 disp('Done')
