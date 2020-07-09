@@ -28,13 +28,22 @@ for i=2:length(filenames)
 end
 
 %% create sample names
-sample_names = cell(length(filenames),1);
+i=1;
+while i<length(filenames{1})
+    pattern = filenames{1}(1:end-i);
+    if all(startsWith(filenames, pattern))
+        i_found=i-1;
+        i=length(filenames{1}); % stop
+    end
+    i = i+1;
+end
 
+sample_names = cell(length(filenames),1);
 for j=1:length(filenames)
-        %sample_names{j} = filenames{j}(12:end-4);
-        sample_names{j} = filenames{j}(12:end-4);
+        sample_names{j} = filenames{j}(end-i_found:end-4);
         disp(sample_names{j})
 end
+
 
 
 %% calculate plotting limits
