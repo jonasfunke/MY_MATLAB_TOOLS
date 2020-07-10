@@ -3,12 +3,11 @@ close all, clear all, clc
 % set fluorescence channels
 i_fsc_ch=2; 
 i_ssc_ch=3; %FSC-A , for Cytoflex 4
+i_ct_ch = 4;
 
-
+%%
 % load fcs data
 [filenames, pathname]=uigetfile('*.fcs','Select the fcs files','MultiSelect','on');
-
-
 
 %% create output dir
 prefix_out = [ datestr(now, 'yyyy-mm-dd_HH-MM') '_analysis'];
@@ -58,11 +57,32 @@ for j=2:length(filenames)
 end
 scatter_lim = [1e4 2^20 1e4 2^20];
 
-%%
+N_column = ceil(16*sqrt(length(filenames)/16/9)); % 8; % spalten
+N_row = ceil(length(filenames)/N_column); % zeilen
 
+%% gate cells
+ct_gate = 3.3e3;
+cur_fig = figure(1); clf
+for j=1:length(filenames)
+    subplot(N_row, N_column, j)
+    histogram(real(log10(data(j).fcsdat(:,i_ct_ch)))), hold on
+    set(gca, 'XLim', [1 6])
+    vline(log10(ct_gate));
+    data(j).is_stained = (data(j).fcsdat(:,i_ct_ch)>ct_gate);
+    p_tmp = sum(data(j).is_stained)/length(data(j).is_stained);
+    title({sample_names{j}, [ num2str(round(100*p_tmp)) '% stained cells']})
+    xlabel(['CT fl, ' data(j).fcshdr.par(i_ct_ch).name])
+    ylabel('Counts')
+end
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_CT-histogram.pdf']); %save figure
+
+
+%%
 xy_combined = zeros(0, 2);
 for j=1:length(filenames)
-    xy = [data(j).fcsdat(:,i_fsc_ch),data(j).fcsdat(:,i_ssc_ch)];
+    xy = [data(j).fcsdat(data(j).is_stained,i_fsc_ch),data(j).fcsdat(data(j).is_stained,i_ssc_ch)];
     xy_combined = [xy_combined; xy];
     
 end
@@ -71,7 +91,7 @@ end
 %% gate data all events
 dead_alive_all = zeros(length(filenames),2);
 for j=1:length(filenames)
-    xy = [data(j).fcsdat(:,i_fsc_ch),data(j).fcsdat(:,i_ssc_ch)];
+    xy = [data(j).fcsdat(data(j).is_stained,i_fsc_ch),data(j).fcsdat(data(j).is_stained,i_ssc_ch)];
     data(j).is_dead = gate_data(real(log10(xy)), r1);
     data(j).is_alive = gate_data(real(log10(xy)), r2);
     dead_alive_all(j,1) = sum(data(j).is_dead);
@@ -84,8 +104,7 @@ p_dead_scatter_all = dead_alive_all(:,1)./(dead_alive_all(:,1) + dead_alive_all(
 
 
 %% make fcs-ssc scatter plots
-N_column = ceil(16*sqrt(length(filenames)/16/9)); % 8; % spalten
-N_row = ceil(length(filenames)/N_column); % zeilen
+
 
 
 cur_fig = figure(1); clf
@@ -121,39 +140,44 @@ end
 pause(1)
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_overview_SSC-FSC-NN.pdf']); %save figure
 
+%%
+cur_fig = figure(1); clf
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
+for j=1:length(filenames)
+    
+    xy = [data(j).fcsdat(data(j).is_stained,i_fsc_ch),data(j).fcsdat(data(j).is_stained,i_ssc_ch)];
+    xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
+    NN = get_NN_density_fast(xy_tmp, 0.1);
+    
+    subplot(N_row, N_column, j)
+    scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
+    
 
-% %% make SSC A VS H scatter plots
-% cur_fig = figure(1); clf
-% set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-%     'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
-% for j=1:length(filenames)
-%     
-%     xy = [data(j).fcsdat(:,3),data(j).fcsdat(:,8)];
-%     xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
-%     NN = get_NN_density_fast(xy_tmp, 0.02);
-%     
-%     subplot(N_row, N_column, j)
-%     scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
-% 
-%     
-% 
-%     title({sample_names{j}, [num2str(dead_alive_all(j,1)) ' dead, ' num2str(dead_alive_all(j,2)) ' alive'], [num2str(round(p_dead_scatter_all(j)*100)) '% dead'] })
-% 
-%         
-%     xlabel(data(j).fcshdr.par(3).name), ylabel(data(j).fcshdr.par(8).name)
-%     
-%     grid on
-%     caxis([0 500])
-%     set(gca,'xscale','log','yscale','log', 'XLim', scatter_lim(1:2) , 'YLim', scatter_lim(3:4) )
-%     
-%     if j == length(filenames)
-%         h = colorbar;
-%         ylabel(h, 'Nearest Neighbors')
-%     end
-% end
-% 
-% pause(1)
-% print(cur_fig, '-dpdf', [path_out filesep prefix_out '_overview_SSC-A-H-NN.pdf']); %save figure
+    
+    dead_pgon = polyshape(10.^r1);
+    plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
+    
+    alive_pgon = polyshape(10.^r2);
+    plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g')
+    
+    title({sample_names{j}, [num2str(dead_alive_all(j,1)) ' dead, ' num2str(dead_alive_all(j,2)) ' alive'], [num2str(round(p_dead_scatter_all(j)*100)) '% dead'] })
+
+        
+    xlabel(data(j).fcshdr.par(i_fsc_ch).name), ylabel(data(j).fcshdr.par(i_ssc_ch).name)
+    
+    grid on
+    caxis(NN_lim)
+    set(gca,'xscale','log','yscale','log', 'XLim', scatter_lim(1:2) , 'YLim', scatter_lim(3:4) )
+    
+    if j == length(filenames)
+        h = colorbar;
+        ylabel(h, 'Nearest Neighbors')
+    end
+end
+
+pause(1)
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_overview_SSC-FSC-NN_stained.pdf']); %save figure
 
 %%
 
@@ -181,6 +205,7 @@ grid on
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 length(filenames)*2 20 ], 'PaperSize', [length(filenames)*2 20 ] );
 print(cur_fig, '-dpdf', [path_out 'fraction_dead.pdf']); %save figure
+
 %% save data
 close all
 save([path_out prefix_out '_data.mat'])
