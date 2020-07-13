@@ -9,7 +9,6 @@ i_ssc_ch=3; %FSC-A , for Cytoflex 4
 [filenames, pathname]=uigetfile('*.fcs','Select the fcs files','MultiSelect','on');
 
 
-
 %% create output dir
 prefix_out = [ datestr(now, 'yyyy-mm-dd_HH-MM') '_analysis'];
 tmp = inputdlg({'Name of analysis (prefix):'}, 'Name of analysis (prefix):' , 1, {prefix_out} );

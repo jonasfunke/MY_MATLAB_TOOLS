@@ -128,7 +128,7 @@ end
 fprintf(fileID,'\n');
 
 for j=1:length(filenames)
-    fprintf(fileID,'%s\t', sample_names{j});
+    fprintf(fileID,'%s\t', filenames{j});
     fprintf(fileID,'%i\t', N_counts(j,1));
     fprintf(fileID,'%i\t', N_counts(j,2));
     for k=1:size(data(j).fcsdat,2)
