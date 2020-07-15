@@ -45,7 +45,6 @@ for j=1:length(filenames)
 end
 
 
-
 %% calculate plotting limits
 
 NN_lim = [min(data(1).NN) max(data(1).NN)];
@@ -90,8 +89,17 @@ end
 pause(1)
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_overview_SSC-FSC-NN.pdf']); %save figure
 
+
+%% check if all samples have the same channel settings
+N_channel = size(data(1).fcsdat,2);
+for i=2:length(data)
+    if size(data(j).fcsdat,2) ~= N_channel
+        disp('WARNING: channel numbers differ between fcs files. Analyze separately')
+    end
+end
+
 %% calculate median values
-N_channel = size(data(j).fcsdat,2);
+
 N_sample = length(filenames);
 
 val_median = zeros(N_sample,N_channel);
