@@ -87,7 +87,7 @@ xlim = [0 max([1:length(data.Signal_numbers)]/data_rate)];
 ylim = [min(data.Signal_numbers) 1.1*max(data.Signal_numbers)];
 xtick = 0:2:ylim(2);
 for j=1:length(fraction_times)-1
-    vline(fraction_times(j), 'k-');
+    xline(fraction_times(j), 'k-');
     
     index(1) = round(data_rate*fraction_times(j));
     index(2) = round(data_rate*fraction_times(j+1));
@@ -104,7 +104,7 @@ for j=1:length(fraction_times)-1
     text(fraction_times(j)+0.1*(fraction_times(j+1)-fraction_times(j)), (ylim(2)-ylim(1))/2, { ['F' num2str(fraction(j))],[num2str(round(concentration)) ' nM'], [num2str(round(amount)) ' pmol']})
 
 end
-vline(fraction_times(length(fraction_times)), 'k-');
+xline(fraction_times(length(fraction_times)), 'k-');
 title([ data.filename(1:end-4) ', extinction coefficient=' num2str(e) ' /M/cm'])
 set(gca, 'XLim', xlim, 'YLim', ylim, 'XTick', xtick)
 grid on
