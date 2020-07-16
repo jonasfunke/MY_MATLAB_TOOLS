@@ -5,22 +5,86 @@ close all, clear all, clc
 data = read_profire_csv();
 
 %% set manually
-
 data_rate = 10*60; % data points/min
-e = 363294; % IgG-DNA
+data_rate_valve = 0.5*60; %data points / min
+
+% select protein
+protein_list = cell(0,2);
+i=1;
+protein_list{i,1} = 'IgG with 26 base modifier';
+protein_list{i,2} =  363294; % IgG-DNA
+
+i=2;
+protein_list{i,1} = 'IL2 with 26 base modifier';
+protein_list{i,2} =  225800+ 11710;
+
+i=3;
+protein_list{i,1} = '26 base modifier only';
+protein_list{i,2} =  225800;
+
+
+[protein_indx, ~] = listdlg('PromptString', {'Select a protein-DNA conjugate'},...
+    'SelectionMode','single','ListString',protein_list(:,1));
+
+disp(['Selected ' protein_list{protein_indx,1} ' with extinction coef of ' num2str(protein_list{protein_indx,2})  '/M/cm'])
+
+e = protein_list{protein_indx,2};
+
 %e = 136700 + 11710; % IL2 short modifier + extinction at 280
 %e = 225800+ 11710; % IL2 long modifier + extinction at 280
 
-data_rate_valve = 0.5*60; %data points / min
+
+%%
+
+program_list = cell(0, 3);
+
+i=1;
+program_list{i,1} = 'custom-BK-IgG-26';
+program_list{i,2} = [6.8 7.4 8.0 8.6 9.2 9.8 10.4 11 11.6 12.2 12.8 13.4 14]; % fractin_times
+program_list{i,3} = [1 2 3 4 5 6 7 8 9 10 11 12 ]; % fractions
+
+i=2;
+program_list{i,1} = 'custom-BK-IgG-26_collect';
+program_list{i,2} = [3.0:0.6:4.8 8.6:0.6:14]; % fractin_times
+program_list{i,3} = [1 2 3 13 4 5 6 7 8 9 10 11 12 ]; % fractions
+
+i=3;
+program_list{i,1} = 'proFIRE10_15-19bases';
+program_list{i,2} = [6.0:0.6:13.2]; % fractin_times
+program_list{i,3} = [1 2 3 4 5 6 7 8 9 10 11 12 ]; % fractions
+
+i=4;
+program_list{i,1} = 'proFIRE10_15-19bases';
+program_list{i,2} = [6.0:0.6:13.2]; % fractin_times
+program_list{i,3} = [1 2 3 4 5 6 7 8 9 10 11 12 ]; % fractions
+
+i=5;
+program_list{i,1} = 'proFIRE16_29-31bases';
+program_list{i,2} = [6.0:0.6:13.2]; % fractin_times
+program_list{i,3} = [1 2 3 4 5 6 7 8 9 10 11 12 ]; % fractions
+
+i=6;
+program_list{i,1} = 'proFIRE19_32-41bases';
+program_list{i,2} = [7.2:0.65:15]; % fractin_times
+program_list{i,3} = [1 2 3 4 5 6 7 8 9 10 11 12 ]; % fractions
+
+i=7;
+program_list{i,1} = 'custom-IL2-longv2';
+program_list{i,2} = [8.4:0.6:15.6]; % fractin_times
+program_list{i,3} = [1:12]; % fractions
+
+
+[program_indx,~] = listdlg('PromptString', {'Select a program'},...
+    'SelectionMode','single','ListString',program_list(:,1));
+
+disp(['Selected program ' program_list{program_indx,1}])
+fraction_times = program_list{program_indx,2};
+fraction = program_list{program_indx,3};
 %%
 
 % e_IgG = 141894;
 % e_7020 = 221400*15/26;
 % e = e_IgG + e_7020;
-
-% custom-BK-IgG-26_collect
-% fraction_times = [3.0:0.6:4.8 8.6:0.6:14];
-% fraction = [1 2 3 13 4 5 6 7 8 9 10 11 12 ];
 
 % custom-IL2-short
 % fraction_times = [11.4:0.6:18.6];
@@ -34,25 +98,10 @@ data_rate_valve = 0.5*60; %data points / min
 %fraction_times = [2.55 3.2 3.8 4.4 9.72:0.66:15.66];
 %fraction = [1 2 3 13 4 5 6 7 8 9 10 11 12 ];
 
-%custom-BK-IgG-26
-fraction_times = [6.8 7.4 8.0 8.6 9.2 9.8 10.4 11 11.6 12.2 12.8 13.4 14];
-fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
-
 % % custom-BK-IgG-26-all-peaks
 % fraction_times = [9.8 10.4 11 11.6 12.2 12.8 13.4 14:0.6:17];
 % fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
 
-%proFIRE19_32-41bases
-% fraction_times = [7.2:0.65:15];
-% fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
-
-%proFIRE16_29-31bases
-% fraction_times = [6.0:0.6:13.2];
-% fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
-
-%proFIRE10_15-19bases
-% fraction_times = [6.0:0.6:13.2];
-% fraction = [1 2 3 4 5 6 7 8 9 10 11 12 ];
 
 % custom-BK-IgG-29-31
 % fraction_times = [7.1:0.6:14.3];
@@ -104,10 +153,10 @@ for j=1:length(fraction_times)-1
 
 end
 xline(fraction_times(length(fraction_times)), 'k-');
-title([ data.filename(1:end-4) ', extinction coefficient=' num2str(e) ' /M/cm'])
+title({ data.filename(1:end-4), ['Program: ' program_list{program_indx,1}], [protein_list{protein_indx,1} ', extinction coef. ' num2str(e) '/M/cm']})
 set(gca, 'XLim', xlim, 'YLim', ylim, 'XTick', xtick)
 grid on
-
+xlabel('Time, min'), ylabel('Absorption')
 %print(cur_fig, '-dpng', [data.pathname data.filename(1:end-4) '_analysis.png']); %save figure
 
 % set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
