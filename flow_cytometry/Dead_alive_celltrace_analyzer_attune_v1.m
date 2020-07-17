@@ -5,6 +5,8 @@ i_fsc_ch=2;
 i_ssc_ch=3; %FSC-A , for Cytoflex 4
 i_ct_ch = 4;
 
+radius = 0.03;
+
 %%
 % load fcs data
 [filenames, pathname]=uigetfile('*.fcs','Select the fcs files','MultiSelect','on');
@@ -22,7 +24,7 @@ if ~iscell(filenames)
 end
 
 for i=1:length(filenames)
-    data(i) = load_fcs_data_attune_v2(pathname, filenames{i}, 0.1);
+    data(i) = load_fcs_data_attune_v2(pathname, filenames{i}, radius);
 end
 
 %% create sample names
@@ -151,7 +153,7 @@ for j=1:length(filenames)
     
     xy = [data(j).fcsdat(data(j).is_stained,i_fsc_ch),data(j).fcsdat(data(j).is_stained,i_ssc_ch)];
     xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
-    NN = get_NN_density_fast(xy_tmp, 0.1);
+    NN = get_NN_density_fast(xy_tmp, radius);
     
     subplot(N_row, N_column, j)
     scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on

@@ -20,7 +20,7 @@ if ~iscell(filenames)
     filenames = {filenames};
 end
    
-data(1) = load_fcs_data_attune(pathname, filenames{1}, path_out, 0.1);
+data(1) = load_fcs_data_attune(pathname, filenames{1}, path_out, 0.05);
 
 for i=2:length(filenames)
     data(i) = load_fcs_data_attune(pathname, filenames{i}, path_out, 0.1, data(1).roi_position);

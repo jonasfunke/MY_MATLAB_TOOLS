@@ -12,7 +12,7 @@ out.fcshdr = fcshdr;
 %% calculate 
 i=2; j=3; %FSC-A vs SSC-A
 
-xy = real([log(fcsdat(:,i)), log(fcsdat(:,j))]);
+xy = real([log10(fcsdat(:,i)), log(fcsdat(:,j))]);
 NN = get_NN_density_fast(xy, radius);
 
 out.NN_radius = radius;
