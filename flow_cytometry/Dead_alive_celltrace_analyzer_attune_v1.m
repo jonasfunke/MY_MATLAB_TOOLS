@@ -28,20 +28,22 @@ end
 %% create sample names
 i=1;
 while i<length(filenames{1})
-    pattern = filenames{1}(1:end-i)
+    pattern = filenames{1}(1:end-i);
     if all(startsWith(filenames, pattern))
-        i_found=i-1;
+        i_found=length(filenames{1})-i+1;
         i=length(filenames{1}); % stop
     end
     i = i+1;
 end
 
 sample_names = cell(length(filenames),1);
-
 for j=1:length(filenames)
-        sample_names{j} = filenames{j}(end-i_found:end-4);
+        sample_names{j} = filenames{j}(i_found:end-4);
         disp(sample_names{j})
 end
+
+
+
 
 %% calculate plotting limits
 
@@ -61,7 +63,8 @@ N_column = ceil(16*sqrt(length(filenames)/16/9)); % 8; % spalten
 N_row = ceil(length(filenames)/N_column); % zeilen
 
 %% gate cells
-ct_gate = 3.3e3;
+ct_gate = 1e4; % CHANGE THIS IF NEEDED
+
 cur_fig = figure(1); clf
 for j=1:length(filenames)
     subplot(N_row, N_column, j)
@@ -186,7 +189,7 @@ cur_fig = figure(3); clf
 subplot(2, 1, 1)
 bar(p_dead_scatter_all)
 
-set(gca, 'YLim', [0 1], 'XTick', 1:length(filenames), 'XtickLabel', {} )
+set(gca, 'YLim', [0 1], 'XTick', 1:length(filenames), 'XtickLabel', {}, 'XLim', [0 length(filenames)+1])
 grid on
 ylabel('Fraction of dead cells')
 
@@ -197,7 +200,7 @@ subplot(2, 1, 2)
 bar([dead_alive_all sum(dead_alive_all,2)]), hold on 
 legend({'dead', 'alive', 'total'})
 %bar(dead_alive_all(:,2)), hold on 
-set(gca, 'XTick', 1:length(filenames), 'XtickLabel', sample_names )
+set(gca, 'XTick', 1:length(filenames), 'XtickLabel', sample_names, 'XLim', [0 length(filenames)+1] )
 xtickangle(30)
 ylabel('Number of cells')
 grid on
@@ -206,10 +209,47 @@ set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters'
     'PaperPosition', [0 0 length(filenames)*2 20 ], 'PaperSize', [length(filenames)*2 20 ] );
 print(cur_fig, '-dpdf', [path_out 'fraction_dead.pdf']); %save figure
 
+
+
+%% all events
+
+N_sample = length(filenames);
+
+N_counts = zeros(N_sample,1);
+
+for j=1:length(filenames)
+    N_counts(j,1) = length(data(j).fcsdat(:,1));
+end
+
 %% save data
 close all
 save([path_out prefix_out '_data.mat'])
 disp('Data saved.')
+
+%% export csv
+file_out = [path_out prefix_out '_killing_data.txt'];
+fileID = fopen(file_out,'w');
+
+fprintf(fileID,'Name\t');
+fprintf(fileID,'N_all\t');
+fprintf(fileID,'N_target\t');
+fprintf(fileID,'N_target_dead\t');
+fprintf(fileID,'N_target_alive\t');
+fprintf(fileID,'\n');
+
+for j=1:length(filenames)
+    fprintf(fileID,'%s\t', sample_names{j});
+    fprintf(fileID,'%i\t',  N_counts(j,1)); % target all
+    fprintf(fileID,'%i\t', sum(dead_alive_all(j,:))); % target all
+    fprintf(fileID,'%i\t', dead_alive_all(j,1)); % target dead
+    fprintf(fileID,'%i\t', dead_alive_all(j,2)); % target alive
+
+    fprintf(fileID,'\n');
+end
+fclose(fileID);
+disp('txt file written.')
+
+
 
 
 
