@@ -43,35 +43,41 @@ program_list{i,1} = 'custom-BK-IgG-26';
 program_list{i,2} = [6.8 7.4 8.0 8.6 9.2 9.8 10.4 11 11.6 12.2 12.8 13.4 14]; % fractin_times
 program_list{i,3} = [1 2 3 4 5 6 7 8 9 10 11 12 ]; % fractions
 
-i=2;
+i=i+1;
 program_list{i,1} = 'custom-BK-IgG-26_collect';
 program_list{i,2} = [3.0:0.6:4.8 8.6:0.6:14]; % fractin_times
 program_list{i,3} = [1 2 3 13 4 5 6 7 8 9 10 11 12 ]; % fractions
 
-i=3;
+i=i+1;
 program_list{i,1} = 'proFIRE10_15-19bases';
 program_list{i,2} = [6.0:0.6:13.2]; % fractin_times
 program_list{i,3} = [1 2 3 4 5 6 7 8 9 10 11 12 ]; % fractions
 
-i=4;
+i=i+1;
 program_list{i,1} = 'proFIRE10_15-19bases';
 program_list{i,2} = [6.0:0.6:13.2]; % fractin_times
 program_list{i,3} = [1 2 3 4 5 6 7 8 9 10 11 12 ]; % fractions
 
-i=5;
+i=i+1;
 program_list{i,1} = 'proFIRE16_29-31bases';
 program_list{i,2} = [6.0:0.6:13.2]; % fractin_times
 program_list{i,3} = [1 2 3 4 5 6 7 8 9 10 11 12 ]; % fractions
 
-i=6;
+i=i+1;
 program_list{i,1} = 'proFIRE19_32-41bases';
 program_list{i,2} = [7.2:0.65:15]; % fractin_times
 program_list{i,3} = [1 2 3 4 5 6 7 8 9 10 11 12 ]; % fractions
 
-i=7;
+i=i+1;
 program_list{i,1} = 'custom-IL2-longv2';
 program_list{i,2} = [8.4:0.6:15.6]; % fractin_times
 program_list{i,3} = [1:12]; % fractions
+
+i=i+1;
+program_list{i,1} = 'custom_JF_sdAB';
+program_list{i,2} = [7.2:0.65:13.7]; % fractin_times
+program_list{i,3} = [1:10]; % fractions
+
 
 
 [program_indx,~] = listdlg('PromptString', {'Select a program'},...
