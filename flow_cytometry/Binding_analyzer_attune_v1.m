@@ -203,3 +203,53 @@ disp('Data saved.')
 
 %%
 disp('Done')
+
+
+%% map back to plate
+
+% ask if plate is used 
+answer = questdlg('Did you measure oneplate?', ...
+	'PLate setup', ...
+	'Yes','No','No');
+
+if strcmp(answer, 'Yes')
+    plate_val_median = zeros(8, 12, N_channel);
+    plate_N_counts = zeros(8, 12, 2);
+    row = zeros(length(sample_names));
+    column = zeros(length(sample_names));
+    map = {'A' 1; 'B' 2; 'C' 3; 'D' 4; 'E' 5; 'F' 6; 'G' 7; 'H' 8};
+    for i=1:length(sample_names)
+        row(i) = find(contains(map(:,1), sample_names{i}(1)));
+        column(i) = str2num(sample_names{i}(2:end));
+        %disp( [sample_names{i} ' ' num2str(row(i)) ' ' num2str(column(i))] )
+        data(i).row = row(i);
+        data(i).column = column(i);
+        
+        plate_N_counts(row(i), column(i), 1) = N_counts(i,1);
+        plate_N_counts(row(i), column(i), 2) = N_counts(i,2);
+        for j=1:N_channel
+            plate_val_median(row(i), column(i), j) = val_median(i,j);
+        end
+    end
+    
+   
+    
+    for i=1:N_channel
+        cur_fig = figure(4); clf
+        imagesc(plate_val_median(:,:,i)), axis image, colorbar
+        
+        set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
+        title(data(1).fcshdr.par(i).name)
+
+        set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+            'PaperPosition', [0 0 max(1*N_sample,12) 10 ], ...
+            'PaperSize', [max(1*N_sample,12) 10] );
+
+        print(cur_fig, '-dpdf', [path_out filesep prefix_out '_img_median_ch-' data(1).fcshdr.par(i).name '.pdf']); %save figure
+    end
+    
+    
+end
+
+
+
