@@ -184,6 +184,45 @@ end
 pause(1)
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_overview_SSC-FSC-NN_stained.pdf']); %save figure
 
+%% plot pbmc only
+cur_fig = figure(1); clf
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
+for j=1:length(filenames)
+    
+    xy = [data(j).fcsdat(~data(j).is_stained,i_fsc_ch),data(j).fcsdat(~data(j).is_stained,i_ssc_ch)];
+    xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
+    NN = get_NN_density_fast(xy_tmp, radius);
+    
+    subplot(N_row, N_column, j)
+    scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
+    
+
+    
+    dead_pgon = polyshape(10.^r1);
+    plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
+    
+    alive_pgon = polyshape(10.^r2);
+    plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g')
+    
+    title({sample_names{j}, [num2str(dead_alive_all(j,1)) ' dead, ' num2str(dead_alive_all(j,2)) ' alive'], [num2str(round(p_dead_scatter_all(j)*100)) '% dead'] })
+
+        
+    xlabel(data(j).fcshdr.par(i_fsc_ch).name), ylabel(data(j).fcshdr.par(i_ssc_ch).name)
+    
+    grid on
+    caxis(NN_lim)
+    set(gca,'xscale','log','yscale','log', 'XLim', scatter_lim(1:2) , 'YLim', scatter_lim(3:4) )
+    
+    if j == length(filenames)
+        h = colorbar;
+        ylabel(h, 'Nearest Neighbors')
+    end
+end
+
+pause(1)
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_overview_SSC-FSC-NN_not-stained.pdf']); %save figure
+
 %%
 
 cur_fig = figure(3); clf
