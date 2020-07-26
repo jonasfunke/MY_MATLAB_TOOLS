@@ -149,7 +149,7 @@ disp('txt file written.')
 
 
 
-%%  and make histogram for each channel
+%%  and make bar plot for each channel
 
 cur_fig = figure(2); clf
 subplot(2, 1, 1)
@@ -195,14 +195,38 @@ for i=3:size(data(1).fcsdat,2)
     print(cur_fig, '-dpdf', [path_out filesep prefix_out '_median_ch-' data(1).fcshdr.par(i).name '.pdf']); %save figure
 end
 
+%% plot a histogram for each channel
 
-%% save data
-close all
-save([path_out prefix_out '_data.mat'])
-disp('Data saved.')
 
-%%
-disp('Done')
+cc = parula(length(filenames)+1);
+for i=1:size(data(1).fcsdat,2)
+  
+    cur_fig = figure(4); clf
+
+    legend_tmp = {};
+    for j=1:length(filenames)
+        tmp = data(j).fcsdat(data(j).i_gated,i);
+
+        x=logspace(-1,8,200); % create bin edges with logarithmic scale
+        n = histogram(tmp, x, 'DisplayStyle','bar', ...
+             'Normalization', 'probability', ...
+             'EdgeColor', cc(j,:), 'FaceColor',  cc(j,:), 'FaceAlpha', 0.4); hold on %, 'Normalization', 'pdf'
+
+
+        legend_tmp = [legend_tmp; {sample_names{j}}];
+        %disp([filenames{j} ', ' num2str(median(tmp))])
+
+    end
+    legend(legend_tmp, 'Location', 'best')
+    set(gca, 'xscale','log', 'xlim', [min(tmp) max(tmp) ])
+    xlabel(data(1).fcshdr.par(i).name), ylabel('Fraction of cells')
+    
+    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+        'PaperPosition', [0 0 15 12 ], 'PaperSize', [15 12] );
+
+    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_hist_ch-' data(1).fcshdr.par(i).name '.pdf']); %save figure
+    
+end
 
 
 %% map back to plate
@@ -251,5 +275,17 @@ if strcmp(answer, 'Yes')
     
 end
 
+
+
+
+
+
+%% save data
+close all
+save([path_out prefix_out '_data.mat'])
+disp('Data saved.')
+
+%%
+disp('Done')
 
 
