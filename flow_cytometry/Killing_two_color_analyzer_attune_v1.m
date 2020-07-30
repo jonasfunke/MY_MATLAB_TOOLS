@@ -4,7 +4,7 @@ close all, clear all, clc
 i_fsc_ch=2; 
 i_ssc_ch=3; %FSC-A , for Cytoflex 4
 i_ct_ch = 4; % BL1
-i_ct2_ch = 5; % RL1
+i_ct_ch2 = 5; % RL1
 
 radius = 0.03;
 
@@ -65,7 +65,7 @@ scatter_lim = [1e4 2^20 1e4 2^20];
 N_column = ceil(16*sqrt(length(filenames)/16/9)); % 8; % spalten
 N_row = ceil(length(filenames)/N_column); % zeilen
 
-%% gate cells
+%% gate cells channel 1
 ct_gate = 1e4; % CHANGE THIS IF NEEDED
 
 cur_fig = figure(1); clf
@@ -86,18 +86,18 @@ print(cur_fig, '-dpdf', [path_out filesep prefix_out '_CT-histogram.pdf']); %sav
 
 
 %% gate cells 2
-ct_gate_2 = 0.7e4; % CHANGE THIS IF NEEDED
+ct_gate2 = 0.6e4; % CHANGE THIS IF NEEDED
 
 cur_fig = figure(1); clf
 for j=1:length(filenames)
     subplot(N_row, N_column, j)
-    histogram(real(log10(data(j).fcsdat(:,i_ct2_ch)))), hold on
+    histogram(real(log10(data(j).fcsdat(:,i_ct_ch2)))), hold on
     set(gca, 'XLim', [1 6])
-    vline(log10(ct_gate_2));
-    data(j).is_stained2 = (data(j).fcsdat(:,i_ct2_ch)>ct_gate_2);
+    vline(log10(ct_gate2));
+    data(j).is_stained2 = (data(j).fcsdat(:,i_ct_ch2)>ct_gate2);
     p_tmp = sum(data(j).is_stained2)/length(data(j).is_stained2);
     title({sample_names{j}, [ num2str(round(100*p_tmp)) '% stained cells']})
-    xlabel(['CT fl, ' data(j).fcshdr.par(i_ct2_ch).name])
+    xlabel(['CT fl, ' data(j).fcshdr.par(i_ct_ch2).name])
     ylabel('Counts')
 end
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
@@ -105,7 +105,7 @@ set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters'
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_CT2-histogram.pdf']); %save figure
 
 
-%%
+%% Gate dead alive channel 1
 xy_combined = zeros(0, 2);
 for j=1:length(filenames)
     xy = [data(j).fcsdat(data(j).is_stained,i_fsc_ch),data(j).fcsdat(data(j).is_stained,i_ssc_ch)];
@@ -136,7 +136,7 @@ for j=1:length(filenames)
 end
 [r1_2, r2_2] = manual_select_population(real(log10(xy_combined)));
 
-%% gate data all events
+% gate data all events
 dead_alive_all2 = zeros(length(filenames),2);
 for j=1:length(filenames)
     xy = [data(j).fcsdat(data(j).is_stained2,i_fsc_ch),data(j).fcsdat(data(j).is_stained2,i_ssc_ch)];
@@ -169,6 +169,13 @@ for j=1:length(filenames)
     
     alive_pgon = polyshape(10.^r2);
     plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g')
+    
+    
+      dead_pgon = polyshape(10.^r1_2);
+    plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r', 'Linestyle', '--')
+    
+    alive_pgon = polyshape(10.^r2_2);
+    plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g', 'Linestyle', '--')
     
     title({sample_names{j}, [num2str(dead_alive_all(j,1)) ' dead, ' num2str(dead_alive_all(j,2)) ' alive'], [num2str(round(p_dead_scatter_all(j)*100)) '% dead'] })
 
@@ -242,10 +249,10 @@ for j=1:length(filenames)
 
     
     dead_pgon = polyshape(10.^r1_2);
-    plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
+    plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r', 'Linestyle', '--')
     
     alive_pgon = polyshape(10.^r2_2);
-    plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g')
+    plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g', 'Linestyle', '--')
     
     title({sample_names{j}, [num2str(dead_alive_all2(j,1)) ' dead, ' num2str(dead_alive_all2(j,2)) ' alive'], [num2str(round(p_dead_scatter_all2(j)*100)) '% dead'] })
 
