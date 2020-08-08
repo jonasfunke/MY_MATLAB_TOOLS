@@ -45,6 +45,31 @@ for j=1:length(filenames)
 end
 
 
+%% map back to plate
+
+% ask if plate is used 
+answer = questdlg('Did you measure one plate?', ...
+	'PLate setup', ...
+	'Yes','No','No');
+
+if strcmp(answer, 'Yes')
+    row = zeros(length(sample_names),1);
+    column = zeros(length(sample_names),1);
+    map = {'A' 1; 'B' 2; 'C' 3; 'D' 4; 'E' 5; 'F' 6; 'G' 7; 'H' 8};
+    for i=1:length(sample_names)
+        row(i) = find(contains(map(:,1), sample_names{i}(1)));
+        column(i) = str2num(sample_names{i}(2:end));
+        %disp( [sample_names{i} ' ' num2str(row(i)) ' ' num2str(column(i))] )
+        data(i).row = row(i);
+        data(i).column = column(i);
+    end
+    N_row = max(row)-min(row)+1;
+    N_column = max(column)-min(column)+1;
+else
+    N_column = ceil(16*sqrt(length(filenames)/16/9)); % 8; % spalten
+    N_row = ceil(length(filenames)/N_column); % zeilen
+end
+
 
 
 %% calculate plotting limits
@@ -61,11 +86,9 @@ for j=2:length(filenames)
 end
 scatter_lim = [1e4 2^20 1e4 2^20];
 
-N_column = ceil(16*sqrt(length(filenames)/16/9)); % 8; % spalten
-N_row = ceil(length(filenames)/N_column); % zeilen
 
 %% gate cells
-ct_gate = 1e4; % CHANGE THIS IF NEEDED
+ct_gate = 0.8e4; % CHANGE THIS IF NEEDED
 
 cur_fig = figure(1); clf
 for j=1:length(filenames)
