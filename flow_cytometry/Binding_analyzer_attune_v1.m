@@ -45,6 +45,31 @@ for j=1:length(filenames)
 end
 
 
+%% map back to plate
+
+% ask if plate is used 
+answer_plate = questdlg('Did you measure one plate?', ...
+	'PLate setup', ...
+	'Yes','No','No');
+
+if strcmp(answer_plate, 'Yes')
+    row = zeros(length(sample_names),1);
+    column = zeros(length(sample_names),1);
+    map = {'A' 1; 'B' 2; 'C' 3; 'D' 4; 'E' 5; 'F' 6; 'G' 7; 'H' 8};
+    for i=1:length(sample_names)
+        row(i) = find(contains(map(:,1), sample_names{i}(1)));
+        column(i) = str2num(sample_names{i}(2:end));
+        %disp( [sample_names{i} ' ' num2str(row(i)) ' ' num2str(column(i))] )
+        data(i).row = row(i);
+        data(i).column = column(i);
+    end
+    N_row = max(row)-min(row)+1;
+    N_column = max(column)-min(column)+1;
+else
+    N_column = ceil(16*sqrt(length(filenames)/16/9)); % 8; % spalten
+    N_row = ceil(length(filenames)/N_column); % zeilen
+end
+
 %% calculate plotting limits
 
 NN_lim = [min(data(1).NN) max(data(1).NN)];
@@ -60,8 +85,7 @@ end
 scatter_lim = [1e4 2^20 1e4 2^20];
 
 %% make fcs-ssc scatter plots
-N_column = ceil(16*sqrt(length(filenames)/16/9)); % 8; % spalten
-N_row = ceil(length(filenames)/N_column); % zeilen
+
 
 
 cur_fig = figure(1); clf
@@ -184,7 +208,6 @@ for i=3:size(data(1).fcsdat,2)
     set(gca, 'Xtick', 1:N_sample, 'XTickLabel', sample_names, 'Xlim', [0 N_sample+1])
     xtickangle(30)
     ylabel(data(1).fcshdr.par(i).name)
-    set(gca,  'ylim', [0 1.1*max(val_median(:,i))])
     legend({'gated', 'non-gated'}, 'Location', 'best')
     grid on
 
@@ -197,46 +220,55 @@ end
 
 %% plot a histogram for each channel
 
-
-cc = parula(length(filenames)+1);
-for i=1:size(data(1).fcsdat,2)
-  
-    cur_fig = figure(4); clf
-
-    legend_tmp = {};
-    for j=1:length(filenames)
-        tmp = data(j).fcsdat(data(j).i_gated,i);
-
-        x=logspace(-1,8,200); % create bin edges with logarithmic scale
-        n = histogram(tmp, x, 'DisplayStyle','bar', ...
-             'Normalization', 'probability', ...
-             'EdgeColor', cc(j,:), 'FaceColor',  cc(j,:), 'FaceAlpha', 0.4); hold on %, 'Normalization', 'pdf'
-
-
-        legend_tmp = [legend_tmp; {sample_names{j}}];
-        %disp([filenames{j} ', ' num2str(median(tmp))])
-
-    end
-    legend(legend_tmp, 'Location', 'best')
-    set(gca, 'xscale','log', 'xlim', [min(tmp) max(tmp) ])
-    xlabel(data(1).fcshdr.par(i).name), ylabel('Fraction of cells')
-    
-    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-        'PaperPosition', [0 0 15 12 ], 'PaperSize', [15 12] );
-
-    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_hist_ch-' data(1).fcshdr.par(i).name '.pdf']); %save figure
-    
-end
-
-
-%% map back to plate
-
-% ask if plate is used 
-answer = questdlg('Did you measure oneplate?', ...
-	'PLate setup', ...
+% ask to create histograms
+answer = questdlg('Create histograms for each channel?', ...
+	'Histograms', ...
 	'Yes','No','No');
 
 if strcmp(answer, 'Yes')
+    cc = parula(length(filenames)+1);
+    
+    
+    cur_fig = figure(4); clf
+    
+    for i=1:N_channel
+        subplot(N_channel,1,i)
+        
+        x=logspace(-1,8,200); % create bin edges with logarithmic scale
+
+        legend_tmp = {};
+        for j=1:length(filenames)
+            tmp = data(j).fcsdat(data(j).i_gated,i);
+
+            n = histogram(tmp, x, 'DisplayStyle','bar', ...
+                 'Normalization', 'probability', ...
+                 'EdgeColor', cc(j,:), 'FaceColor',  cc(j,:), 'FaceAlpha', 0.4); hold on %, 'Normalization', 'pdf'
+
+
+            legend_tmp = [legend_tmp; {sample_names{j}}];
+            %disp([filenames{j} ', ' num2str(median(tmp))])
+
+        end
+        set(gca, 'xscale','log' , 'xlim', [1e0 1e7])
+        
+        xlabel(data(1).fcshdr.par(i).name), ylabel('Fraction of cells')
+
+        
+
+    end
+    legend(legend_tmp, 'Location', 'best')
+
+    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+            'PaperPosition', [0 0 20 10*N_channel], 'PaperSize', [20 10*N_channel] );
+
+    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_histograms.pdf']); %save figure
+
+end
+
+%% map back to plate
+
+
+if strcmp(answer_plate, 'Yes')
     plate_val_median = zeros(8, 12, N_channel);
     plate_N_counts = zeros(8, 12, 2);
     row = zeros(length(sample_names));
