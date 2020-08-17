@@ -1,8 +1,9 @@
+%% start up
 close all, clear all, clc
 
 % set fluorescence channels
-i_fsc_ch=2; 
-i_ssc_ch=3; %FSC-A , for Cytoflex 4
+i_fsc_ch=2; %FSC-A
+i_ssc_ch=3; %SSC-A
 
 % load fcs data
 [filenames, pathname]=uigetfile('*.fcs','Select the fcs files','MultiSelect','on');
@@ -38,6 +39,7 @@ while i<length(filenames{1})
     i = i+1;
 end
 
+disp('Sample names:')
 sample_names = cell(length(filenames),1);
 for j=1:length(filenames)
         sample_names{j} = filenames{j}(i_found:end-4);
