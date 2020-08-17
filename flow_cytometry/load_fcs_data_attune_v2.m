@@ -19,6 +19,13 @@ out.NN_radius = radius;
 out.NN = NN;
 
 
+%%
+channel_names = cell(length(fcshdr.par), 1);
+for i=1:length(fcshdr.par)
+    channel_names{i} = fcshdr.par(i).name;
+end
+out.channel_names = channel_names;
+disp(['Loaded ' fname ' Channels: ' char(join(channel_names))] )
 
 
 end
