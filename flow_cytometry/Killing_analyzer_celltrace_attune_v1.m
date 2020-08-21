@@ -2,14 +2,13 @@
 close all, clear all, clc
 
 % set fluorescence channels
-i_fsc_ch=2; % FSC-A
-i_ssc_ch=3; % SSC-A
-i_ct_ch = 4; % BL1-A
+i_fsc_ch = 2; % FSC-A
+i_ssc_ch = 3; % SSC-A
+i_ct_ch = 4; % BL1-A for CSFE stain
 
 radius = 0.03;
 
-%%
-% load fcs data
+%% load fcs data
 [filenames, pathname]=uigetfile('*.fcs','Select the fcs files','MultiSelect','on');
 
 %% create output dir
@@ -89,7 +88,7 @@ scatter_lim = [1e4 2^20 1e4 2^20];
 
 
 %% gate cells
-ct_gate = 0.8e4; % CHANGE THIS IF NEEDED
+ct_gate = 0.5e4; % CHANGE THIS IF NEEDED
 
 cur_fig = figure(1); clf
 for j=1:length(filenames)
