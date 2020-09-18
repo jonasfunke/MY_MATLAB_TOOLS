@@ -1,0 +1,77 @@
+%% create composite RGB image
+close all, clear all, clc
+
+
+path_in = '/Users/jonasfunke/Dropbox (DIETZ LAB)/PLECTONIC/LAB/Data/2020-09-16_evos_m7000_test/killing2.2020-09-17-16-10-29/'
+files_fl = dir([path_in '*_B02f00d0.TIF']);
+files_bf = dir([path_in '*_B02f00d4.TIF']);
+
+figure(1); clf
+%for i= 1:length(files_bf) %[1:7 9:10] %
+    i = 1;
+    disp([num2str(i) ' of ' num2str(length(files_bf))]);
+    img_bf = imread([files_bf(i).folder filesep files_bf(i).name]);
+    img_fl = imread([files_fl(i).folder filesep files_fl(i).name]);
+    
+    tmp =img_bf;
+    bf_out = (tmp-min(tmp(:)))/(max(tmp(:))-min(tmp(:)))
+    %%
+    imagesc(img_fl),colorbar
+%end
+%%
+
+path_out = [path_in 'RGB_images_2'];
+mkdir(path_out)
+%
+
+% high pass filter
+r_filter = 100; % pixel
+f_filter = fspecial('gaussian', 2*r_filter , r_filter); % gaussian filter
+ 
+hist_g = [];
+for i= 1:length(files_BF) %[1:7 9:10] %
+    disp([num2str(i) ' of ' num2str(length(files_BF))]);
+    BF_in = rgb2gray(imread([files_BF(i).folder filesep files_BF(i).name]));
+    %R_in = rgb2gray(imread([files_BF(i).folder filesep files_BF(i).name(1:end-7) 'CY5.tiff']));
+    G_in = rgb2gray(imread([files_BF(i).folder filesep files_BF(i).name(1:end-7) 'RFP.tiff']));
+    
+%     BF_in = imread([files_BF(i).folder filesep files_BF(i).name]);
+%     R_in = rgb2gray(imread([files_BF(i).folder filesep files_BF(i).name(1:end-6) 'CY5.PNG']));
+%     G_in = rgb2gray(imread([files_BF(i).folder filesep files_BF(i).name(1:end-6) 'RFP.PNG']));
+
+
+    %
+    tmp =  double(BF_in)-double(imfilter(BF_in, f_filter, 'same', 'replicate'));
+    BF = (tmp-min(tmp(:)))/(max(tmp(:))-min(tmp(:)));
+
+%     tmp =  double(R_in)-double(imfilter(R_in, f_filter, 'same', 'replicate'));
+%     R = (tmp-min(tmp(:)))/(max(tmp(:))-min(tmp(:)));
+%     R = min(R/0.6,1);
+
+    tmp =  double(G_in)-double(imfilter(G_in, f_filter, 'same', 'replicate'));
+    %G = (tmp-min(tmp(:)))/(max(tmp(:))-min(tmp(:)));
+    new_max = 30;
+    G = (tmp-mean(tmp(:))-3*std(tmp(:)))/(new_max-mean(tmp(:))-3*std(tmp(:)));
+    % rescalt
+    histogram(G(:), 20)
+    pause
+    G = max(G,0);
+    G = min(G,1);
+    
+
+    RGB = zeros(size(BF,1), size(BF,2),3, 'uint8');
+    %RGB(:,:,1) = uint8(R*(2^8-1));
+    %RGB(:,:,2) = uint8(G*(2^8-1));
+    %RGB(:,:,3) = uint8(BF*(2^8-1));
+
+    RGB(:,:,1) = uint8((BF/4)*(2^8-1));
+    RGB(:,:,2) = uint8((BF/4+G/2)*(2^8-1));
+    RGB(:,:,3) = uint8(BF/4*(2^8-1));
+    
+    %alpha = min(1-(BF-mean(BF(:))+std(BF(:)))./(1-median(BF(:))+std(BF(:))), 1);
+    %imwrite(RGB, [path_out filesep files_BF(i).name(1:end-7) '_RGB.png'], 'Alpha', alpha);
+    imwrite(RGB, [path_out filesep files_BF(i).name(1:end-7) '_RGB.tiff']);
+    imwrite(uint8( RGB ), [path_out filesep files_BF(i).name(1:end-7) '_RGB.jpg'], 'jpg' ,'BitDepth',8);
+
+    
+end
