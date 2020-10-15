@@ -22,6 +22,10 @@ i=3;
 protein_list{i,1} = '26 base modifier only';
 protein_list{i,2} =  225800;
 
+i=4;
+protein_list{i,1} = 'F(ab) with 26 base modifier';
+protein_list{i,2} =  round(225800 + 137494/3);
+
 
 [protein_indx, ~] = listdlg('PromptString', {'Select a protein-DNA conjugate'},...
     'SelectionMode','single','ListString',protein_list(:,1));
