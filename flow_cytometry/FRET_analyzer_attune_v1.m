@@ -277,8 +277,8 @@ end
 %%
 
 
-xlim = [0 1e5]/1;
-ylim = [0 1e5]/1;
+xlim = [0 0.1e5]/1;
+ylim = [0 0.1e5]/1;
 
 
 xplot = [xlim(1) xlim(2)]
@@ -287,26 +287,100 @@ cur_fig = figure(1); clf
 % calculate FRET
 for i=1:length(data)
     subplot(N_row, N_column, i)
+    
     data(i).cur_fit = fit(data(i).dd+data(i).da, data(i).da, 'poly1');
     data(i).E = data(i).cur_fit.p1;
+    
+    x = data(i).dd+data(i).da;
+    y = data(i).da;
+    max_fl = prctile(x, 95); % remove 5% brightest cells
+    x_fit = x(x<max_fl);
+    y_fit = y(x<max_fl);
+    data(i).cur_fit_95 = fit(x_fit, y_fit, 'poly1');
+    data(i).E_95 = data(i).cur_fit_95.p1;
+    
     scatter(data(i).dd+data(i).da, data(i).da, 5, '.'), hold on
     plot(xplot, data(i).cur_fit(xplot))
+    plot(xplot, data(i).cur_fit_95(xplot))
     set(gca, 'XLim', xlim,  'Ylim', ylim) 
     title(sample_names{i})
-    legend({'data', ['fit E=' num2str(data(i).E) ]})
+    legend({'data', ['fit E=' num2str(data(i).E) ], ['fit E95=' num2str(data(i).E_95) ]})
     xlabel('DD+DA')
     ylabel('DA')
 end
 
-
-%%
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-    'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
-print(cur_fig, '-dpdf', [path_out filesep prefix_out '_FRET-scatter.pdf']); %save figure
+    'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_FRET_scatter.pdf']); %save figure
 
+
+%% plot FRET barplot
+cur_fig = figure(2); clf
+bar(1:N_sample,[[data(:).E]; [data(:).E_95]]), hold on
+set(gca, 'Xtick', 1:N_sample, 'XTickLabel', sample_names, 'Xlim', [0 N_sample+1])
+xtickangle(30)
+ylabel('FRET efficiency')
+grid on
+legend({'Fit to all cells', 'Fit to 95%dimmest cells'})
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 max(1*N_sample,12) 10 ], ...
+    'PaperSize', [max(1*N_sample,12) 10] );
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_FRET_barplot.pdf']); %save figure
 
 
 %% plot FRET histograms
+cur_fig = figure(3); clf
+% calculate FRET
+for i=1:length(data)
+    subplot(N_row, N_column, i)
+    histogram(data(i).da./(data(i).dd+data(i).da), [-1:0.01:2], 'displaystyle', 'stairs', 'Normalization', 'pdf'), hold on
+    xline(data(i).E);
+    xline(data(i).E_95);
+    
+    set(gca, 'XLim', [-1 2]) 
+    title(sample_names{i})
+    xlabel('FRET Efficiency')
+    ylabel('prob density')
+    grid on
+end
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_FRET_histogram.pdf']); %save figure
+
+
+%% plot DA+DD vs FRET
+cur_fig = figure(4); clf
+
+for j=1:length(filenames)
+    
+    xy = [ data(j).da./(data(j).dd+data(j).da), real(log10(data(j).dd+data(j).da))];
+    %xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
+    NN = get_NN_density_fast(xy, 0.05);
+    
+    subplot(N_row, N_column, j)
+    scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
+    title(sample_names{j})
+    xline(data(j).E);
+    xline(data(j).E_95, 'k--');
+ 
+  
+        
+    xlabel('FRET efficiency'), ylabel('DA+DD')
+    
+    grid on
+    caxis([0 200])
+    %set(gca,'xscale','log','yscale','log', 'XLim', scatter_lim(1:2) , 'YLim', scatter_lim(3:4) )
+    set(gca,'XLim',[-1 2] , 'YLim', [2 5] )
+    if j == length(filenames)
+        h = colorbar;
+        ylabel(h, 'Nearest Neighbors')
+    end
+end
+
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_FRET_DA+DD_E.pdf']); %save figure
+
 
 
 
@@ -316,6 +390,7 @@ print(cur_fig, '-dpdf', [path_out filesep prefix_out '_FRET-scatter.pdf']); %sav
 
 if strcmp(answer_plate, 'Yes')
     plate_val_median = zeros(8, 12, N_channel);
+    plate_E = zeros(8, 12);
     plate_N_counts = zeros(8, 12, 2);
     row = zeros(length(sample_names));
     column = zeros(length(sample_names));
@@ -329,10 +404,22 @@ if strcmp(answer_plate, 'Yes')
         
         plate_N_counts(row(i), column(i), 1) = N_counts(i,1);
         plate_N_counts(row(i), column(i), 2) = N_counts(i,2);
+        plate_E(row(i), column(i)) = data(i).E;
+
         for j=1:N_channel
             plate_val_median(row(i), column(i), j) = val_median(i,j);
         end
     end
+    
+    cur_fig = figure(4); clf
+    imagesc(plate_E), axis image, colorbar
+    set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
+    title('FRET Efficiency')
+    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+        'PaperPosition', [0 0 max(1*N_sample,12) 10 ], ...
+        'PaperSize', [max(1*N_sample,12) 10] );
+
+    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_img_median_FRET.pdf']); %save figure
     
    
     
