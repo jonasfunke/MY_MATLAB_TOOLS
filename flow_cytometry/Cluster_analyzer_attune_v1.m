@@ -90,7 +90,6 @@ scatter_lim = [1e4 2^20 1e4 2^20];
 
 %% gate cells channel 1
 ct_gate = 0.8e4; % CHANGE THIS IF NEEDED
-
 cur_fig = figure(1); clf
 for j=1:length(filenames)
     subplot(N_row, N_column, j)
@@ -130,16 +129,22 @@ print(cur_fig, '-dpdf', [path_out filesep prefix_out '_CT2-histogram.pdf']); %sa
 
 %%
 
+
 cur_fig = figure(3); clf
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
+
+
 for j=1:length(data)
     
     xy = [data(j).fcsdat(:,i_ct_ch),data(j).fcsdat(:,i_ct_ch2)];
     xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
+    
+    
     NN = get_NN_density_fast(xy_tmp, 0.05);
     
     subplot(N_row, N_column, j)
     scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
-    
 
     
     title(sample_names{j})
@@ -147,20 +152,18 @@ for j=1:length(data)
         
     xlabel(data(j).fcshdr.par(i_ct_ch).name), ylabel(data(j).fcshdr.par(i_ct_ch2).name)
     
-    grid on
-    colorbar
-    caxis([0 60])
-    set(gca,'xscale','log','yscale','log', 'XLim', [1e0 1e6] , 'YLim',  [1e0 1e6])
-    
-    xline(ct_gate)
-    yline(ct_gate2)
+     grid on
+    if j==length(data)
+        colorbar
+        caxis([0 60])
+    end
+     set(gca,'xscale','log','yscale','log', 'XLim', [1e0 1e6] , 'YLim',  [1e0 1e6])
+     
+     xline(ct_gate);
+     yline(ct_gate2);
+     
 end
-
-set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-    'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_CT1-CT2-scatter.pdf']); %save figure
-
-%%
 
 %%
 
