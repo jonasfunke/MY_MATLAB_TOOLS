@@ -26,6 +26,30 @@ i=4;
 protein_list{i,1} = 'F(ab) with 26 base modifier';
 protein_list{i,2} =  round(225800 + 137494/3);
 
+i=5;
+protein_list{i,1} = 'F(ab) with 29 base modifier 8603';
+protein_list{i,2} =  round(294300 + 137494/3);
+
+i=6;
+protein_list{i,1} = 'F(ab) with 45 base modifier 8598';
+protein_list{i,2} =  round(430000 + 137494/3);
+
+i=7;
+protein_list{i,1} = 'F(ab) with 24 base modifier 8604';
+protein_list{i,2} =  round(230500 + 137494/3);
+
+i=8;
+protein_list{i,1} = 'F(ab) with 29 base modifier 8599';
+protein_list{i,2} =  round(278000 + 137494/3);
+
+i=9;
+protein_list{i,1} = 'F(ab) with 32 base modifier 8601';
+protein_list{i,2} =  round(299500 + 137494/3);
+
+
+
+
+
 
 [protein_indx, ~] = listdlg('PromptString', {'Select a protein-DNA conjugate'},...
     'SelectionMode','single','ListString',protein_list(:,1));
@@ -81,6 +105,8 @@ i=i+1;
 program_list{i,1} = 'custom_JF_sdAB';
 program_list{i,2} = [7.2:0.65:13.7]; % fractin_times
 program_list{i,3} = [1:10]; % fractions
+
+
 
 
 
