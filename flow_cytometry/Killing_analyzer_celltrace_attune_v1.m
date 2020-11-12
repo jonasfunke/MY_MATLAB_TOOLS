@@ -88,7 +88,7 @@ scatter_lim = [1e4 2^20 1e4 2^20];
 
 
 %% gate cells
-ct_gate = 0.5e4; % CHANGE THIS IF NEEDED
+ct_gate = 2e4; % CHANGE THIS IF NEEDED
 
 cur_fig = figure(1); clf
 for j=1:length(filenames)
@@ -129,6 +129,35 @@ end
 p_dead_scatter_all = dead_alive_all(:,1)./(dead_alive_all(:,1) + dead_alive_all(:,2));
 
 
+%% calculate E:T ratio
+N_target = zeros(length(filenames),1);
+N_effector = zeros(length(filenames),1);
+for j=1:length(filenames)
+    N_effector(j) = sum(~data(j).is_stained);
+    N_target(j) = sum(data(j).is_stained);
+    disp(['E:T = ' num2str(round(N_effector(j)/N_target(j),1)) ', Effector: ' num2str(N_effector(j)) ', Target: ' num2str(N_target(j)) ])
+end
+
+cur_fig = figure(3); clf
+
+subplot(2, 1, 1)
+bar([N_effector N_target])
+set(gca, 'XTick', 1:length(filenames), 'XtickLabel', {}, 'XLim', [0 length(filenames)+1])
+grid on
+ylabel('Number of counts')
+legend({'Effector', 'Target'})
+
+subplot(2, 1, 2)
+bar([N_effector./N_target])
+
+set(gca, 'XTick', 1:length(filenames), 'XtickLabel', sample_names, 'XLim', [0 length(filenames)+1])
+grid on
+ylabel('Effector/Target')
+
+
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 length(filenames)*2 20 ], 'PaperSize', [length(filenames)*2 20 ] );
+print(cur_fig, '-dpdf', [path_out 'effector_target_counts.pdf']); %save figure
 
 
 %% make fcs-ssc scatter plots
@@ -168,7 +197,7 @@ end
 pause(1)
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_overview_SSC-FSC-NN.pdf']); %save figure
 
-%%
+%
 cur_fig = figure(1); clf
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
@@ -207,7 +236,7 @@ end
 pause(1)
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_overview_SSC-FSC-NN_stained.pdf']); %save figure
 
-%% plot pbmc only
+% plot pbmc only
 cur_fig = figure(1); clf
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
