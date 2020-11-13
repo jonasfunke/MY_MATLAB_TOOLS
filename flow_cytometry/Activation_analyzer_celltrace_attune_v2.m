@@ -2,12 +2,11 @@
 close all, clear all, clc
 
 % set fluorescence channels
-i_fsc_ch = 2; % FSC-A
+i_fsc_ch = 2; % FS
 i_ssc_ch = 3; % SSC-A
 i_ct_ch = 4; % BL1-A for CSFE stain
-i_yl1 = 6;
-i_yl2 = 5;
-i_rl1 = 7;
+i_yl1 = 5; % CD4
+i_rl1 = 6; % CD8
 radius = 0.03;
 
 %% load fcs data
@@ -50,11 +49,11 @@ end
 %% map back to plate
 
 % ask if plate is used 
-answer = questdlg('Did you measure one plate?', ...
+answer_plate = questdlg('Did you measure one plate?', ...
 	'PLate setup', ...
 	'Yes','No','No');
 
-if strcmp(answer, 'Yes')
+if strcmp(answer_plate, 'Yes')
     row = zeros(length(sample_names),1);
     column = zeros(length(sample_names),1);
     map = {'A' 1; 'B' 2; 'C' 3; 'D' 4; 'E' 5; 'F' 6; 'G' 7; 'H' 8};
@@ -89,26 +88,26 @@ end
 scatter_lim = [1e4 2^20 1e4 2^20];
 
 
-%% gate cells
-ct_gate = 0.6e5; % CHANGE THIS IF NEEDED
+% %% gate cells
+% ct_gate = 0.6e5; % CHANGE THIS IF NEEDED
+% 
+% cur_fig = figure(1); clf
+% for j=1:length(filenames)
+%     subplot(N_row, N_column, j)
+%     histogram(real(log10(data(j).fcsdat(:,i_ct_ch)))), hold on
+%     set(gca, 'XLim', [1 6])
+%     vline(log10(ct_gate));
+%     data(j).is_stained = (data(j).fcsdat(:,i_ct_ch)>ct_gate);
+%     p_tmp = sum(data(j).is_stained)/length(data(j).is_stained);
+%     title({sample_names{j}, [ num2str(round(100*p_tmp)) '% stained cells']})
+%     xlabel(['CT fl, ' data(j).fcshdr.par(i_ct_ch).name])
+%     ylabel('Counts')
+% end
+% set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+%     'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
+% print(cur_fig, '-dpdf', [path_out filesep prefix_out '_CT-histogram.pdf']); %save figure
 
-cur_fig = figure(1); clf
-for j=1:length(filenames)
-    subplot(N_row, N_column, j)
-    histogram(real(log10(data(j).fcsdat(:,i_ct_ch)))), hold on
-    set(gca, 'XLim', [1 6])
-    vline(log10(ct_gate));
-    data(j).is_stained = (data(j).fcsdat(:,i_ct_ch)>ct_gate);
-    p_tmp = sum(data(j).is_stained)/length(data(j).is_stained);
-    title({sample_names{j}, [ num2str(round(100*p_tmp)) '% stained cells']})
-    xlabel(['CT fl, ' data(j).fcshdr.par(i_ct_ch).name])
-    ylabel('Counts')
-end
-set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-    'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
-print(cur_fig, '-dpdf', [path_out filesep prefix_out '_CT-histogram.pdf']); %save figure
-
-%% gate cells  base on CD3 vs CD8 plots
+%% gate cells base on CD3 vs CD8 plots
 xy_combined = zeros(0, 2);
 for j=1:length(filenames)
     xy = [data(j).fcsdat(:,i_rl1),data(j).fcsdat(:,i_yl1)];
@@ -148,7 +147,7 @@ for j=1:length(data)
     xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
     
     
-    NN = get_NN_density_fast(xy_tmp, 0.01);
+    NN = get_NN_density_fast(xy_tmp, 0.05);
     
     subplot(N_row, N_column, j)
     scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
@@ -165,13 +164,14 @@ for j=1:length(data)
     xlabel(['CD8 ' data(j).fcshdr.par(i_rl1).name]), ylabel(['CD4 ' data(j).fcshdr.par(i_yl1).name])
     
     grid on
+    
+    caxis([0 60])
     if j==length(data)
         colorbar
-        caxis([0 60])
         legend({'data' 'CD4+' 'CD8+'})
 
     end
-     set(gca,'xscale','log','yscale','log', 'XLim', [1e5 1e6] , 'YLim',  [1e0 1e6])
+     set(gca,'xscale','log','yscale','log', 'XLim', [1e0 1e6] , 'YLim',  [1e0 1e6])
      
      %xline(ct_gate);
      %yline(ct_gate2);
@@ -204,12 +204,14 @@ for j=1:length(data)
 
         
     xlabel(['CD4 ' data(j).fcshdr.par(i_yl1).name]), ylabel(['CD69/CT ' data(j).fcshdr.par(i_ct_ch).name])
-    
+    caxis([0 60])
+
     grid on
     if j==length(data)
         colorbar
-        caxis([0 60])
+%        caxis([0 60])
     end
+
      set(gca,'xscale','log','yscale','log', 'XLim', [1e0 1e6] , 'YLim',  [1e0 1e6])
      
      %xline(ct_gate);
@@ -233,7 +235,7 @@ for j=1:length(data)
     xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
     
     
-    NN = get_NN_density_fast(xy_tmp, 0.01);
+    NN = get_NN_density_fast(xy_tmp, 0.05);
     
     subplot(N_row, N_column, j)
     scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
@@ -244,13 +246,15 @@ for j=1:length(data)
 
         
     xlabel(['CD8 ' data(j).fcshdr.par(i_rl1).name]), ylabel(['CD69/CT ' data(j).fcshdr.par(i_ct_ch).name])
-    
+    caxis([0 60])
+
     grid on
     if j==length(data)
         colorbar
-        caxis([0 60])
+%        caxis([0 40])
     end
-     set(gca,'xscale','log','yscale','log', 'XLim', [1e5 1e6] , 'YLim',  [1e0 1e6])
+
+     set(gca,'xscale','log','yscale','log', 'XLim', [1e0 1e6] , 'YLim',  [1e0 1e6])
      
      %xline(ct_gate);
      %yline(ct_gate2);
@@ -263,15 +267,15 @@ print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_bl1-rl1.pdf']); %
 
 
 %% CD69-positive histogram
-activation_gate  = 0.1e4;
+activation_gate  = 0.9e4;
 
 activated = zeros(length(filenames),2);
 cur_fig = figure(10); clf
 for j=1:length(filenames)
     
     
-    activated(j,1) = sum(data(j).fcsdat(data(j).cd8_positive,i_ct_ch)>activation_gate);
-    activated(j,2) = sum(data(j).fcsdat(data(j).cd4_positive,i_ct_ch)>activation_gate);
+    activated(j,2) = sum(data(j).fcsdat(data(j).cd8_positive,i_ct_ch)>activation_gate);
+    activated(j,1) = sum(data(j).fcsdat(data(j).cd4_positive,i_ct_ch)>activation_gate);
     
     subplot(N_row, N_column, j)
     %histogram(real(log10(data(j).fcsdat(:,i_ct_ch))), 'DisplayStyle', 'stairs'), hold on
@@ -294,6 +298,47 @@ print(cur_fig, '-dpdf', [path_out filesep prefix_out '_hist_cd69.pdf']); %save f
 
 %%
 
+if answer_plate
+    plate_activated = zeros(8, 12, 2);
+    plate_N_cd4_cd8 = zeros(8, 12, 2);
+    for i=1:length(filenames)
+        plate_activated(row(i), column(i), :) = activated(i,:);    
+        plate_N_cd4_cd8(row(i), column(i), 1) = sum(data(i).cd4_positive);
+        plate_N_cd4_cd8(row(i), column(i), 2) = sum(data(i).cd8_positive);
+    end
+
+
+    cur_fig = figure(4); clf
+
+    subplot(2, 2, 1)
+    imagesc(plate_activated(:,:,1)), axis image, colorbar
+    set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
+    title(['Number activated CD4+ ' data(j).fcshdr.par(i_yl1).name ' cells'])
+
+    subplot(2, 2, 2)
+    imagesc(plate_activated(:,:,1)./plate_N_cd4_cd8(:,:,1), [0 1]), axis image, colorbar
+    set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
+    title(['Fraction activated CD4+ ' data(j).fcshdr.par(i_yl1).name ' cells'])
+
+      
+    
+    subplot(2, 2, 3)
+    imagesc(plate_activated(:,:,2)), axis image, colorbar
+    set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
+    title(['Number activated CD8+ ' data(j).fcshdr.par(i_rl1).name ' cells'])
+
+    subplot(2, 2, 4)
+    imagesc(plate_activated(:,:,2)./plate_N_cd4_cd8(:,:,2), [0 1]), axis image, colorbar
+    set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
+    title(['Fraction activated CD8+ ' data(j).fcshdr.par(i_rl1).name ' cells'])
+
+
+    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+        'PaperPosition', [0 0 40 20 ], ...
+        'PaperSize', [40 20] );
+
+    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_plate_image.pdf']); %save figure
+end
 
 
 %% save data
