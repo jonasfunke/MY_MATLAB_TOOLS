@@ -12,7 +12,7 @@ radius = 0.03;
 [filenames, pathname]=uigetfile('*.fcs','Select the fcs files','MultiSelect','on');
 
 %% create output dir
-prefix_out = [ datestr(now, 'yyyy-mm-dd_HH-MM') '_analysis'];
+prefix_out = [ datestr(now, 'yyyy-mm-dd_HH-MM') '_killing'];
 tmp = inputdlg({'Name of analysis (prefix):'}, 'Name of analysis (prefix):' , 1, {prefix_out} );
 prefix_out = tmp{1};
 path_out = [pathname prefix_out filesep];
@@ -48,11 +48,11 @@ end
 %% map back to plate
 
 % ask if plate is used 
-answer = questdlg('Did you measure one plate?', ...
+answer_plate = questdlg('Did you measure one plate?', ...
 	'PLate setup', ...
 	'Yes','No','No');
 
-if strcmp(answer, 'Yes')
+if strcmp(answer_plate, 'Yes')
     row = zeros(length(sample_names),1);
     column = zeros(length(sample_names),1);
     map = {'A' 1; 'B' 2; 'C' 3; 'D' 4; 'E' 5; 'F' 6; 'G' 7; 'H' 8};
@@ -88,7 +88,7 @@ scatter_lim = [1e4 2^20 1e4 2^20];
 
 
 %% gate cells
-ct_gate = 2e4; % CHANGE THIS IF NEEDED
+ct_gate = 10e4; % CHANGE THIS IF NEEDED
 
 cur_fig = figure(1); clf
 for j=1:length(filenames)
@@ -303,6 +303,45 @@ set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters'
 print(cur_fig, '-dpdf', [path_out 'fraction_dead.pdf']); %save figure
 
 
+%%
+
+if answer_plate
+    dead_alive_plate = zeros(8, 12, 2);
+
+    for i=1:length(filenames)
+        dead_alive_plate(row(i), column(i), :) = dead_alive_all(i,:);    
+    end
+
+
+    cur_fig = figure(4); clf
+
+    subplot(4, 1, 1)
+    imagesc(dead_alive_plate(:,:,1)./(dead_alive_plate(:,:,1) + dead_alive_plate(:,:,2)), [0 1]), axis image, colorbar
+    set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
+    title('Fraction of dead target cells')
+
+    subplot(4, 1, 2)
+    imagesc(dead_alive_plate(:,:,2)), axis image, colorbar
+    set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
+    title('Alive target cells')
+
+
+    subplot(4, 1, 3)
+    imagesc(dead_alive_plate(:,:,1)), axis image, colorbar
+    set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
+    title('Dead target cells')
+    
+     subplot(4, 1, 4)
+    imagesc(dead_alive_plate(:,:,1)+dead_alive_plate(:,:,2)), axis image, colorbar
+    set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
+    title('Target cells')
+
+    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+        'PaperPosition', [0 0 15 40 ], ...
+        'PaperSize', [15 40] );
+
+    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_plate_image.pdf']); %save figure
+end
 
 %% all events
 
