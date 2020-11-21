@@ -240,7 +240,12 @@ for j=1:length(data)
     subplot(N_row, N_column, j)
     scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
     
-   
+    % plot cd8+ cells
+    %xy = [data(j).fcsdat(data(j).cd8_positive,i_rl1),data(j).fcsdat(data(j).cd8_positive,i_ct_ch)];
+    %scatter(xy(:,1), xy(:,2), 5, 'r.'), hold on
+
+    
+    
     
     title([sample_names{j} ' all'])
 
@@ -267,22 +272,25 @@ print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_bl1-rl1.pdf']); %
 
 
 %% CD69-positive histogram
-activation_gate  = 0.9e4;
+activation_gate_cd4  = 0.9e4;
+activation_gate_cd8  = 0.3e4;
+cc = lines(2);
 
 activated = zeros(length(filenames),2);
 cur_fig = figure(10); clf
 for j=1:length(filenames)
     
     
-    activated(j,2) = sum(data(j).fcsdat(data(j).cd8_positive,i_ct_ch)>activation_gate);
-    activated(j,1) = sum(data(j).fcsdat(data(j).cd4_positive,i_ct_ch)>activation_gate);
+    activated(j,2) = sum(data(j).fcsdat(data(j).cd8_positive,i_ct_ch)>activation_gate_cd8);
+    activated(j,1) = sum(data(j).fcsdat(data(j).cd4_positive,i_ct_ch)>activation_gate_cd4);
     
     subplot(N_row, N_column, j)
     %histogram(real(log10(data(j).fcsdat(:,i_ct_ch))), 'DisplayStyle', 'stairs'), hold on
-    histogram(real(log10(data(j).fcsdat(data(j).cd4_positive,i_ct_ch))), 'DisplayStyle', 'stairs','Normalization','pdf'), hold on
+    histogram(real(log10(data(j).fcsdat(data(j).cd4_positive,i_ct_ch))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
     histogram(real(log10(data(j).fcsdat(data(j).cd8_positive,i_ct_ch))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
     set(gca, 'XLim', [1 6], 'YLim', [0 1])
-    xline(log10(activation_gate));
+    xline(log10(activation_gate_cd4), 'Color', cc(1,:));
+    xline(log10(activation_gate_cd8), 'Color', cc(2,:));
     title(sample_names{j})
     if j==length(filenames)
         legend({ 'CD4+', 'CD8+'})
@@ -299,36 +307,39 @@ print(cur_fig, '-dpdf', [path_out filesep prefix_out '_hist_cd69.pdf']); %save f
 %%
 
 if answer_plate
-    plate_activated = zeros(8, 12, 2);
-    plate_N_cd4_cd8 = zeros(8, 12, 2);
+    plate_activated_cd4 = zeros(8, 12, 2);
+    plate_activated_cd8 = zeros(8, 12, 2);
     for i=1:length(filenames)
-        plate_activated(row(i), column(i), :) = activated(i,:);    
-        plate_N_cd4_cd8(row(i), column(i), 1) = sum(data(i).cd4_positive);
-        plate_N_cd4_cd8(row(i), column(i), 2) = sum(data(i).cd8_positive);
+        plate_activated_cd4(row(i), column(i), 1) = activated(i,1);   % activated cd4 cells
+        plate_activated_cd4(row(i), column(i), 2) = sum(data(i).cd4_positive); % number of cd4 cells
+
+        plate_activated_cd8(row(i), column(i), 1) = activated(i,2);   % activated cd4 cells
+        plate_activated_cd8(row(i), column(i), 2) = sum(data(i).cd8_positive); % number of cd4 cells
+        
     end
 
 
     cur_fig = figure(4); clf
 
     subplot(2, 2, 1)
-    imagesc(plate_activated(:,:,1)), axis image, colorbar
+    imagesc(plate_activated_cd4(:,:,1)), axis image, colorbar
     set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
     title(['Number activated CD4+ ' data(j).fcshdr.par(i_yl1).name ' cells'])
 
     subplot(2, 2, 2)
-    imagesc(plate_activated(:,:,1)./plate_N_cd4_cd8(:,:,1), [0 1]), axis image, colorbar
+    imagesc(plate_activated_cd4(:,:,1)./plate_activated_cd4(:,:,2), [0 1]), axis image, colorbar
     set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
     title(['Fraction activated CD4+ ' data(j).fcshdr.par(i_yl1).name ' cells'])
 
       
     
     subplot(2, 2, 3)
-    imagesc(plate_activated(:,:,2)), axis image, colorbar
+    imagesc(plate_activated_cd8(:,:,1)), axis image, colorbar
     set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
     title(['Number activated CD8+ ' data(j).fcshdr.par(i_rl1).name ' cells'])
 
     subplot(2, 2, 4)
-    imagesc(plate_activated(:,:,2)./plate_N_cd4_cd8(:,:,2), [0 1]), axis image, colorbar
+    imagesc(plate_activated_cd8(:,:,1)./plate_activated_cd8(:,:,2), [0 1]), axis image, colorbar
     set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
     title(['Fraction activated CD8+ ' data(j).fcshdr.par(i_rl1).name ' cells'])
 
