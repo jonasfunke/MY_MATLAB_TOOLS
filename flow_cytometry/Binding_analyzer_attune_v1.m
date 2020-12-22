@@ -1,7 +1,7 @@
 %% start up
 close all, clear all, clc
 
-% set fluorescence channels
+% set fluorescence channels^
 i_fsc_ch=2; %FSC-A
 i_ssc_ch=3; %SSC-A
 
@@ -10,7 +10,7 @@ i_ssc_ch=3; %SSC-A
 
 
 %% create output dir
-prefix_out = [ datestr(now, 'yyyy-mm-dd_HH-MM') '_analysis'];
+prefix_out = [ datestr(now, 'yyyy-mm-dd_HH-MM') '_binding'];
 tmp = inputdlg({'Name of analysis (prefix):'}, 'Name of analysis (prefix):' , 1, {prefix_out} );
 prefix_out = tmp{1};
 path_out = [pathname prefix_out filesep];
@@ -308,8 +308,6 @@ if strcmp(answer_plate, 'Yes')
     
     
 end
-
-
 
 
 
