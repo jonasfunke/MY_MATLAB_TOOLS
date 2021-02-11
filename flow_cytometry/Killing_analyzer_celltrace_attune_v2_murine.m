@@ -1,10 +1,5 @@
 %% Killing analyzer
 % v2 includes (optional) activation
-% 
-%CD4 = APC = RL1
-%Target cells = CellTrace = BL1
-%CD8 = PE = YL1
-%CD69 = PE-cy7 = YL4
 %% start up
 close all, clear all, clc
 
@@ -13,14 +8,9 @@ i_fsc_ch = 2; % FSC-A
 i_ssc_ch = 3; % SSC-A
 i_ct_ch = 4; % BL1-A for CSFE stain
 
-i_yl1 = 6; % PE, CD8
-i_rl1 = 7; % APC/Cy5, CD4/3LP
-i_yl4 = 5; % CD69
-
-i_cd8 = i_yl1; % CD8-PE
-i_cd4 = i_rl1; % CD4-APC
-i_cd69 = i_yl4; % CD69-PE-Cy7
-
+i_yl4 = 5; % CD69 PE-cy7
+i_yl1 = 6; % CD8 PE
+i_rl1 = 7; % Cd4 / origami
 
 radius = 0.03;
 
@@ -28,7 +18,7 @@ radius = 0.03;
 [filenames, pathname]=uigetfile('*.fcs','Select the fcs files','MultiSelect','on');
 
 %% create output dir
-prefix_out = [ datestr(now, 'yyyy-mm-dd_HH-MM') '_killing-v3-splenocytes'];
+prefix_out = [ datestr(now, 'yyyy-mm-dd_HH-MM') '_killing-v2'];
 tmp = inputdlg({'Name of analysis (prefix):'}, 'Name of analysis (prefix):' , 1, {prefix_out} );
 prefix_out = tmp{1};
 path_out = [pathname prefix_out filesep];
@@ -104,7 +94,7 @@ scatter_lim = [1e4 2^20 1e4 2^20];
 
 
 %% gate cells based on target-cell fluorescence
-ct_gate = 1e3; % CHANGE THIS IF NEEDED
+ct_gate = 2e4; % CHANGE THIS IF NEEDED
 
 cur_fig = figure(1); clf
 for j=1:length(filenames)
@@ -167,7 +157,7 @@ legend({'Effector', 'Target'})
 subplot(2, 1, 2)
 bar([N_effector./N_target])
 
-set(gca, 'XTick', 1:length(filenames), 'XtickLabel', sample_names, 'XLim', [0 length(filenames)+1])
+set(gca, 'XTick', 1:length(filenames), 'XtickLabel', sample_names, 'XLim', [0 length(filenames)+1], 'YLim', [0 10])
 grid on
 ylabel('Effector/Target')
 
@@ -381,27 +371,27 @@ bool_activation = strcmp(answer_activation, 'Yes');
 
 if bool_activation
 
-    % gate cells base on CD3 vs CD8 plots
+    % gate cells base on CD4 vs CD8 plots
     xy_combined = zeros(0, 2);
     for j=1:length(filenames)
-        xy = [data(j).fcsdat(:,i_cd8),data(j).fcsdat(:,i_cd4)];
+        xy = [data(j).fcsdat(:,i_rl1),data(j).fcsdat(:,i_yl1)];
         xy_combined = [xy_combined; xy];
     end
     
-    [r_cd8] = one_region_create_gate_2(real(log10(xy_combined)), 0.01, {['CD8 ' data(1).fcshdr.par(i_cd8).name] ['CD4 ' data(1).fcshdr.par(i_cd4).name] }, 'Select CD8+ cells');
-    [r_cd4] = one_region_create_gate_2(real(log10(xy_combined)), 0.01, {['CD8 ' data(1).fcshdr.par(i_cd8).name] ['CD4 ' data(1).fcshdr.par(i_cd4).name] }, 'Select CD4+ cells');
+    [r_cd8] = one_region_create_gate_2(real(log10(xy_combined)), 0.01, {['CD8 ' data(1).fcshdr.par(i_yl1).name] ['CD4 ' data(1).fcshdr.par(i_rl1).name] }, 'Select CD8+ cells');
+    [r_cd4] = one_region_create_gate_2(real(log10(xy_combined)), 0.01, {['CD8 ' data(1).fcshdr.par(i_yl1).name] ['CD4 ' data(1).fcshdr.par(i_rl1).name] }, 'Select CD4+ cells');
 
     % gate cells
     cd8_cd4 = zeros(length(filenames),2);
     for j=1:length(filenames)
-        xy = [data(j).fcsdat(:,i_cd8),data(j).fcsdat(:,i_cd4)];
+        xy = [data(j).fcsdat(:,i_rl1),data(j).fcsdat(:,i_yl1)];
         xy = real(log10(xy));
         xy(xy(:,1)<=0,1) = 1; % set inf values to one
         xy(xy(:,2)<=0,2) = 1; % set inf values to one
         data(j).cd8_positive = one_region_gate_data_2(xy, r_cd8);
         cd8_cd4(j,1) = sum(data(j).cd8_positive);
 
-        xy = [data(j).fcsdat(:,i_cd8),data(j).fcsdat(:,i_cd4)];
+        xy = [data(j).fcsdat(:,i_rl1),data(j).fcsdat(:,i_yl1)];
         xy = real(log10(xy));
         xy(xy(:,1)<=0,1) = 1; % set inf values to one
         xy(xy(:,2)<=0,2) = 1; % set inf values to one
@@ -413,147 +403,141 @@ if bool_activation
 end
 
 %% create scatter plots for activation
+cur_fig = figure(6); clf
 
-if bool_activation
+for j=1:length(data)
+    
+    xy = [data(j).fcsdat(:,i_rl1),data(j).fcsdat(:,i_yl1)];
+    xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
+    
+    
+    NN = get_NN_density_fast(xy_tmp, 0.05);
+    
+    subplot(N_row, N_column, j)
+    scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
 
-    % plot CD8 vs CD4
-    cur_fig = figure(6); clf
-    for j=1:length(data)
+    poligon_tmp = polyshape(10.^r_cd4);
+    plot(poligon_tmp, 'FaceColor', 'none', 'EdgeColor', 'k')
+    
+    poligon_tmp = polyshape(10.^r_cd8);
+    plot(poligon_tmp, 'FaceColor', 'none', 'EdgeColor', 'r')
+    
+    title([sample_names{j} ' all'])
 
-        xy = [data(j).fcsdat(:,i_cd8),data(j).fcsdat(:,i_cd4)];
-        xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
-
-
-        NN = get_NN_density_fast(xy_tmp, 0.05);
-
-        subplot(N_row, N_column, j)
-        scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
-
-        poligon_tmp = polyshape(10.^r_cd4);
-        plot(poligon_tmp, 'FaceColor', 'none', 'EdgeColor', 'k')
-
-        poligon_tmp = polyshape(10.^r_cd8);
-        plot(poligon_tmp, 'FaceColor', 'none', 'EdgeColor', 'r')
-
-        title([sample_names{j} ' all'])
-
-
-        xlabel(['CD8 ' data(j).fcshdr.par(i_cd8).name]), ylabel(['CD4 ' data(j).fcshdr.par(i_cd4).name])
-
-        grid on
-
-        caxis([0 60])
-        if j==length(data)
-            colorbar
-            legend({'data' 'CD4+' 'CD8+'})
-
-        end
-         set(gca,'xscale','log','yscale','log', 'XLim', [1e0 1e6] , 'YLim',  [1e0 1e6])
-
-         %xline(ct_gate);
-         %yline(ct_gate2);
+        
+    xlabel(['CD4 ' data(j).fcshdr.par(i_rl1).name]), ylabel(['CD8 ' data(j).fcshdr.par(i_yl1).name])
+    
+    grid on
+    
+    caxis([0 60])
+    if j==length(data)
+        colorbar
+        legend({'data' 'CD4+' 'CD8+'})
 
     end
-
-    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-        'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
-    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_CD4-CD8.pdf']); %save figure
-
-
+     set(gca,'xscale','log','yscale','log', 'XLim', [1e0 1e6] , 'YLim',  [1e0 1e6])
+     
+     %xline(ct_gate);
+     %yline(ct_gate2);
+     
 end
+
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_yl1-rl1.pdf']); %save figure
+
+
+
 %% Plot gated cells
 
-if bool_activation
+cur_fig = figure(4); clf
 
-    cur_fig = figure(4); clf
-    for j=1:length(data)
+for j=1:length(data)
+    
+    xy = [data(j).fcsdat(:,i_yl1),data(j).fcsdat(:,i_yl4)];
+    xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
+    
+    
+    NN = get_NN_density_fast(xy_tmp, 0.05);
+    
+    subplot(N_row, N_column, j)
+    scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
 
-        xy = [data(j).fcsdat(:,i_cd4),data(j).fcsdat(:,i_cd69)];
-        xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
+    
+    title([sample_names{j} ' all'])
 
+        
+    xlabel(['CD8 ' data(j).fcshdr.par(i_yl1).name]), ylabel(['CD69 ' data(j).fcshdr.par(i_yl4).name])
+    caxis([0 60])
 
-        NN = get_NN_density_fast(xy_tmp, 0.05);
-
-        subplot(N_row, N_column, j)
-        scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
-
-
-        title([sample_names{j} ' all'])
-
-
-        xlabel(['CD4 ' data(j).fcshdr.par(i_cd4).name]), ylabel(['CD69 ' data(j).fcshdr.par(i_cd69).name])
-        caxis([0 60])
-
-        grid on
-        if j==length(data)
-            colorbar
-    %        caxis([0 60])
-        end
-
-         set(gca,'xscale','log','yscale','log', 'XLim', [1e0 1e6] , 'YLim',  [1e0 1e6])
-
-         %xline(ct_gate);
-         %yline(ct_gate2);
-
+    grid on
+    if j==length(data)
+        colorbar
+%        caxis([0 60])
     end
 
-
-    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-        'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
-    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_CD69-CD4.pdf']); %save figure
+     set(gca,'xscale','log','yscale','log', 'XLim', [1e0 1e6] , 'YLim',  [1e0 1e6])
+     
+     %xline(ct_gate);
+     %yline(ct_gate2);
+     
 end
+
+
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_yl4-yl1.pdf']); %save figure
+
 %%
+cur_fig = figure(5); clf
 
-if bool_activation
+for j=1:length(data)
+    
+    %xy = [data(j).fcsdat(data(j).is_alive,i_rl1),data(j).fcsdat(data(j).is_alive,i_ct_ch)];
+    %xy = [data(j).fcsdat(data(j).is_dead,i_rl1),data(j).fcsdat(data(j).is_dead,i_ct_ch)];
+    xy = [data(j).fcsdat(:,i_rl1),data(j).fcsdat(:,i_yl4)];
+    xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
+    
+    
+    NN = get_NN_density_fast(xy_tmp, 0.05);
+    
+    subplot(N_row, N_column, j)
+    scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
+    
+    % plot cd8+ cells
+    %xy = [data(j).fcsdat(data(j).cd8_positive,i_rl1),data(j).fcsdat(data(j).cd8_positive,i_ct_ch)];
+    %scatter(xy(:,1), xy(:,2), 5, 'r.'), hold on
 
-    cur_fig = figure(5); clf
-    for j=1:length(data)
+    
+    
+    
+    title([sample_names{j} ' all'])
 
-        %xy = [data(j).fcsdat(data(j).is_alive,i_rl1),data(j).fcsdat(data(j).is_alive,i_ct_ch)];
-        %xy = [data(j).fcsdat(data(j).is_dead,i_rl1),data(j).fcsdat(data(j).is_dead,i_ct_ch)];
-        xy = [data(j).fcsdat(:,i_cd8),data(j).fcsdat(:,i_cd69)];
-        xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
+        
+    xlabel(['CD4 ' data(j).fcshdr.par(i_rl1).name]), ylabel(['CD69 ' data(j).fcshdr.par(i_yl4).name])
+    caxis([0 60])
 
-
-        NN = get_NN_density_fast(xy_tmp, 0.05);
-
-        subplot(N_row, N_column, j)
-        scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
-
-        % plot cd8+ cells
-        %xy = [data(j).fcsdat(data(j).cd8_positive,i_rl1),data(j).fcsdat(data(j).cd8_positive,i_ct_ch)];
-        %scatter(xy(:,1), xy(:,2), 5, 'r.'), hold on
-
-
-
-
-        title([sample_names{j} ' all'])
-
-
-        xlabel(['CD8 ' data(j).fcshdr.par(i_cd8).name]), ylabel(['CD69 ' data(j).fcshdr.par(i_cd69).name])
-        caxis([0 60])
-
-        grid on
-        if j==length(data)
-            colorbar
-    %        caxis([0 40])
-        end
-
-         set(gca,'xscale','log','yscale','log', 'XLim', [1e0 1e6] , 'YLim',  [1e0 1e6])
-
-         %xline(ct_gate);
-         %yline(ct_gate2);
-
+    grid on
+    if j==length(data)
+        colorbar
+%        caxis([0 40])
     end
 
-    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-        'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
-    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_CD69-CD8.pdf']); %save figure
+     set(gca,'xscale','log','yscale','log', 'XLim', [1e0 1e6] , 'YLim',  [1e0 1e6])
+     
+     %xline(ct_gate);
+     %yline(ct_gate2);
+     
 end
+
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_yl4-rl1.pdf']); %save figure
+
 
 %% CD69-positive histogram
-activation_gate_cd4  = 0.5e4;
-activation_gate_cd8  = 1e4;
+activation_gate_cd4  = 0.4e4;
+activation_gate_cd8  = 0.4e4;
 cc = lines(2);
 
 activated = zeros(length(filenames),2);
@@ -561,13 +545,13 @@ cur_fig = figure(10); clf
 for j=1:length(filenames)
     
     
-    activated(j,2) = sum(data(j).fcsdat(data(j).cd8_positive,i_cd69)>activation_gate_cd8);
-    activated(j,1) = sum(data(j).fcsdat(data(j).cd4_positive,i_cd69)>activation_gate_cd4);
+    activated(j,2) = sum(data(j).fcsdat(data(j).cd8_positive,i_ct_ch)>activation_gate_cd8);
+    activated(j,1) = sum(data(j).fcsdat(data(j).cd4_positive,i_ct_ch)>activation_gate_cd4);
     
     subplot(N_row, N_column, j)
     %histogram(real(log10(data(j).fcsdat(:,i_ct_ch))), 'DisplayStyle', 'stairs'), hold on
-    histogram(real(log10(data(j).fcsdat(data(j).cd4_positive,i_cd69))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
-    histogram(real(log10(data(j).fcsdat(data(j).cd8_positive,i_cd69))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
+    histogram(real(log10(data(j).fcsdat(data(j).cd4_positive,i_ct_ch))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
+    histogram(real(log10(data(j).fcsdat(data(j).cd8_positive,i_ct_ch))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
     set(gca, 'XLim', [1 6], 'YLim', [0 1])
     xline(log10(activation_gate_cd4), 'Color', cc(1,:));
     xline(log10(activation_gate_cd8), 'Color', cc(2,:));
@@ -575,7 +559,7 @@ for j=1:length(filenames)
     if j==length(filenames)
         legend({ 'CD4+', 'CD8+'})
     end
-    xlabel(['CD69, ' data(j).fcshdr.par(i_cd69).name])
+    xlabel(['CD69, ' data(j).fcshdr.par(i_ct_ch).name])
     %ylabel('Count density')
     ylabel('PDF')
 end
