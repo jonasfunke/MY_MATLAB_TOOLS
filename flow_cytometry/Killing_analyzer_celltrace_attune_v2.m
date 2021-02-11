@@ -91,9 +91,13 @@ for j=2:length(filenames)
 end
 scatter_lim = [1e4 2^20 1e4 2^20];
 
-
 %% gate cells based on target-cell fluorescence
-ct_gate = 4e4; % CHANGE THIS IF NEEDED
+tmp = [];
+for j=1:length(data)
+    tmp = [tmp; data(j).fcsdat(:,i_ct_ch)];
+end
+ct_gate = create_gate_1d(tmp, data(j).fcshdr.par(i_ct_ch).name);
+
 
 cur_fig = figure(1); clf
 for j=1:length(filenames)
@@ -156,7 +160,7 @@ legend({'Effector', 'Target'})
 subplot(2, 1, 2)
 bar([N_effector./N_target])
 
-set(gca, 'XTick', 1:length(filenames), 'XtickLabel', sample_names, 'XLim', [0 length(filenames)+1])
+set(gca, 'XTick', 1:length(filenames), 'XtickLabel', sample_names, 'XLim', [0 length(filenames)+1], 'YLim', [0 10])
 grid on
 ylabel('Effector/Target')
 
@@ -377,24 +381,29 @@ if bool_activation
         xy_combined = [xy_combined; xy];
     end
     
-    [r_cd8] = one_region_create_gate_2(real(log10(xy_combined)), 0.01, {['CD8 ' data(1).fcshdr.par(i_rl1).name] ['CD4 ' data(1).fcshdr.par(i_yl1).name] }, 'Select CD8+ cells');
-    [r_cd4] = one_region_create_gate_2(real(log10(xy_combined)), 0.01, {['CD8 ' data(1).fcshdr.par(i_rl1).name] ['CD4 ' data(1).fcshdr.par(i_yl1).name] }, 'Select CD4+ cells');
+    %[r_cd8] = one_region_create_gate_2(real(log10(xy_combined)), 0.01, {['CD8 ' data(1).fcshdr.par(i_rl1).name] ['CD4 ' data(1).fcshdr.par(i_yl1).name] }, 'Select CD8+ cells');
+    %[r_cd4] = one_region_create_gate_2(real(log10(xy_combined)), 0.01, {['CD8 ' data(1).fcshdr.par(i_rl1).name] ['CD4 ' data(1).fcshdr.par(i_yl1).name] }, 'Select CD4+ cells');
+
+    cd4_gate = create_gate_1d(xy_combined(:,2), ['CD4 ' data(1).fcshdr.par(i_yl1).name], 'Select gate for CD4+ cells');
+    cd8_gate = create_gate_1d(xy_combined(:,1), ['CD8 ' data(1).fcshdr.par(i_rl1).name], 'Select gate for CD8+ cells');
 
     % gate cells
     cd8_cd4 = zeros(length(filenames),2);
     for j=1:length(filenames)
-        xy = [data(j).fcsdat(:,i_rl1),data(j).fcsdat(:,i_yl1)];
-        xy = real(log10(xy));
-        xy(xy(:,1)<=0,1) = 1; % set inf values to one
-        xy(xy(:,2)<=0,2) = 1; % set inf values to one
-        data(j).cd8_positive = one_region_gate_data_2(xy, r_cd8);
+        %xy = [data(j).fcsdat(:,i_rl1),data(j).fcsdat(:,i_yl1)];
+        %xy = real(log10(xy));
+        %xy(xy(:,1)<=0,1) = 1; % set inf values to one
+        %xy(xy(:,2)<=0,2) = 1; % set inf values to one
+        %data(j).cd8_positive = one_region_gate_data_2(xy, r_cd8);
+        data(j).cd8_positive = data(j).fcsdat(:,i_rl1)>cd8_gate;
         cd8_cd4(j,1) = sum(data(j).cd8_positive);
 
-        xy = [data(j).fcsdat(:,i_rl1),data(j).fcsdat(:,i_yl1)];
-        xy = real(log10(xy));
-        xy(xy(:,1)<=0,1) = 1; % set inf values to one
-        xy(xy(:,2)<=0,2) = 1; % set inf values to one
-        data(j).cd4_positive = one_region_gate_data_2(xy, r_cd4);
+        %xy = [data(j).fcsdat(:,i_rl1),data(j).fcsdat(:,i_yl1)];
+        %xy = real(log10(xy));
+        %xy(xy(:,1)<=0,1) = 1; % set inf values to one
+        %xy(xy(:,2)<=0,2) = 1; % set inf values to one
+        %data(j).cd4_positive = one_region_gate_data_2(xy, r_cd4);
+        data(j).cd4_positive = data(j).fcsdat(:,i_yl1)>cd4_gate;
         cd8_cd4(j,2) = sum(data(j).cd4_positive);
 
     end
@@ -415,12 +424,12 @@ for j=1:length(data)
     subplot(N_row, N_column, j)
     scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
 
-    poligon_tmp = polyshape(10.^r_cd4);
-    plot(poligon_tmp, 'FaceColor', 'none', 'EdgeColor', 'k')
-    
-    poligon_tmp = polyshape(10.^r_cd8);
-    plot(poligon_tmp, 'FaceColor', 'none', 'EdgeColor', 'r')
-    
+    %poligon_tmp = polyshape(10.^r_cd4);
+    %plot(poligon_tmp, 'FaceColor', 'none', 'EdgeColor', 'k')
+    yline(cd4_gate, 'r');
+    %poligon_tmp = polyshape(10.^r_cd8);
+    %plot(poligon_tmp, 'FaceColor', 'none', 'EdgeColor', 'r')
+    xline(cd8_gate, 'r');
     title([sample_names{j} ' all'])
 
         
@@ -461,6 +470,7 @@ for j=1:length(data)
     
     subplot(N_row, N_column, j)
     scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
+    xline(cd4_gate, 'r');
 
     
     title([sample_names{j} ' all'])
@@ -502,6 +512,7 @@ for j=1:length(data)
     
     subplot(N_row, N_column, j)
     scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
+    xline(cd8_gate, 'r');
     
     % plot cd8+ cells
     %xy = [data(j).fcsdat(data(j).cd8_positive,i_rl1),data(j).fcsdat(data(j).cd8_positive,i_ct_ch)];
@@ -535,8 +546,20 @@ print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_bl1-rl1.pdf']); %
 
 
 %% CD69-positive histogram
-activation_gate_cd4  = 0.4e4;
-activation_gate_cd8  = 0.4e4;
+%activation_gate_cd4  = 0.5e4;
+%activation_gate_cd8  = 0.5e4;
+
+tmp1 = [];
+tmp2 = [];
+for j=1:length(filenames)
+    tmp1 = [tmp1; data(j).fcsdat(data(j).cd4_positive,i_ct_ch)];
+    tmp2 = [tmp2; data(j).fcsdat(data(j).cd8_positive,i_ct_ch)];
+end
+activation_gate_cd4 = create_gate_1d(tmp1, data(j).fcshdr.par(i_ct_ch).name, 'Select gate for CD4+ cells');
+activation_gate_cd8 = create_gate_1d(tmp2, data(j).fcshdr.par(i_ct_ch).name, 'Select gate for CD8+ cells');
+
+
+
 cc = lines(2);
 
 activated = zeros(length(filenames),2);
@@ -615,6 +638,16 @@ if answer_plate
 end
 
 
+%% calculate fraction of cd8+ cells
+tmp = zeros(8,12);
+tmp2 = zeros(8,12);
+
+for i=1:length(filenames)
+
+    tmp(row(i), column(i)) = sum(data(i).cd8_positive)./length(data(i).cd8_positive);
+    tmp2(row(i), column(i)) = sum(data(i).is_stained)./length(data(i).is_stained);
+
+end
 %% save data
 close all
 save([path_out prefix_out '_data.mat'])
