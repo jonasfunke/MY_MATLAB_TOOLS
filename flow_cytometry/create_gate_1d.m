@@ -8,7 +8,7 @@ function [ I_gate ] = create_gate_1d( I_in, channel_name, message )
     xlim = [min(I) (max(I))];
     ylim = [0 0];
     
-    cur_fig = figure;
+    cur_fig = figure();
     tmp = histogram(I, 'DisplayStyle', 'stairs'); hold on
     if max(tmp.Values)>ylim(2)
         ylim(2) = max(tmp.Values);
@@ -20,8 +20,9 @@ function [ I_gate ] = create_gate_1d( I_in, channel_name, message )
 
     [x_selected,~] = ginput(1);
     I_gate = 10^x_selected;
+    
     close(cur_fig)
-
+    pause(1)
 
 end
 
