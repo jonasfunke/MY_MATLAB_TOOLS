@@ -17,7 +17,7 @@ grid on
 
 title('Select Region 1')
 roi1 = drawpolygon;
-i_gated1 = inROI(roi1, xy(:,1), xy(:,2) ) ;
+i_gated1 = inROI(roi1, double(xy(:,1)), double(xy(:,2)) ) ;
 roi1_pos =  roi1.Position;
 
 % dead_pgon = polyshape(roi1_pos);
@@ -25,7 +25,7 @@ roi1_pos =  roi1.Position;
 
 title('Select Region 2')
 roi2 = drawpolygon;
-i_gated2 = inROI(roi2, xy(:,1), xy(:,2) ) ;
+i_gated2 = inROI(roi2, double(xy(:,1)), double(xy(:,2)) ) ;
 roi2_pos =  roi2.Position;
 
 

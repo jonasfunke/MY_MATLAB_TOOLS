@@ -5,6 +5,7 @@ close all, clear all, clc
 i_fsc_ch=2; %FSC-A
 i_ssc_ch=3; %SSC-A
 
+radius = 0.03;
 % load fcs data
 [filenames, pathname]=uigetfile('*.fcs','Select the fcs files','MultiSelect','on');
 
@@ -16,16 +17,14 @@ prefix_out = tmp{1};
 path_out = [pathname prefix_out filesep];
 mkdir(path_out);
 
-%% make a cell array even if you have one file only
+% make a cell array even if you have one file only
 if ~iscell(filenames)
     filenames = {filenames};
 end
-   
-data(1) = load_fcs_data_attune(pathname, filenames{1}, path_out, 0.05);
 
-for i=2:length(filenames)
-    data(i) = load_fcs_data_attune(pathname, filenames{i}, path_out, 0.1, data(1).roi_position);
-    %data(i) = load_fcs_data(pathname, filenames{i}, path_out, 0.05);
+%% load data
+for i=1:length(filenames)
+    data(i) = load_fcs_data_attune_v2(pathname, filenames{i}, radius);
 end
 
 %% create sample names
@@ -45,7 +44,6 @@ for j=1:length(filenames)
         sample_names{j} = filenames{j}(i_found:end-4);
         disp(sample_names{j})
 end
-
 
 %% map back to plate
 
@@ -86,17 +84,29 @@ for j=2:length(filenames)
 end
 scatter_lim = [1e4 2^20 1e4 2^20];
 
+
+
+%% gate cell populaiton based on fsc vs ssc
+xy_combined = zeros(0, 2);
+for j=1:length(filenames)
+    xy = [data(j).fcsdat(:,i_fsc_ch),data(j).fcsdat(:,i_ssc_ch)];
+    xy_combined = [xy_combined; xy];
+end
+
+fcs_ssc_population_roi = create_gate_2d(xy_combined, radius, {data(1).fcshdr.par(i_fsc_ch).name data(1).fcshdr.par(i_ssc_ch).name}, 'Select population to analyze.');
+
+for j=1:length(filenames)
+    data(j).i_gated = gate_data_2d([data(j).fcsdat(:,i_fsc_ch),data(j).fcsdat(:,i_ssc_ch)], fcs_ssc_population_roi);
+end
+
 %% make fcs-ssc scatter plots
-
-
-
 cur_fig = figure(1); clf
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
 for j=1:length(filenames)
     subplot(N_row, N_column, j)
-    scatter(data(j).fcsdat(:,i_fsc_ch),data(j).fcsdat(:,i_ssc_ch), 5, (data(j).NN(:)), '.'), hold on
-    cur_pgon = polyshape(data(j).roi_position);
+    scatter(data(j).fcsdat(:,i_fsc_ch),data(j).fcsdat(:,i_ssc_ch), 5, data(j).NN(:), '.'), hold on
+    cur_pgon = polyshape(fcs_ssc_population_roi);
     plot(cur_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
     legend([num2str(round(100*sum(data(j).i_gated)/length(data(j).i_gated))) '% gated (' num2str(sum(data(j).i_gated)) ' of ' num2str(length(data(j).i_gated)) ')'],'Location', 'SouthEast')
     xlabel(data(j).fcshdr.par(i_fsc_ch).name), ylabel(data(j).fcshdr.par(i_ssc_ch).name)
@@ -134,9 +144,14 @@ val_mean = zeros(N_sample,N_channel);
 val_err = zeros(N_sample,N_channel);
 N_counts = zeros(N_sample,2);
 
+prctl25 = zeros(N_sample,N_channel);
+prctl75 = zeros(N_sample,N_channel);
+
 for j=1:length(filenames)
     for k=1:size(data(j).fcsdat,2)
-        val_median(j,k) = median(data(j).fcsdat(data(j).i_gated,k));    
+        val_median(j,k) = median(data(j).fcsdat(data(j).i_gated,k));
+        prctl25(j,k) = prctile(data(j).fcsdat(data(j).i_gated,k),25);
+        prctl75(j,k) = prctile(data(j).fcsdat(data(j).i_gated,k),75);
         val_median_nongated(j,k) = median(data(j).fcsdat(:,k));    
         val_mean(j,k) = mean(data(j).fcsdat(data(j).i_gated,k));    
         val_err(j,k) = 3*std(data(j).fcsdat(data(j).i_gated,k))/sqrt(length(data(j).fcsdat(data(j).i_gated,k)));    
@@ -206,11 +221,12 @@ for i=3:size(data(1).fcsdat,2)
     cur_fig = figure(3); clf
 
     bar(1:N_sample,val_median(:,i)), hold on
-    plot(1:N_sample,val_median_nongated(:,i), '.')
+    %plot(1:N_sample,val_median_nongated(:,i), 'kx', 'MarkerSize', 5)
+    errorbar(1:N_sample, val_median(:,i), val_median(:,i)-prctl25(:,i), prctl75(:,i)-val_median(:,i), 'k.', 'MarkerSize', 5)
     set(gca, 'Xtick', 1:N_sample, 'XTickLabel', sample_names, 'Xlim', [0 N_sample+1])
     xtickangle(30)
     ylabel(data(1).fcshdr.par(i).name)
-    legend({'gated', 'non-gated'}, 'Location', 'best')
+    legend({'gated', '25-75 percentile'}, 'Location', 'best')
     grid on
 
     set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
@@ -314,6 +330,10 @@ end
 
 %% save data
 close all
+clear xy
+clear xy_combined
+clear tmp
+clear x
 save([path_out prefix_out '_data.mat'])
 disp('Data saved.')
 

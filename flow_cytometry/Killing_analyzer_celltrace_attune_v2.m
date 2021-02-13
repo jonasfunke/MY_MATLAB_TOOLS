@@ -122,14 +122,18 @@ for j=1:length(filenames)
     xy = [data(j).fcsdat(data(j).is_stained,i_fsc_ch),data(j).fcsdat(data(j).is_stained,i_ssc_ch)];
     xy_combined = [xy_combined; xy];
 end
-[r1, r2] = manual_select_population(real(log10(xy_combined)));
+%[r1, r2] = manual_select_population(real(log10(xy_combined)));
+
+r1 = create_gate_2d(xy_combined, radius, {data(1).channel_names(i_fsc_ch) data(1).channel_names(i_ssc_ch)}, 'Select dead cell population.');
+r2 = create_gate_2d(xy_combined, radius, {data(1).channel_names(i_fsc_ch) data(1).channel_names(i_ssc_ch)}, 'Select alive cell population.');
+
 
 %% gate data live dead target cells
 dead_alive_all = zeros(length(filenames),2);
 for j=1:length(filenames)
     xy = [data(j).fcsdat(data(j).is_stained,i_fsc_ch),data(j).fcsdat(data(j).is_stained,i_ssc_ch)];
-    data(j).is_dead = gate_data(real(log10(xy)), r1);
-    data(j).is_alive = gate_data(real(log10(xy)), r2);
+    data(j).is_dead = gate_data_2d(xy, r1);
+    data(j).is_alive = gate_data_2d(xy, r2);
     dead_alive_all(j,1) = sum(data(j).is_dead);
     dead_alive_all(j,2) = sum(data(j).is_alive); 
 end
@@ -180,10 +184,10 @@ for j=1:length(filenames)
     
 
     
-    dead_pgon = polyshape(10.^r1);
+    dead_pgon = polyshape(r1);
     plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
     
-    alive_pgon = polyshape(10.^r2);
+    alive_pgon = polyshape(r2);
     plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g')
     
     title({sample_names{j}, [num2str(dead_alive_all(j,1)) ' dead, ' num2str(dead_alive_all(j,2)) ' alive'], [num2str(round(p_dead_scatter_all(j)*100)) '% dead'] })
@@ -219,10 +223,10 @@ for j=1:length(filenames)
     
 
     
-    dead_pgon = polyshape(10.^r1);
+    dead_pgon = polyshape(r1);
     plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
     
-    alive_pgon = polyshape(10.^r2);
+    alive_pgon = polyshape(r2);
     plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g')
     
     title({sample_names{j}, [num2str(dead_alive_all(j,1)) ' dead, ' num2str(dead_alive_all(j,2)) ' alive'], [num2str(round(p_dead_scatter_all(j)*100)) '% dead'] })
@@ -258,10 +262,10 @@ for j=1:length(filenames)
     
 
     
-    dead_pgon = polyshape(10.^r1);
+    dead_pgon = polyshape(r1);
     plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
     
-    alive_pgon = polyshape(10.^r2);
+    alive_pgon = polyshape(r2);
     plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g')
     
     title({sample_names{j}, [num2str(dead_alive_all(j,1)) ' dead, ' num2str(dead_alive_all(j,2)) ' alive'], [num2str(round(p_dead_scatter_all(j)*100)) '% dead'] })
@@ -684,8 +688,9 @@ disp('txt file written.')
 
 
 
-
+%%
 close all
+clear('tmp', 'tmp1', 'tmp2', 'xy', 'xy_combined', 'xy_tmp', 'NN')
 save([path_out prefix_out '_data.mat'])
 disp('Data saved.')
 
