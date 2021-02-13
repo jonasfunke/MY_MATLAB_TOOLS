@@ -3,10 +3,11 @@ function [out] = load_fcs_data_attune_v2(pname, fname, radius)
 %   Detailed explanation goes here
 [fcsdat, fcshdr, fcsdatscaled, fcsdat_comp]  = fca_readfcs([pname fname]);
 
-out.fcsdat = fcsdat;
+out.fcsdat = single(fcsdat); %convert data to single
 out.fcshdr = fcshdr;
 %out.fcsdatscaled = fcsdatscaled;
 %out.fcsdat_comp = fcsdat_comp;
+
 
 
 %% calculate 
