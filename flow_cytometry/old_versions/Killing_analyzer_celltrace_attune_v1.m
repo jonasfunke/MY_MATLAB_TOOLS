@@ -88,7 +88,7 @@ scatter_lim = [1e4 2^20 1e4 2^20];
 
 
 %% gate cells
-ct_gate = 10e4; % CHANGE THIS IF NEEDED
+ct_gate = 5e4; % CHANGE THIS IF NEEDED
 
 cur_fig = figure(1); clf
 for j=1:length(filenames)

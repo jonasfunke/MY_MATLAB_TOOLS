@@ -170,7 +170,7 @@ ylabel('Effector/Target')
 
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 length(filenames)*2 20 ], 'PaperSize', [length(filenames)*2 20 ] );
-print(cur_fig, '-dpdf', [path_out 'effector_target_counts.pdf']); %save figure
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_effector_target_counts.pdf']); %save figure
 
 
 %% make fcs-ssc scatter plots
@@ -311,7 +311,7 @@ grid on
 
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 length(filenames)*2 20 ], 'PaperSize', [length(filenames)*2 20 ] );
-print(cur_fig, '-dpdf', [path_out 'fraction_dead.pdf']); %save figure
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_fraction_dead.pdf']); %save figure
 
 
 %%
