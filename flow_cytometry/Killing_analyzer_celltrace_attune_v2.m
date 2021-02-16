@@ -8,8 +8,9 @@ i_fsc_ch = 2; % FSC-A
 i_ssc_ch = 3; % SSC-A
 i_ct_ch = 4; % BL1-A for CSFE stain
 
-i_cd4 = 5; % YL1, CD4+
-i_cd8 = 6; % RL1, CD8+
+i_cd4 = 6; % YL1, CD4+
+i_cd8 = 7; % RL1, CD8+
+i_cd69 = 5; % BL3, CD69
 
 radius = 0.03;
 
@@ -465,7 +466,7 @@ if bool_activation
 
     for j=1:length(data)
 
-        xy = [data(j).fcsdat(:,i_cd4),data(j).fcsdat(:,i_ct_ch)];
+        xy = [data(j).fcsdat(:,i_cd4),data(j).fcsdat(:,i_cd69)];
         xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
 
 
@@ -479,7 +480,7 @@ if bool_activation
         title([sample_names{j} ' all'])
 
 
-        xlabel(['CD4 ' data(j).fcshdr.par(i_cd4).name]), ylabel(['CD69/CT ' data(j).fcshdr.par(i_ct_ch).name])
+        xlabel(['CD4 ' data(j).fcshdr.par(i_cd4).name]), ylabel(['CD69 ' data(j).fcshdr.par(i_cd69).name])
         caxis([0 60])
 
         grid on
@@ -507,7 +508,7 @@ if bool_activation
 
         %xy = [data(j).fcsdat(data(j).is_alive,i_rl1),data(j).fcsdat(data(j).is_alive,i_ct_ch)];
         %xy = [data(j).fcsdat(data(j).is_dead,i_rl1),data(j).fcsdat(data(j).is_dead,i_ct_ch)];
-        xy = [data(j).fcsdat(:,i_cd8),data(j).fcsdat(:,i_ct_ch)];
+        xy = [data(j).fcsdat(:,i_cd8),data(j).fcsdat(:,i_cd69)];
         xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
 
 
@@ -527,7 +528,7 @@ if bool_activation
         title([sample_names{j} ' all'])
 
 
-        xlabel(['CD8 ' data(j).fcshdr.par(i_cd8).name]), ylabel(['CD69/CT ' data(j).fcshdr.par(i_ct_ch).name])
+        xlabel(['CD8 ' data(j).fcshdr.par(i_cd8).name]), ylabel(['CD69 ' data(j).fcshdr.par(i_cd69).name])
         caxis([0 60])
 
         grid on
@@ -555,11 +556,11 @@ if bool_activation
     tmp1 = [];
     tmp2 = [];
     for j=1:length(filenames)
-        tmp1 = [tmp1; data(j).fcsdat(data(j).cd4_positive,i_ct_ch)];
-        tmp2 = [tmp2; data(j).fcsdat(data(j).cd8_positive,i_ct_ch)];
+        tmp1 = [tmp1; data(j).fcsdat(data(j).cd4_positive,i_cd69)];
+        tmp2 = [tmp2; data(j).fcsdat(data(j).cd8_positive,i_cd69)];
     end
-    activation_gate_cd4 = create_gate_1d(tmp1, data(j).fcshdr.par(i_ct_ch).name, 'Select gate for CD4+ cells');
-    activation_gate_cd8 = create_gate_1d(tmp2, data(j).fcshdr.par(i_ct_ch).name, 'Select gate for CD8+ cells');
+    activation_gate_cd4 = create_gate_1d(tmp1, data(j).fcshdr.par(i_cd69).name, 'Select gate for CD4+ cells');
+    activation_gate_cd8 = create_gate_1d(tmp2, data(j).fcshdr.par(i_cd69).name, 'Select gate for CD8+ cells');
 
 
 
@@ -570,13 +571,13 @@ if bool_activation
     for j=1:length(filenames)
 
 
-        activated(j,2) = sum(data(j).fcsdat(data(j).cd8_positive,i_ct_ch)>activation_gate_cd8);
-        activated(j,1) = sum(data(j).fcsdat(data(j).cd4_positive,i_ct_ch)>activation_gate_cd4);
+        activated(j,2) = sum(data(j).fcsdat(data(j).cd8_positive,i_cd69)>activation_gate_cd8);
+        activated(j,1) = sum(data(j).fcsdat(data(j).cd4_positive,i_cd69)>activation_gate_cd4);
 
         subplot(N_row, N_column, j)
         %histogram(real(log10(data(j).fcsdat(:,i_ct_ch))), 'DisplayStyle', 'stairs'), hold on
-        histogram(real(log10(data(j).fcsdat(data(j).cd4_positive,i_ct_ch))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
-        histogram(real(log10(data(j).fcsdat(data(j).cd8_positive,i_ct_ch))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
+        histogram(real(log10(data(j).fcsdat(data(j).cd4_positive,i_cd69))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
+        histogram(real(log10(data(j).fcsdat(data(j).cd8_positive,i_cd69))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
         set(gca, 'XLim', [1 6], 'YLim', [0 1])
         xline(log10(activation_gate_cd4), 'Color', cc(1,:));
         xline(log10(activation_gate_cd8), 'Color', cc(2,:));
@@ -584,7 +585,7 @@ if bool_activation
         if j==length(filenames)
             legend({ 'CD4+', 'CD8+'})
         end
-        xlabel(['CD69, ' data(j).fcshdr.par(i_ct_ch).name])
+        xlabel(['CD69, ' data(j).fcshdr.par(i_cd69).name])
         %ylabel('Count density')
         ylabel('PDF')
     end
