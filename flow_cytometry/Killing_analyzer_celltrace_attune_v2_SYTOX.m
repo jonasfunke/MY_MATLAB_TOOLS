@@ -8,7 +8,7 @@ i_fsc_ch = 2; % FSC-A
 i_ssc_ch = 3; % SSC-A
 i_ct_ch = 4; % BL1-A for CSFE stain
 
-i_cd4 = 6; % YL1, CD4+
+i_live_dead = 6; % YL1, SYTOX
 i_cd8 = 7; % RL1, CD8+
 i_cd69 = 5; % BL3, CD69
 
@@ -18,7 +18,7 @@ radius = 0.03;
 [filenames, pathname]=uigetfile('*.fcs','Select the fcs files','MultiSelect','on');
 
 %% create output dir
-prefix_out = [ datestr(now, 'yyyy-mm-dd_HH-MM') '_killing-v2'];
+prefix_out = [ datestr(now, 'yyyy-mm-dd_HH-MM') '_killing-v2_SYTOX'];
 tmp = inputdlg({'Name of analysis (prefix):'}, 'Name of analysis (prefix):' , 1, {prefix_out} );
 prefix_out = tmp{1};
 path_out = [pathname prefix_out filesep];
@@ -129,18 +129,34 @@ r1 = create_gate_2d(xy_combined, radius, {data(1).channel_names(i_fsc_ch) data(1
 r2 = create_gate_2d(xy_combined, radius, {data(1).channel_names(i_fsc_ch) data(1).channel_names(i_ssc_ch)}, 'Select alive cell population.');
 
 
-%% gate data live dead target cells
-dead_alive_all = zeros(length(filenames),2);
+%% gate data live dead target cells based on SYTOX signal
+tmp = [];
+for j=1:length(data)
+    tmp = [tmp; data(j).fcsdat(data(j).is_stained, i_live_dead)];
+end
+live_dead_gate = create_gate_1d(tmp, data(j).fcshdr.par(i_live_dead).name, 'Select gate for live dead');
+
+
+cur_fig = figure(1); clf
 for j=1:length(filenames)
-    xy = [data(j).fcsdat(data(j).is_stained,i_fsc_ch),data(j).fcsdat(data(j).is_stained,i_ssc_ch)];
-    data(j).is_dead = gate_data_2d(xy, r1);
-    data(j).is_alive = gate_data_2d(xy, r2);
+    subplot(N_row, N_column, j)
+    histogram(real(log10(data(j).fcsdat(:,i_live_dead)))), hold on
+    set(gca, 'XLim', [1 6])
+    xline(log10(live_dead_gate));
+    data(j).is_dead = (data(j).fcsdat(:,i_live_dead)>live_dead_gate);
+    data(j).is_alive = (data(j).fcsdat(:,i_live_dead)<live_dead_gate);
     dead_alive_all(j,1) = sum(data(j).is_dead);
     dead_alive_all(j,2) = sum(data(j).is_alive); 
+    title({sample_names{j}, ['Percent dead: ' num2str( round(100*dead_alive_all(j,1)/sum(dead_alive_all(j,:))  )) '%' ]})
+
+    xlabel(['SYTOX fl, ' data(j).fcshdr.par(i_live_dead).name])
+    ylabel('Counts')
 end
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_SYTOX-histogram.pdf']); %save figure
 
 p_dead_scatter_all = dead_alive_all(:,1)./(dead_alive_all(:,1) + dead_alive_all(:,2));
-
 
 
 %% calculate E:T ratio
@@ -185,11 +201,11 @@ for j=1:length(filenames)
     
 
     
-    dead_pgon = polyshape(r1);
-    plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
+    %dead_pgon = polyshape(r1);
+    %plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
     
-    alive_pgon = polyshape(r2);
-    plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g')
+    %alive_pgon = polyshape(r2);
+    %plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g')
     
     title({sample_names{j}, [num2str(dead_alive_all(j,1)) ' dead, ' num2str(dead_alive_all(j,2)) ' alive'], [num2str(round(p_dead_scatter_all(j)*100)) '% dead'] })
 
@@ -224,11 +240,11 @@ for j=1:length(filenames)
     
 
     
-    dead_pgon = polyshape(r1);
-    plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
+    %dead_pgon = polyshape(r1);
+    %plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
     
-    alive_pgon = polyshape(r2);
-    plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g')
+    %alive_pgon = polyshape(r2);
+    %plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g')
     
     title({sample_names{j}, [num2str(dead_alive_all(j,1)) ' dead, ' num2str(dead_alive_all(j,2)) ' alive'], [num2str(round(p_dead_scatter_all(j)*100)) '% dead'] })
 
@@ -263,11 +279,11 @@ for j=1:length(filenames)
     
 
     
-    dead_pgon = polyshape(r1);
-    plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
+    %dead_pgon = polyshape(r1);
+    %plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
     
-    alive_pgon = polyshape(r2);
-    plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g')
+    %alive_pgon = polyshape(r2);
+    %plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g')
     
     title({sample_names{j}, [num2str(dead_alive_all(j,1)) ' dead, ' num2str(dead_alive_all(j,2)) ' alive'], [num2str(round(p_dead_scatter_all(j)*100)) '% dead'] })
 
@@ -287,6 +303,49 @@ end
 pause(1)
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_overview_SSC-FSC-NN_not-stained.pdf']); %save figure
 
+
+
+
+%%
+
+% plot pbmc only
+cur_fig = figure(1); clf
+set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+    'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
+for j=1:length(filenames)
+    
+    xy = [data(j).fcsdat(data(j).is_stained,i_fsc_ch),data(j).fcsdat(data(j).is_stained,i_ssc_ch)];
+    xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
+    
+    subplot(N_row, N_column, j)
+    %scatter(xy(:,1), xy(:,2), 5, double(data(j).is_alive(data(j).is_stained)), '.'), hold on
+    scatter(xy(:,1), xy(:,2), 5, data(j).fcsdat((data(j).is_stained),i_live_dead), '.'), hold on
+    
+
+    
+    %dead_pgon = polyshape(r1);
+    %plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
+    
+    %alive_pgon = polyshape(r2);
+    %plot(alive_pgon, 'FaceColor', 'none', 'EdgeColor', 'g')
+    
+    title({sample_names{j}, [num2str(dead_alive_all(j,1)) ' dead, ' num2str(dead_alive_all(j,2)) ' alive'], [num2str(round(p_dead_scatter_all(j)*100)) '% dead'] })
+
+        
+    xlabel(data(j).fcshdr.par(i_fsc_ch).name), ylabel(data(j).fcshdr.par(i_ssc_ch).name)
+    
+    grid on
+    caxis([0 2*live_dead_gate])
+    set(gca,'xscale','log','yscale','log', 'XLim', scatter_lim(1:2) , 'YLim', scatter_lim(3:4) )
+    
+    if j == length(filenames)
+        h = colorbar;
+        ylabel(h, ['SYTOX, ' data(j).fcshdr.par(i_live_dead).name])
+    end
+end
+
+pause(1)
+print(cur_fig, '-dpdf', [path_out filesep prefix_out '_overview_SSC-FSC-NN_stained_live-dead.pdf']); %save figure
 %%
 
 cur_fig = figure(3); clf
@@ -379,16 +438,16 @@ bool_activation = strcmp(answer_activation, 'Yes');
 if bool_activation
 
     % gate cells base on CD3 vs CD8 plots
-    xy_combined = zeros(0, 2);
+    xy_combined = zeros(0, 1);
     for j=1:length(filenames)
-        xy = [data(j).fcsdat(:,i_cd8),data(j).fcsdat(:,i_cd4)];
+        xy = [data(j).fcsdat(:,i_cd8)];
         xy_combined = [xy_combined; xy];
     end
     
     %[r_cd8] = one_region_create_gate_2(real(log10(xy_combined)), 0.01, {['CD8 ' data(1).fcshdr.par(i_rl1).name] ['CD4 ' data(1).fcshdr.par(i_yl1).name] }, 'Select CD8+ cells');
     %[r_cd4] = one_region_create_gate_2(real(log10(xy_combined)), 0.01, {['CD8 ' data(1).fcshdr.par(i_rl1).name] ['CD4 ' data(1).fcshdr.par(i_yl1).name] }, 'Select CD4+ cells');
 
-    cd4_gate = create_gate_1d(xy_combined(:,2), ['CD4 ' data(1).fcshdr.par(i_cd4).name], 'Select gate for CD4+ cells');
+    %cd4_gate = create_gate_1d(xy_combined(:,2), ['CD4 ' data(1).fcshdr.par(i_cd4).name], 'Select gate for CD4+ cells');
     cd8_gate = create_gate_1d(xy_combined(:,1), ['CD8 ' data(1).fcshdr.par(i_cd8).name], 'Select gate for CD8+ cells');
 
     % gate cells
@@ -407,99 +466,15 @@ if bool_activation
         %xy(xy(:,1)<=0,1) = 1; % set inf values to one
         %xy(xy(:,2)<=0,2) = 1; % set inf values to one
         %data(j).cd4_positive = one_region_gate_data_2(xy, r_cd4);
-        data(j).cd4_positive = data(j).fcsdat(:,i_cd4)>cd4_gate;
-        cd8_cd4(j,2) = sum(data(j).cd4_positive);
+        %data(j).cd4_positive = data(j).fcsdat(:,i_cd4)>cd4_gate;
+        %cd8_cd4(j,2) = sum(data(j).cd4_positive);
 
     end
 
 
 
-    %% create scatter plots for activation
-    cur_fig = figure(6); clf
-
-    for j=1:length(data)
-
-        xy = [data(j).fcsdat(:,i_cd8),data(j).fcsdat(:,i_cd4)];
-        xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
 
 
-        NN = get_NN_density_fast(xy_tmp, 0.05);
-
-        subplot(N_row, N_column, j)
-        scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
-
-        %poligon_tmp = polyshape(10.^r_cd4);
-        %plot(poligon_tmp, 'FaceColor', 'none', 'EdgeColor', 'k')
-        yline(cd4_gate, 'r');
-        %poligon_tmp = polyshape(10.^r_cd8);
-        %plot(poligon_tmp, 'FaceColor', 'none', 'EdgeColor', 'r')
-        xline(cd8_gate, 'r');
-        title([sample_names{j} ' all'])
-
-
-        xlabel(['CD8 ' data(j).fcshdr.par(i_cd8).name]), ylabel(['CD4 ' data(j).fcshdr.par(i_cd4).name])
-
-        grid on
-
-        caxis([0 60])
-        if j==length(data)
-            colorbar
-            legend({'data' 'CD4+' 'CD8+'})
-
-        end
-         set(gca,'xscale','log','yscale','log', 'XLim', [1e0 1e6] , 'YLim',  [1e0 1e6])
-
-         %xline(ct_gate);
-         %yline(ct_gate2);
-
-    end
-
-    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-        'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
-    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_CD4-CD4.pdf']); %save figure
-
-
-
-    %% Plot gated cells
-
-    cur_fig = figure(4); clf
-
-    for j=1:length(data)
-
-        xy = [data(j).fcsdat(:,i_cd4),data(j).fcsdat(:,i_cd69)];
-        xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
-
-
-        NN = get_NN_density_fast(xy_tmp, 0.05);
-
-        subplot(N_row, N_column, j)
-        scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
-        xline(cd4_gate, 'r');
-
-
-        title([sample_names{j} ' all'])
-
-
-        xlabel(['CD4 ' data(j).fcshdr.par(i_cd4).name]), ylabel(['CD69 ' data(j).fcshdr.par(i_cd69).name])
-        caxis([0 60])
-
-        grid on
-        if j==length(data)
-            colorbar
-    %        caxis([0 60])
-        end
-
-         set(gca,'xscale','log','yscale','log', 'XLim', [1e0 1e6] , 'YLim',  [1e0 1e6])
-
-         %xline(ct_gate);
-         %yline(ct_gate2);
-
-    end
-
-
-    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-        'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
-    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_CD69-CD4.pdf']); %save figure
 
     %%
     cur_fig = figure(5); clf
@@ -556,10 +531,8 @@ if bool_activation
     tmp1 = [];
     tmp2 = [];
     for j=1:length(filenames)
-        tmp1 = [tmp1; data(j).fcsdat(data(j).cd4_positive,i_cd69)];
         tmp2 = [tmp2; data(j).fcsdat(data(j).cd8_positive,i_cd69)];
     end
-    activation_gate_cd4 = create_gate_1d(tmp1, data(j).fcshdr.par(i_cd69).name, 'Select gate for CD4+ cells');
     activation_gate_cd8 = create_gate_1d(tmp2, data(j).fcshdr.par(i_cd69).name, 'Select gate for CD8+ cells');
 
 
@@ -572,18 +545,15 @@ if bool_activation
 
 
         activated(j,2) = sum(data(j).fcsdat(data(j).cd8_positive,i_cd69)>activation_gate_cd8);
-        activated(j,1) = sum(data(j).fcsdat(data(j).cd4_positive,i_cd69)>activation_gate_cd4);
 
         subplot(N_row, N_column, j)
         %histogram(real(log10(data(j).fcsdat(:,i_ct_ch))), 'DisplayStyle', 'stairs'), hold on
-        histogram(real(log10(data(j).fcsdat(data(j).cd4_positive,i_cd69))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
         histogram(real(log10(data(j).fcsdat(data(j).cd8_positive,i_cd69))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
         set(gca, 'XLim', [1 6], 'YLim', [0 1])
-        xline(log10(activation_gate_cd4), 'Color', cc(1,:));
         xline(log10(activation_gate_cd8), 'Color', cc(2,:));
         title(sample_names{j})
         if j==length(filenames)
-            legend({ 'CD4+', 'CD8+'})
+            legend({ 'CD8+'})
         end
         xlabel(['CD69, ' data(j).fcshdr.par(i_cd69).name])
         %ylabel('Count density')
@@ -597,12 +567,8 @@ if bool_activation
     %%
 
     if answer_plate
-        plate_activated_cd4 = zeros(8, 12, 2);
         plate_activated_cd8 = zeros(8, 12, 2);
         for i=1:length(filenames)
-            plate_activated_cd4(row(i), column(i), 1) = activated(i,1);   % activated cd4 cells
-            plate_activated_cd4(row(i), column(i), 2) = sum(data(i).cd4_positive); % number of cd4 cells
-
             plate_activated_cd8(row(i), column(i), 1) = activated(i,2);   % activated cd4 cells
             plate_activated_cd8(row(i), column(i), 2) = sum(data(i).cd8_positive); % number of cd4 cells
 
@@ -611,24 +577,13 @@ if bool_activation
 
         cur_fig = figure(4); clf
 
-        subplot(2, 2, 1)
-        imagesc(plate_activated_cd4(:,:,1)), axis image, colorbar
-        set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
-        title(['Number activated CD4+ ' data(j).fcshdr.par(i_cd4).name ' cells'])
 
-        subplot(2, 2, 2)
-        imagesc(plate_activated_cd4(:,:,1)./plate_activated_cd4(:,:,2), [0 1]), axis image, colorbar
-        set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
-        title(['Fraction activated CD4+ ' data(j).fcshdr.par(i_cd4).name ' cells'])
-
-
-
-        subplot(2, 2, 3)
+        subplot(1, 2, 1)
         imagesc(plate_activated_cd8(:,:,1)), axis image, colorbar
         set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
         title(['Number activated CD8+ ' data(j).fcshdr.par(i_cd8).name ' cells'])
 
-        subplot(2, 2, 4)
+        subplot(1, 2, 2)
         imagesc(plate_activated_cd8(:,:,1)./plate_activated_cd8(:,:,2), [0 1]), axis image, colorbar
         set(gca, 'Xtick', 1:12, 'YTick', [1:8], 'Yticklabel', {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'})
         title(['Fraction activated CD8+ ' data(j).fcshdr.par(i_cd8).name ' cells'])
@@ -662,8 +617,6 @@ fprintf(fileID,'N_target\t');
 fprintf(fileID,'N_target_dead\t');
 fprintf(fileID,'N_target_alive\t');
 if bool_activation
-    fprintf(fileID,'N_cd4_total\t');
-    fprintf(fileID,'N_cd4_acivated\t');
     fprintf(fileID,'N_cd8_total\t');
     fprintf(fileID,'N_cd8_acivated\t');
 end
@@ -677,8 +630,6 @@ for j=1:length(filenames)
     fprintf(fileID,'%i\t', dead_alive_all(j,1)); % target dead
     fprintf(fileID,'%i\t', dead_alive_all(j,2)); % target alive
     if bool_activation
-        fprintf(fileID,'%i\t',sum(data(j).cd4_positive)); % cd4 total
-        fprintf(fileID,'%i\t', activated(j,1)); % cd4 activated
         fprintf(fileID,'%i\t',sum(data(j).cd8_positive)); % cd8 total
         fprintf(fileID,'%i\t', activated(j,2)); % cd8 activated
     end

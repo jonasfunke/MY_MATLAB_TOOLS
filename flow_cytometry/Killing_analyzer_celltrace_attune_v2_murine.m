@@ -8,9 +8,10 @@ i_fsc_ch = 2; % FSC-A
 i_ssc_ch = 3; % SSC-A
 i_ct_ch = 4; % BL1-A for CSFE stain
 
-i_cd4 = 6; % YL1, CD4+
-i_cd8 = 7; % RL1, CD8+
-i_cd69 = 5; % BL3, CD69
+i_cd4 = 7; % antiCD4-APC (RL1)
+i_cd8 = 6; % antiCD8-PE (YL1)
+i_cd69 = 5; % antiCD69-PECy7 (YL4)
+
 
 radius = 0.03;
 
@@ -456,7 +457,7 @@ if bool_activation
 
     set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
         'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
-    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_CD4-CD4.pdf']); %save figure
+    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_CD4-CD8.pdf']); %save figure
 
 
 
@@ -559,8 +560,8 @@ if bool_activation
         tmp1 = [tmp1; data(j).fcsdat(data(j).cd4_positive,i_cd69)];
         tmp2 = [tmp2; data(j).fcsdat(data(j).cd8_positive,i_cd69)];
     end
-    activation_gate_cd4 = create_gate_1d(tmp1, data(j).fcshdr.par(i_cd69).name, 'Select gate for CD4+ cells');
-    activation_gate_cd8 = create_gate_1d(tmp2, data(j).fcshdr.par(i_cd69).name, 'Select gate for CD8+ cells');
+    activation_gate_cd4 = create_gate_1d(tmp1, data(j).fcshdr.par(i_cd69).name, 'Select activation gate for CD4+ cells');
+    activation_gate_cd8 = create_gate_1d(tmp2, data(j).fcshdr.par(i_cd69).name, 'Select activation gate for CD8+ cells');
 
 
 
