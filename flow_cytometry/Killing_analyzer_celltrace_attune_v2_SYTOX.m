@@ -117,19 +117,9 @@ set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters'
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_CT-histogram.pdf']); %save figure
 
 
-%% select live and dead populations manually
-xy_combined = zeros(0, 2);
-for j=1:length(filenames)
-    xy = [data(j).fcsdat(data(j).is_stained,i_fsc_ch),data(j).fcsdat(data(j).is_stained,i_ssc_ch)];
-    xy_combined = [xy_combined; xy];
-end
-%[r1, r2] = manual_select_population(real(log10(xy_combined)));
-
-r1 = create_gate_2d(xy_combined, radius, {data(1).channel_names(i_fsc_ch) data(1).channel_names(i_ssc_ch)}, 'Select dead cell population.');
-r2 = create_gate_2d(xy_combined, radius, {data(1).channel_names(i_fsc_ch) data(1).channel_names(i_ssc_ch)}, 'Select alive cell population.');
-
 
 %% gate data live dead target cells based on SYTOX signal
+close all
 tmp = [];
 for j=1:length(data)
     tmp = [tmp; data(j).fcsdat(data(j).is_stained, i_live_dead)];
@@ -140,11 +130,11 @@ live_dead_gate = create_gate_1d(tmp, data(j).fcshdr.par(i_live_dead).name, 'Sele
 cur_fig = figure(1); clf
 for j=1:length(filenames)
     subplot(N_row, N_column, j)
-    histogram(real(log10(data(j).fcsdat(:,i_live_dead)))), hold on
+    histogram(real(log10(data(j).fcsdat(data(j).is_stained,i_live_dead)))), hold on
     set(gca, 'XLim', [1 6])
     xline(log10(live_dead_gate));
-    data(j).is_dead = (data(j).fcsdat(:,i_live_dead)>live_dead_gate);
-    data(j).is_alive = (data(j).fcsdat(:,i_live_dead)<live_dead_gate);
+    data(j).is_dead = (data(j).fcsdat(data(j).is_stained,i_live_dead)>live_dead_gate); % target cell AND dead
+    data(j).is_alive = (data(j).fcsdat(data(j).is_stained,i_live_dead)<live_dead_gate); % target cell AND alive
     dead_alive_all(j,1) = sum(data(j).is_dead);
     dead_alive_all(j,2) = sum(data(j).is_alive); 
     title({sample_names{j}, ['Percent dead: ' num2str( round(100*dead_alive_all(j,1)/sum(dead_alive_all(j,:))  )) '%' ]})
