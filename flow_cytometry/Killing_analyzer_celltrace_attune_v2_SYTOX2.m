@@ -92,29 +92,23 @@ for j=2:length(filenames)
 end
 scatter_lim = [1e4 2^20 1e4 2^20];
 
-%% gate cells based on target-cell fluorescence
-tmp = [];
-for j=1:length(data)
-    tmp = [tmp; data(j).fcsdat(:,i_ct_ch)];
-end
-ct_gate = create_gate_1d(tmp, data(j).fcshdr.par(i_ct_ch).name, 'Select gate for target cells');
+NN_lim = [0 50]
+%% gate cells based on CellTrace-SYTOX scatterplot
 
-
-cur_fig = figure(1); clf
+xy_combined = zeros(0, 2);
 for j=1:length(filenames)
-    subplot(N_row, N_column, j)
-    histogram(real(log10(data(j).fcsdat(:,i_ct_ch)))), hold on
-    set(gca, 'XLim', [1 6])
-    xline(log10(ct_gate));
-    data(j).is_stained = (data(j).fcsdat(:,i_ct_ch)>ct_gate);
-    p_tmp = sum(data(j).is_stained)/length(data(j).is_stained);
-    title({sample_names{j}, [ num2str(round(100*p_tmp)) '% stained cells']})
-    xlabel(['CT fl, ' data(j).fcshdr.par(i_ct_ch).name])
-    ylabel('Counts')
+    xy = [data(j).fcsdat(:,i_ct_ch),data(j).fcsdat(:,i_live_dead)];
+    xy_combined = [xy_combined; xy];
 end
-set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-    'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
-print(cur_fig, '-dpdf', [path_out filesep prefix_out '_CT-histogram.pdf']); %save figure
+
+
+r1 = create_gate_2d(xy_combined, radius, {data(1).channel_names(i_ct_ch) data(1).channel_names(i_live_dead)}, 'Select dead cell population.');
+
+% gate data live dead target cells
+for j=1:length(filenames)
+    xy = [data(j).fcsdat(:,i_ct_ch),data(j).fcsdat(:,i_live_dead)];
+    data(j).is_stained = gate_data_2d(xy, r1);
+end
 
 
 
@@ -254,7 +248,7 @@ end
 pause(1)
 print(cur_fig, '-dpdf', [path_out filesep prefix_out '_overview_SSC-FSC-NN_stained.pdf']); %save figure
 
-% plot pbmc only
+%% plot pbmc only
 cur_fig = figure(1); clf
 set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
     'PaperPosition', [0 0 N_column*13 N_row*12 ], 'PaperSize', [N_column*13 N_row*12 ] );
@@ -352,6 +346,9 @@ for j=1:length(filenames)
     subplot(N_row, N_column, j)
     scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
 
+    dead_pgon = polyshape(r1);
+    plot(dead_pgon, 'FaceColor', 'none', 'EdgeColor', 'r')
+    
     title(sample_names{j} )
 
         

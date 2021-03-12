@@ -11,6 +11,7 @@ function [roi1_pos] = create_gate_2d(xy, r, axis_labels, command)
     colorbar
     xlabel(axis_labels{1}), ylabel(axis_labels{2})
     set(gca,'xscale','log','yscale','log')
+    %set(gca,'ylim', [-0.5e5 5e5])
     grid on
 
     title(command)

@@ -581,7 +581,10 @@ if bool_activation
         set(gca, 'XLim', [1 6], 'YLim', [0 1])
         xline(log10(activation_gate_cd4), 'Color', cc(1,:));
         xline(log10(activation_gate_cd8), 'Color', cc(2,:));
-        title(sample_names{j})
+        
+        title({sample_names{j}, ...
+            [num2str(round(100*activated(j,1)/sum(data(j).cd4_positive))) '% activated CD4'], ...
+            [num2str(round(100*activated(j,2)/sum(data(j).cd8_positive))) '% activated CD8'] })
         if j==length(filenames)
             legend({ 'CD4+', 'CD8+'})
         end
