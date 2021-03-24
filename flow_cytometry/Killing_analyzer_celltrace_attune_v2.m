@@ -419,7 +419,7 @@ if bool_activation
 
     for j=1:length(data)
 
-        xy = [data(j).fcsdat(:,i_cd8),data(j).fcsdat(:,i_cd4)];
+        xy = [data(j).fcsdat(~data(j).is_stained,i_cd8),data(j).fcsdat(~data(j).is_stained,i_cd4)];
         xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
 
 
@@ -456,7 +456,7 @@ if bool_activation
 
     set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
         'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
-    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_CD4-CD4.pdf']); %save figure
+    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_CD8-CD4.pdf']); %save figure
 
 
 
@@ -466,7 +466,7 @@ if bool_activation
 
     for j=1:length(data)
 
-        xy = [data(j).fcsdat(:,i_cd4),data(j).fcsdat(:,i_cd69)];
+        xy = [data(j).fcsdat(~data(j).is_stained,i_cd4),data(j).fcsdat(~data(j).is_stained,i_cd69)];
         xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
 
 
@@ -508,7 +508,7 @@ if bool_activation
 
         %xy = [data(j).fcsdat(data(j).is_alive,i_rl1),data(j).fcsdat(data(j).is_alive,i_ct_ch)];
         %xy = [data(j).fcsdat(data(j).is_dead,i_rl1),data(j).fcsdat(data(j).is_dead,i_ct_ch)];
-        xy = [data(j).fcsdat(:,i_cd8),data(j).fcsdat(:,i_cd69)];
+        xy = [data(j).fcsdat(~data(j).is_stained,i_cd8),data(j).fcsdat(~data(j).is_stained,i_cd69)];
         xy_tmp = real([log10(xy(:,1)), log10(xy(:,2))]);
 
 
