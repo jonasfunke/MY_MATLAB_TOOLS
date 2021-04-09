@@ -1,7 +1,21 @@
 %%
 close all, clear all, clc
 
+% select modifer_liet file
+tmp = dir('modifier_list.xlsx');
+if isempty(tmp) || length(tmp)>1
+    % select file
+    uiwait(msgbox('No modifier_list.xlsx found. Select one.','modifier_list not found','modal'));
+    
+    [modifier_list_name, modifier_list_path] = uigetfile({'*.xlsx'},'Select the modifier-list file.', 'MultiSelect','off');
+    modifier_list_location = [modifier_list_path modifier_list_name];
+else
+    modifier_list_location = [tmp(1).folder filesep tmp(1).name]; 
+
+end
+disp(['Location of modifier list: ' modifier_list_location])
 %% select csv file and read it
+%uiwait(msgbox('Select a profire run .csv file.','Select csv','modal'));
 data = read_profire_csv();
 
 %% set manually
@@ -9,61 +23,41 @@ data_rate = 10*60; % data points/min
 data_rate_valve = 0.5*60; %data points / min
 
 
-% select protein
+%% select the protein
 protein_list = cell(0,2);
 i=1;
-protein_list{i,1} = 'IgG with 26 base modifier';
-protein_list{i,2} =  363294; % IgG-DNA
+protein_list{i,1} = 'F(ab)';
+protein_list{i,2} =  137494/3;
 
-i=2;
-protein_list{i,1} = 'IL2 with 26 base modifier';
-protein_list{i,2} =  225800+ 11710;
+i=i+1;
+protein_list{i,1} = 'IgG';
+protein_list{i,2} =  137494;
 
-i=3;
-protein_list{i,1} = '26 base modifier only';
-protein_list{i,2} =  225800;
+i=i+1;
+protein_list{i,1} = 'IL2';
+protein_list{i,2} =  11710;
 
-i=4;
-protein_list{i,1} = 'F(ab) with 26 base modifier';
-protein_list{i,2} =  round(225800 + 137494/3);
+% insert more proteins here
 
-i=5;
-protein_list{i,1} = 'F(ab) with 29 base modifier 8603';
-protein_list{i,2} =  round(294300 + 137494/3);
-
-i=6;
-protein_list{i,1} = 'F(ab) with 45 base modifier 8598';
-protein_list{i,2} =  round(430000 + 137494/3);
-
-i=7;
-protein_list{i,1} = 'F(ab) with 24 base modifier 8604';
-protein_list{i,2} =  round(230500 + 137494/3);
-
-i=8;
-protein_list{i,1} = 'F(ab) with 29 base modifier 8599';
-protein_list{i,2} =  round(278000 + 137494/3);
-
-i=9;
-protein_list{i,1} = 'F(ab) with 32 base modifier 8601';
-protein_list{i,2} =  round(299500 + 137494/3);
-
-i=10;
-protein_list{i,1} = 'F(ab) with 25 base modifier 9167';
-protein_list{i,2} =  round(234900 + 137494/3);
-
-
-
-
-
-[protein_indx, ~] = listdlg('PromptString', {'Select a protein-DNA conjugate'},...
+[protein_indx, ~] = listdlg('PromptString', {'Select the protein'},...
     'SelectionMode','single','ListString',protein_list(:,1));
 
-disp(['Selected ' protein_list{protein_indx,1} ' with extinction coef of ' num2str(protein_list{protein_indx,2})  '/M/cm'])
+disp(['Selected ' protein_list{protein_indx,1} ', extinction coefficient is ' num2str(protein_list{protein_indx,2})  '/M/cm'])
 
-e = protein_list{protein_indx,2};
+e_protein = protein_list{protein_indx,2};
 
-%e = 136700 + 11710; % IL2 short modifier + extinction at 280
-%e = 225800+ 11710; % IL2 long modifier + extinction at 280
+%% select the DNA modifier strand
+
+modifiers = readtable(modifier_list_location);
+
+[DNA_indx, ~] = listdlg('PromptString', {'Select the protein'},...
+    'SelectionMode','single','ListString',modifiers.id);
+
+disp(['Selected ' modifiers.id{DNA_indx} ', extinction coefficient is ' num2str(modifiers.extinction_coef(DNA_indx))  '/M/cm'])
+
+e_DNA = modifiers.extinction_coef(protein_indx);
+
+e = e_protein + e_DNA;
 
 
 %%
@@ -71,14 +65,16 @@ e = protein_list{protein_indx,2};
 program_list = cell(0, 3);
 
 i=1;
+program_list{i,1} = 'custom-BK-IgG-26_collect';
+program_list{i,2} = [3.0:0.6:4.8 8.6:0.6:14]; % fractin_times
+program_list{i,3} = [1 2 3 13 4 5 6 7 8 9 10 11 12 ]; % fractions
+
+
+i=i+1;
 program_list{i,1} = 'custom-BK-IgG-26';
 program_list{i,2} = [6.8 7.4 8.0 8.6 9.2 9.8 10.4 11 11.6 12.2 12.8 13.4 14]; % fractin_times
 program_list{i,3} = [1 2 3 4 5 6 7 8 9 10 11 12 ]; % fractions
 
-i=i+1;
-program_list{i,1} = 'custom-BK-IgG-26_collect';
-program_list{i,2} = [3.0:0.6:4.8 8.6:0.6:14]; % fractin_times
-program_list{i,3} = [1 2 3 13 4 5 6 7 8 9 10 11 12 ]; % fractions
 
 i=i+1;
 program_list{i,1} = 'proFIRE10_15-19bases';
@@ -109,9 +105,6 @@ i=i+1;
 program_list{i,1} = 'custom_JF_sdAB';
 program_list{i,2} = [7.2:0.65:13.7]; % fractin_times
 program_list{i,3} = [1:10]; % fractions
-
-
-
 
 
 [program_indx,~] = listdlg('PromptString', {'Select a program'},...
@@ -193,7 +186,7 @@ for j=1:length(fraction_times)-1
 
 end
 xline(fraction_times(length(fraction_times)), 'k-');
-title({ data.filename(1:end-4), ['Program: ' program_list{program_indx,1}], [protein_list{protein_indx,1} ', extinction coef. ' num2str(e) '/M/cm']})
+title({ data.filename(1:end-4), ['Program: ' program_list{program_indx,1}], [protein_list{protein_indx,1} '-' modifiers.id{DNA_indx} ', extinction coef. ' num2str(round(e)) '/M/cm']})
 set(gca, 'XLim', xlim, 'YLim', ylim, 'XTick', xtick)
 grid on
 xlabel('Time, min'), ylabel('Absorption')
