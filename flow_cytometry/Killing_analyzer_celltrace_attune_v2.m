@@ -381,7 +381,7 @@ if bool_activation
     % gate cells base on CD3 vs CD8 plots
     xy_combined = zeros(0, 2);
     for j=1:length(filenames)
-        xy = [data(j).fcsdat(:,i_cd8),data(j).fcsdat(:,i_cd4)];
+        xy = [data(j).fcsdat(~data(j).is_stained,i_cd8),data(j).fcsdat(~data(j).is_stained,i_cd4)];
         xy_combined = [xy_combined; xy];
     end
     
@@ -412,6 +412,54 @@ if bool_activation
 
     end
 
+
+    %% CD69-positive histogram
+    %activation_gate_cd4  = 0.5e4;
+    %activation_gate_cd8  = 0.5e4;
+
+    tmp1 = [];
+    tmp2 = [];
+    for j=1:length(filenames)
+        tmp1 = [tmp1; data(j).fcsdat(data(j).cd4_positive,i_cd69)];
+        tmp2 = [tmp2; data(j).fcsdat(data(j).cd8_positive,i_cd69)];
+    end
+    activation_gate_cd4 = create_gate_1d(tmp1, data(j).fcshdr.par(i_cd69).name, 'Select gate for CD4+ cells');
+    activation_gate_cd8 = create_gate_1d(tmp2, data(j).fcshdr.par(i_cd69).name, 'Select gate for CD8+ cells');
+
+
+
+    cc = lines(2);
+
+    activated = zeros(length(filenames),2);
+    cur_fig = figure(10); clf
+    for j=1:length(filenames)
+
+
+        activated(j,2) = sum(data(j).fcsdat(data(j).cd8_positive,i_cd69)>activation_gate_cd8);
+        activated(j,1) = sum(data(j).fcsdat(data(j).cd4_positive,i_cd69)>activation_gate_cd4);
+
+        subplot(N_row, N_column, j)
+        %histogram(real(log10(data(j).fcsdat(:,i_ct_ch))), 'DisplayStyle', 'stairs'), hold on
+        histogram(real(log10(data(j).fcsdat(data(j).cd4_positive,i_cd69))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
+        histogram(real(log10(data(j).fcsdat(data(j).cd8_positive,i_cd69))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
+        set(gca, 'XLim', [1 6], 'YLim', [0 1])
+        xline(log10(activation_gate_cd4), 'Color', cc(1,:));
+        xline(log10(activation_gate_cd8), 'Color', cc(2,:));
+        
+        title({sample_names{j}, ...
+            [num2str(round(100*activated(j,1)/sum(data(j).cd4_positive))) '% activated CD4'], ...
+            [num2str(round(100*activated(j,2)/sum(data(j).cd8_positive))) '% activated CD8'] })
+        if j==length(filenames)
+            legend({ 'CD4+', 'CD8+'})
+        end
+        xlabel(['CD69, ' data(j).fcshdr.par(i_cd69).name])
+        %ylabel('Count density')
+        ylabel('PDF')
+    end
+
+    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
+        'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
+    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_hist_cd69.pdf']); %save figure
 
 
     %% create scatter plots for activation
@@ -475,7 +523,7 @@ if bool_activation
         subplot(N_row, N_column, j)
         scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
         xline(cd4_gate, 'r');
-
+        yline(activation_gate_cd4, 'k')
 
         title([sample_names{j} ' all'])
 
@@ -517,6 +565,7 @@ if bool_activation
         subplot(N_row, N_column, j)
         scatter(xy(:,1), xy(:,2), 5, NN, '.'), hold on
         xline(cd8_gate, 'r');
+        yline(activation_gate_cd8, 'k')
 
         % plot cd8+ cells
         %xy = [data(j).fcsdat(data(j).cd8_positive,i_rl1),data(j).fcsdat(data(j).cd8_positive,i_ct_ch)];
@@ -548,54 +597,6 @@ if bool_activation
         'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
     print(cur_fig, '-dpdf', [path_out filesep prefix_out '_scatter_CD69-CD8.pdf']); %save figure
 
-
-    %% CD69-positive histogram
-    %activation_gate_cd4  = 0.5e4;
-    %activation_gate_cd8  = 0.5e4;
-
-    tmp1 = [];
-    tmp2 = [];
-    for j=1:length(filenames)
-        tmp1 = [tmp1; data(j).fcsdat(data(j).cd4_positive,i_cd69)];
-        tmp2 = [tmp2; data(j).fcsdat(data(j).cd8_positive,i_cd69)];
-    end
-    activation_gate_cd4 = create_gate_1d(tmp1, data(j).fcshdr.par(i_cd69).name, 'Select gate for CD4+ cells');
-    activation_gate_cd8 = create_gate_1d(tmp2, data(j).fcshdr.par(i_cd69).name, 'Select gate for CD8+ cells');
-
-
-
-    cc = lines(2);
-
-    activated = zeros(length(filenames),2);
-    cur_fig = figure(10); clf
-    for j=1:length(filenames)
-
-
-        activated(j,2) = sum(data(j).fcsdat(data(j).cd8_positive,i_cd69)>activation_gate_cd8);
-        activated(j,1) = sum(data(j).fcsdat(data(j).cd4_positive,i_cd69)>activation_gate_cd4);
-
-        subplot(N_row, N_column, j)
-        %histogram(real(log10(data(j).fcsdat(:,i_ct_ch))), 'DisplayStyle', 'stairs'), hold on
-        histogram(real(log10(data(j).fcsdat(data(j).cd4_positive,i_cd69))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
-        histogram(real(log10(data(j).fcsdat(data(j).cd8_positive,i_cd69))), 'DisplayStyle', 'stairs', 'Normalization','pdf'), hold on
-        set(gca, 'XLim', [1 6], 'YLim', [0 1])
-        xline(log10(activation_gate_cd4), 'Color', cc(1,:));
-        xline(log10(activation_gate_cd8), 'Color', cc(2,:));
-        
-        title({sample_names{j}, ...
-            [num2str(round(100*activated(j,1)/sum(data(j).cd4_positive))) '% activated CD4'], ...
-            [num2str(round(100*activated(j,2)/sum(data(j).cd8_positive))) '% activated CD8'] })
-        if j==length(filenames)
-            legend({ 'CD4+', 'CD8+'})
-        end
-        xlabel(['CD69, ' data(j).fcshdr.par(i_cd69).name])
-        %ylabel('Count density')
-        ylabel('PDF')
-    end
-
-    set(gcf,'Visible','on', 'PaperPositionMode', 'manual','PaperUnits','centimeters', ...
-        'PaperPosition', [0 0 N_column*14 N_row*12 ], 'PaperSize', [N_column*14 N_row*12 ] );
-    print(cur_fig, '-dpdf', [path_out filesep prefix_out '_hist_cd69.pdf']); %save figure
 
     %%
 
