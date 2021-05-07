@@ -3,9 +3,9 @@ close all, clear all, clc
 
 
 
-path_in = '/Volumes/Jonas/2021-04-19_killing-A20-splenocytes/';
+%path_in = '/Volumes/Jonas/2021-04-19_killing-A20-splenocytes/';
 %path_in = '/Volumes/Jonas/2021-04-19_killing-A20-splenocytes_sytox/';
-
+path_in = '/Volumes/Jonas/2021-04-24_killing-nalm-bli-s8hb-sytoxGreen-CTFarRed/';
 
 lim = [0 255; ...
     46 154; ...
@@ -14,13 +14,15 @@ lim = [0 255; ...
 
 
 %stems = {'B02f01' 'B03f01' 'B04f01' 'B05f01' 'B06f01' 'B07f01' 'C02f01' 'C03f01' 'C04f01' 'C05f01' 'C06f01' 'C07f01'} ;
-stems = {'C06f02'} ;
-%%
+stems = {'B10f01' 'C10f01' 'D10f01' 'E10f01' 'F10f01' 'G10f01', ...
+    'B10f02' 'C10f02' 'D10f02' 'E10f02' 'F10f02' 'G10f02' ...
+    'B10f03' 'C10f03' 'D10f03' 'E10f03' 'F10f03' 'G10f03'} ;
+%
 for k=1:length(stems)
-    files_b = dir([path_in '*' stems{k} 'd1.TIF']);
+    files_g = dir([path_in '*' stems{k} 'd3.TIF']);
     files_bf = dir([path_in '*' stems{k} 'd2.TIF']);
-    files_r = dir([path_in '*' stems{k} 'd3.TIF']);
-    files_g = dir([path_in '*' stems{k} 'd4.TIF']);
+    files_r = dir([path_in '*' stems{k} 'd1.TIF']);
+    %files_b = dir([path_in '*' stems{k} 'd4.TIF']);
 
 
     path_out = [files_bf(1).folder '_' stems{k} filesep];
@@ -28,7 +30,7 @@ for k=1:length(stems)
 
 
     img_bf = imread([files_bf(1).folder filesep files_bf(1).name]);
-    scale = 2;
+    scale = 1;
 
     RGB = zeros(size(img_bf,1)/scale, size(img_bf,2)/scale, 3, 'uint8');
     img = zeros(size(img_bf,1)/scale, size(img_bf,2)/scale, 4, 'double');
@@ -38,9 +40,9 @@ for k=1:length(stems)
         img(:,:,1) = imresize(imread([files_bf(i).folder filesep files_bf(i).name]), 1/scale);
         img(:,:,2) = imresize(imread([files_r(i).folder filesep files_r(i).name]), 1/scale);
         img(:,:,3) = imresize(imread([files_g(i).folder filesep files_g(i).name]), 1/scale);
-        img(:,:,4) = imresize(imread([files_b(i).folder filesep files_b(i).name]), 1/scale);
+        %img(:,:,4) = imresize(imread([files_b(i).folder filesep files_b(i).name]), 1/scale);
 
-        for j=1:4
+        for j=1:3
             tmp = img(:,:,j);
             if j>1
                 cur_min = prctile(tmp(:), 25);%  lim(j,1);
@@ -64,7 +66,7 @@ for k=1:length(stems)
         %pause
         RGB(:,:,1) = uint8((img(:,:,1)/2 + img(:,:,2)/2)*(2^8-1));
         RGB(:,:,2) = uint8((img(:,:,1)/2 + img(:,:,3)/2)*(2^8-1));
-        RGB(:,:,3) = uint8((img(:,:,1)/2 + img(:,:,4)/2)*(2^8-1));
+        RGB(:,:,3) = uint8((img(:,:,1)/2)*(2^8-1));
 
 
         %imshow(RGB)
